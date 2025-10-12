@@ -24,8 +24,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        working-directory: apps/${{ matrix.app }}
         run: npm ci
+
+      - name: Prisma Generate
+        run: npm run db:generate
 
       - name: Lint
         working-directory: apps/${{ matrix.app }}
@@ -33,4 +35,4 @@ jobs:
 
       - name: Type Check
         working-directory: apps/${{ matrix.app }}
-        run: npm run typecheck
+        run: npx tsc --noEmit
