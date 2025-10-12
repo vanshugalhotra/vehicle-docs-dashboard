@@ -2,16 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
-  build:
+  build-backend:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [backend, frontend]
 
     steps:
       - name: Checkout repository
@@ -21,19 +18,29 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Install dependencies
-        working-directory: apps/${{ matrix.app }}
+      # Install root dependencies (Prisma etc.)
+      - name: Install root dependencies
+        working-directory: .
         run: npm ci
 
-      - name: Lint
-        working-directory: apps/${{ matrix.app }}
-        run: echo "Lint step placeholder"
+      # Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: apps/backend
+        run: npm ci
 
-      - name: Type Check
-        working-directory: apps/${{ matrix.app }}
-        run: echo "Typecheck step placeholder"
+      # Generate Prisma client from root
+      - name: Prisma Generate
+        working-directory: .
+        run: npm run db:generate
 
-      - name: Run Tests
-        working-directory: apps/${{ matrix.app }}
-        run: echo "Tests step placeholder"
+      # Run backend lint
+      - name: Run backend Lint
+        working-directory: apps/backend
+        run: npm run lint
+
+      # Run backend type check
+      - name: Run backend Type Check
+        working-directory: apps/backend
+        run: npx tsc --noEmit
