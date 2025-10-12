@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build:
@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
         working-directory: apps/${{ matrix.app }}
@@ -28,12 +29,8 @@ jobs:
 
       - name: Lint
         working-directory: apps/${{ matrix.app }}
-        run: echo "Lint step placeholder"
+        run: npm run lint
 
       - name: Type Check
         working-directory: apps/${{ matrix.app }}
-        run: echo "Typecheck step placeholder"
-
-      - name: Run Tests
-        working-directory: apps/${{ matrix.app }}
-        run: echo "Tests step placeholder"
+        run: npm run typecheck
