@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////////////////////////////////
+// Enums
+//////////////////////////////////////////////////////
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+//////////////////////////////////////////////////////
+// Models
+//////////////////////////////////////////////////////
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model VehicleCategory {
+  id        String        @id @default(uuid())
+  name      String        @unique
+  types     VehicleType[]
+  vehicles  Vehicle[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("vehicle_categories")
+}
+
+model VehicleType {
+  id         String          @id @default(uuid())
+  name       String
+  categoryId String
+  category   VehicleCategory @relation(fields: [categoryId], references: [id])
+  vehicles   Vehicle[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+  @@map("vehicle_types")
+}
+
+model Owner {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  vehicles  Vehicle[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("owners")
+}
+
+model Driver {
+  id        String    @id @default(uuid())
+  name      String
+  phone     String    @unique
+  email     String?
+  vehicles  Vehicle[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("drivers")
+}
+
+model Location {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  vehicles  Vehicle[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("locations")
+}
+
+model DocumentType {
+  id        String            @id @default(uuid())
+  name      String            @unique
+  documents VehicleDocument[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("document_types")
+}
+
+model Vehicle {
+  id            String            @id @default(uuid())
+  name          String
+  categoryId    String
+  typeId        String
+  licensePlate  String            @unique
+  rcNumber      String            @unique
+  chassisNumber String            @unique
+  engineNumber  String            @unique
+  notes         String?
+  ownerId       String?
+  driverId      String?
+  locationId    String?
+  documents     VehicleDocument[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  category VehicleCategory @relation(fields: [categoryId], references: [id])
+  type     VehicleType     @relation(fields: [typeId], references: [id])
+  owner    Owner?          @relation(fields: [ownerId], references: [id])
+  driver   Driver?         @relation(fields: [driverId], references: [id])
+  location Location?       @relation(fields: [locationId], references: [id])
+
+  @@index([categoryId])
+  @@index([typeId])
+  @@index([ownerId])
+  @@index([driverId])
+  @@index([locationId])
+  @@map("vehicles")
+}
+
+model VehicleDocument {
+  id             String   @id @default(uuid())
+  vehicleId      String
+  documentTypeId String
+  documentNo     String   @unique
+  startDate      DateTime
+  expiryDate     DateTime
+  notes          String?
+  link           String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  vehicle        Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  documentType   DocumentType    @relation(fields: [documentTypeId], references: [id])
+  reminderQueues ReminderQueue[]
+
+  @@index([vehicleId])
+  @@index([expiryDate])
+  @@map("vehicle_documents")
+}
+
+model ReminderConfig {
+  id         String   @id @default(uuid())
+  name       String?
+  offsetDays Int
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  reminderQueues ReminderQueue[]
+
+  @@map("reminder_configs")
+}
+
+model ReminderRecipient {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reminder_recipients")
+}
+
+model ReminderQueue {
+  id                String    @id @default(uuid())
+  vehicleDocumentId String
+  reminderConfigId  String
+  scheduledAt       DateTime
+  sentAt            DateTime?
+  attempts          Int       @default(0)
+  lastError         String?
+  createdAt         DateTime  @default(now())
+
+  vehicleDocument VehicleDocument @relation(fields: [vehicleDocumentId], references: [id], onDelete: Cascade)
+  reminderConfig  ReminderConfig  @relation(fields: [reminderConfigId], references: [id])
+
+  @@index([scheduledAt])
+  @@index([sentAt])
+  @@map("reminder_queue")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  entityType  String
+  entityId    String?
+  action      AuditAction
+  performedBy String?
+  payload     Json?
+  timestamp   DateTime    @default(now())
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
