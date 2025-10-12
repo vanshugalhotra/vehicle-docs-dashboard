@@ -20,18 +20,27 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      # Install root dependencies (Prisma etc.)
+      - name: Install root dependencies
+        working-directory: .
+        run: npm ci
+
+      # Install backend dependencies
       - name: Install backend dependencies
         working-directory: apps/backend
         run: npm ci
 
+      # Generate Prisma client from root
       - name: Prisma Generate
         working-directory: .
         run: npm run db:generate
 
+      # Run backend lint
       - name: Run backend Lint
         working-directory: apps/backend
         run: npm run lint
 
+      # Run backend type check
       - name: Run backend Type Check
         working-directory: apps/backend
         run: npx tsc --noEmit
