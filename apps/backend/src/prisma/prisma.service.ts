@@ -4,7 +4,8 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from 'src/generated';
+import { PrismaClient } from '@prisma/client';
+import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class PrismaService
@@ -13,10 +14,17 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
 
-  /**
-   * Connect to the database when module initializes
-   */
-  async onModuleInit(this: PrismaService): Promise<void> {
+  constructor(private readonly configService: ConfigService) {
+    super({
+      log:
+        configService.get('NODE_ENV') === 'development'
+          ? ['query', 'info', 'warn', 'error']
+          : ['warn', 'error'],
+    });
+  }
+
+  async onModuleInit(): Promise<void> {
+    this.logger.log('Initializing Prisma Service...');
     try {
       await this.$connect();
       this.logger.log('✅ Prisma connected');
@@ -28,10 +36,8 @@ export class PrismaService
     }
   }
 
-  /**
-   * Disconnect from the database when module shuts down
-   */
-  async onModuleDestroy(this: PrismaService): Promise<void> {
+  async onModuleDestroy(): Promise<void> {
+    this.logger.log('Shutting down Prisma Service...');
     try {
       await this.$disconnect();
       this.logger.log('🛑 Prisma disconnected');
