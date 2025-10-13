@@ -6,12 +6,14 @@ import { LoggerModule } from './common/logger/logger.module';
 import { LoggerModule as NestLoggerModule } from 'nestjs-pino';
 import { ConfigModule } from './config/config.module';
 import { ConfigService } from './config/config.service';
+import { VehiclesModule } from './modules/vehicle/vehicles.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     LoggerModule,
+    VehiclesModule,
     NestLoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

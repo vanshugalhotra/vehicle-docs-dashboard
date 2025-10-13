@@ -11,4 +11,4 @@ dist/
 *.log
 
 # Prisma
-prisma/migrations/
+libs/db/prisma/migrations/
