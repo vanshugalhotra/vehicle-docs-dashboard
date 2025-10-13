@@ -19,8 +19,9 @@ export class ConfigService {
   private readonly config: AppConfig;
 
   constructor() {
-    // Load .env
-    dotenv.config({ path: '.env' });
+    // Determine which .env file to load based on NODE_ENV
+    const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+    dotenv.config({ path: envFile });
 
     // Type-safe schema
     const schema = Joi.object<AppConfig>({
