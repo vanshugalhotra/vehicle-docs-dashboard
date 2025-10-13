@@ -8,44 +8,54 @@ import { CreateVehicleTypeDto } from './dto/create-type.dto';
 import { UpdateVehicleTypeDto } from './dto/update-type.dto';
 import { VehicleTypeResponse } from 'src/common/types';
 import { mapTypeToResponse } from './vehicle-types.mapper';
+import { LoggerService } from 'src/common/logger/logger.service';
 
 @Injectable()
 export class VehicleTypeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService, // injected logger
+  ) {}
 
   /**
    * Create new vehicle type under a category
    */
   async create(dto: CreateVehicleTypeDto): Promise<VehicleTypeResponse> {
-    // Ensure category exists
+    this.logger.info(
+      `Creating vehicle type "${dto.name}" under category "${dto.categoryId}"`,
+    );
+
     const category = await this.prisma.vehicleCategory.findUnique({
       where: { id: dto.categoryId },
     });
-    if (!category)
+    if (!category) {
+      this.logger.warn(`Category not found: ${dto.categoryId}`);
       throw new NotFoundException(
         `Vehicle category with id "${dto.categoryId}" not found`,
       );
+    }
 
-    // Ensure uniqueness per category
     const existing = await this.prisma.vehicleType.findFirst({
       where: {
         name: dto.name,
         categoryId: dto.categoryId,
       },
     });
-    if (existing)
+    if (existing) {
+      this.logger.warn(
+        `Vehicle type already exists: ${dto.name} in category ${dto.categoryId}`,
+      );
       throw new ConflictException(
         `Vehicle type "${dto.name}" already exists under this category`,
       );
+    }
 
     const type = await this.prisma.vehicleType.create({
-      data: {
-        name: dto.name,
-        categoryId: dto.categoryId,
-      },
+      data: { name: dto.name, categoryId: dto.categoryId },
       include: { category: true },
     });
 
+    this.logger.info(`Vehicle type created: ${type.id}`);
     return mapTypeToResponse(type);
   }
 
@@ -56,6 +66,10 @@ export class VehicleTypeService {
     categoryId?: string,
     search?: string,
   ): Promise<VehicleTypeResponse[]> {
+    this.logger.info(
+      `Fetching vehicle types${categoryId ? ` for category: ${categoryId}` : ''}${search ? ` with search: ${search}` : ''}`,
+    );
+
     const types = await this.prisma.vehicleType.findMany({
       where: {
         categoryId: categoryId || undefined,
@@ -65,6 +79,7 @@ export class VehicleTypeService {
       orderBy: { createdAt: 'desc' },
     });
 
+    this.logger.info(`Fetched ${types.length} vehicle types`);
     return types.map(mapTypeToResponse);
   }
 
@@ -72,12 +87,17 @@ export class VehicleTypeService {
    * Find one by id
    */
   async findOne(id: string): Promise<VehicleTypeResponse> {
+    this.logger.info(`Fetching vehicle type by id: ${id}`);
+
     const type = await this.prisma.vehicleType.findUnique({
       where: { id },
       include: { category: true },
     });
-    if (!type)
+
+    if (!type) {
+      this.logger.warn(`Vehicle type not found: ${id}`);
       throw new NotFoundException(`Vehicle type with id "${id}" not found`);
+    }
 
     return mapTypeToResponse(type);
   }
@@ -89,13 +109,16 @@ export class VehicleTypeService {
     id: string,
     dto: UpdateVehicleTypeDto,
   ): Promise<VehicleTypeResponse> {
+    this.logger.info(`Updating vehicle type: ${id}`);
+
     const existingType = await this.prisma.vehicleType.findUnique({
       where: { id },
     });
-    if (!existingType)
+    if (!existingType) {
+      this.logger.warn(`Vehicle type not found: ${id}`);
       throw new NotFoundException(`Vehicle type with id "${id}" not found`);
+    }
 
-    // If changing name or category, enforce uniqueness constraint
     const targetCategoryId = dto.categoryId ?? existingType.categoryId;
     const targetName = dto.name ?? existingType.name;
 
@@ -106,20 +129,22 @@ export class VehicleTypeService {
         categoryId: targetCategoryId,
       },
     });
-    if (duplicate)
+    if (duplicate) {
+      this.logger.warn(
+        `Duplicate vehicle type: ${targetName} in category ${targetCategoryId}`,
+      );
       throw new ConflictException(
         `Vehicle type "${targetName}" already exists under this category`,
       );
+    }
 
     const updated = await this.prisma.vehicleType.update({
       where: { id },
-      data: {
-        name: dto.name ?? existingType.name,
-        categoryId: dto.categoryId ?? existingType.categoryId,
-      },
+      data: { name: targetName, categoryId: targetCategoryId },
       include: { category: true },
     });
 
+    this.logger.info(`Vehicle type updated: ${updated.id}`);
     return mapTypeToResponse(updated);
   }
 
@@ -127,11 +152,16 @@ export class VehicleTypeService {
    * Delete vehicle type
    */
   async remove(id: string): Promise<{ success: boolean }> {
+    this.logger.info(`Deleting vehicle type: ${id}`);
+
     const type = await this.prisma.vehicleType.findUnique({ where: { id } });
-    if (!type)
+    if (!type) {
+      this.logger.warn(`Vehicle type not found: ${id}`);
       throw new NotFoundException(`Vehicle type with id "${id}" not found`);
+    }
 
     await this.prisma.vehicleType.delete({ where: { id } });
+    this.logger.info(`Vehicle type deleted: ${id}`);
     return { success: true };
   }
 }
