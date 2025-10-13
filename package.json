@@ -3,6 +3,7 @@
     "db:format": "prisma format --schema=libs/db/prisma/schema.prisma",
     "db:validate": "prisma validate --schema=libs/db/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=libs/db/prisma/schema.prisma --name init",
+    "db:reset": "prisma migrate reset --force --schema=libs/db/prisma/schema.prisma",
     "db:generate": "prisma generate --schema=libs/db/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=libs/db/prisma/schema.prisma"
   },

@@ -7,6 +7,8 @@ import { LoggerModule as NestLoggerModule } from 'nestjs-pino';
 import { ConfigModule } from './config/config.module';
 import { ConfigService } from './config/config.service';
 import { VehiclesModule } from './modules/vehicle/vehicles.module';
+import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-categories.module';
+import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { VehiclesModule } from './modules/vehicle/vehicles.module';
     PrismaModule,
     LoggerModule,
     VehiclesModule,
+    VehicleCategoriesModule,
+    VehicleTypesModule,
     NestLoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -4,6 +4,7 @@ import { Logger } from 'nestjs-pino';
 import { VersioningType } from '@nestjs/common';
 import { ConfigService } from './config/config.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -23,8 +24,16 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
   // Global API prefix
-  app.setGlobalPrefix('api'); // All routes become /api/v1/vehicles
+  app.setGlobalPrefix('api');
 
   // ----------------------------
   // Swagger / OpenAPI setup
