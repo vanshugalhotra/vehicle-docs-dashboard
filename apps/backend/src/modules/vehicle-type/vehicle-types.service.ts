@@ -34,7 +34,13 @@ export class VehicleTypeService {
       }
 
       const existing = await this.prisma.vehicleType.findFirst({
-        where: { name: dto.name, categoryId: dto.categoryId },
+        where: {
+          name: {
+            equals: dto.name,
+            mode: 'insensitive',
+          },
+          categoryId: dto.categoryId,
+        },
       });
       if (existing) {
         this.logger.warn(
