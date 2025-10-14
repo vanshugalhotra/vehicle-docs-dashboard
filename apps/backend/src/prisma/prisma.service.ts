@@ -18,7 +18,7 @@ export class PrismaService
     super({
       log:
         configService.get('NODE_ENV') === 'development'
-          ? ['query', 'warn', 'error']
+          ? ['warn', 'error']
           : ['warn', 'error'],
     });
   }

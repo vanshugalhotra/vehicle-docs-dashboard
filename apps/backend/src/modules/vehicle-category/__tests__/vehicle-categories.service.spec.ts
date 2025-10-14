@@ -88,10 +88,20 @@ describe('VehicleCategoryService', () => {
 
   describe('remove', () => {
     it('should delete category', async () => {
-      prisma.vehicleCategory.findUnique.mockResolvedValue({ id: '1' });
-      prisma.vehicleCategory.delete.mockResolvedValue({});
+      prisma.vehicleCategory.findUnique.mockResolvedValue({
+        id: '1',
+        name: 'Car',
+        types: [],
+      });
+
+      prisma.vehicleCategory.delete.mockResolvedValue({ id: '1', name: 'Car' });
+
       const result = await service.remove('1');
-      expect(result.success).toBe(true);
+
+      expect(result).toEqual({ success: true });
+      expect(prisma.vehicleCategory.delete).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
   });
 });
