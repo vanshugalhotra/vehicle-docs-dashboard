@@ -5,7 +5,7 @@ import {
   Body,
   Param,
   Delete,
-  Put,
+  Patch,
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -74,7 +74,7 @@ export class VehicleTypeController {
     return this.vehicleTypeService.findOne(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiResponse({
     status: 200,
     description: 'Vehicle type updated successfully',

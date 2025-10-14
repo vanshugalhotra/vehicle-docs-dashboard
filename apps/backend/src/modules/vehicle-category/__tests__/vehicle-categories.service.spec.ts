@@ -20,7 +20,7 @@ describe('VehicleCategoryService', () => {
 
   describe('create', () => {
     it('should create category', async () => {
-      prisma.vehicleCategory.findUnique.mockResolvedValue(null);
+      prisma.vehicleCategory.findFirst.mockResolvedValue(null);
       prisma.vehicleCategory.create.mockResolvedValue({ id: '1', name: 'Car' });
 
       const result = await service.create({ name: 'Car' });
@@ -35,7 +35,7 @@ describe('VehicleCategoryService', () => {
     });
 
     it('should throw ConflictException if exists', async () => {
-      prisma.vehicleCategory.findUnique.mockResolvedValue({
+      prisma.vehicleCategory.findFirst.mockResolvedValue({
         id: '1',
         name: 'Car',
       });

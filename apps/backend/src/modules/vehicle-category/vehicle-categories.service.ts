@@ -21,8 +21,13 @@ export class VehicleCategoryService {
   async create(dto: CreateCategoryDto): Promise<VehicleCategoryResponse> {
     this.logger.info(`Creating vehicle category: ${dto.name}`);
     try {
-      const existing = await this.prisma.vehicleCategory.findUnique({
-        where: { name: dto.name },
+      const existing = await this.prisma.vehicleCategory.findFirst({
+        where: {
+          name: {
+            equals: dto.name,
+            mode: 'insensitive',
+          },
+        },
       });
       if (existing) {
         this.logger.warn(
