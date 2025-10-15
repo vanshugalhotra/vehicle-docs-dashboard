@@ -39,7 +39,7 @@ jobs:
       - name: Set environment variables for testing
         run: |
           echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > .env
-          echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > apps/backend/.env
+          echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > .env.test
 
       # Install root dependencies (Prisma etc.)
       - name: Install root dependencies
@@ -59,7 +59,8 @@ jobs:
       # Apply Prisma schema
       - name: Apply Prisma Schema
         working-directory: .
-        run: npx prisma migrate deploy || npx prisma db push
+        run: npx prisma migrate deploy --schema=libs/db/prisma/schema.prisma || npx prisma db push --schema=libs/db/prisma/schema.prisma
+
 
       # Run backend lint
       - name: Run backend Lint
