@@ -21,6 +21,15 @@ export const mockPrisma = () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
+  },
+  owner: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
 });
 
