@@ -40,12 +40,10 @@ describe('Owner E2E (comprehensive + extended)', () => {
     server = app.getHttpServer() as unknown as Express;
 
     // Cleanup before running tests
-    await prisma.vehicle.deleteMany({});
     await prisma.owner.deleteMany({});
   });
 
   afterAll(async () => {
-    await prisma.vehicle.deleteMany({});
     await prisma.owner.deleteMany({});
     await app.close();
   });
