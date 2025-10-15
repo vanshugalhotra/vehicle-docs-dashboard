@@ -19,27 +19,26 @@ export class VehicleCategoryService {
   ) {}
 
   async create(dto: CreateCategoryDto): Promise<VehicleCategoryResponse> {
-    this.logger.info(`Creating vehicle category: ${dto.name}`);
+    const name = dto.name.trim();
+    this.logger.info(`Creating vehicle category: ${name}`);
     try {
       const existing = await this.prisma.vehicleCategory.findFirst({
         where: {
           name: {
-            equals: dto.name,
+            equals: name,
             mode: 'insensitive',
           },
         },
       });
       if (existing) {
-        this.logger.warn(
-          `Category creation failed, already exists: ${dto.name}`,
-        );
+        this.logger.warn(`Category creation failed, already exists: ${name}`);
         throw new ConflictException(
-          `Vehicle category with name "${dto.name}" already exists`,
+          `Vehicle category with name "${name}" already exists`,
         );
       }
 
       const category = await this.prisma.vehicleCategory.create({
-        data: { name: dto.name },
+        data: { name: name },
       });
 
       this.logger.info(`Vehicle category created: ${category.id}`);

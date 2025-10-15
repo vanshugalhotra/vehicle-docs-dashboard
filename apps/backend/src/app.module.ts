@@ -7,6 +7,7 @@ import { ConfigModule } from './config/config.module';
 import { VehiclesModule } from './modules/vehicle/vehicles.module';
 import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-categories.module';
 import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
+import { OwnersModule } from './modules/owner/owners.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module'
     VehiclesModule,
     VehicleCategoriesModule,
     VehicleTypesModule,
+    OwnersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

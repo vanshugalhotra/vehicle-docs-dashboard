@@ -19,8 +19,9 @@ export class VehicleTypeService {
   ) {}
 
   async create(dto: CreateVehicleTypeDto): Promise<VehicleTypeResponse> {
+    const name = dto.name.trim();
     this.logger.info(
-      `Creating vehicle type "${dto.name}" under category "${dto.categoryId}"`,
+      `Creating vehicle type "${name}" under category "${dto.categoryId}"`,
     );
     try {
       const category = await this.prisma.vehicleCategory.findUnique({
@@ -36,7 +37,7 @@ export class VehicleTypeService {
       const existing = await this.prisma.vehicleType.findFirst({
         where: {
           name: {
-            equals: dto.name,
+            equals: name,
             mode: 'insensitive',
           },
           categoryId: dto.categoryId,
@@ -44,15 +45,15 @@ export class VehicleTypeService {
       });
       if (existing) {
         this.logger.warn(
-          `Vehicle type already exists: ${dto.name} in category ${dto.categoryId}`,
+          `Vehicle type already exists: ${name} in category ${dto.categoryId}`,
         );
         throw new ConflictException(
-          `Vehicle type "${dto.name}" already exists under this category`,
+          `Vehicle type "${name}" already exists under this category`,
         );
       }
 
       const type = await this.prisma.vehicleType.create({
-        data: { name: dto.name, categoryId: dto.categoryId },
+        data: { name: name, categoryId: dto.categoryId },
         include: { category: true },
       });
 
