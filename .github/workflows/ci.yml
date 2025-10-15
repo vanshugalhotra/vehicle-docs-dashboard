@@ -35,7 +35,6 @@ jobs:
           node-version: 20
           cache: "npm"
 
-      # ✅ Inject env dynamically like previous project
       - name: Set environment variables for testing
         run: |
           echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > .env
@@ -58,36 +57,32 @@ jobs:
           echo "SMTP_PASS=${{ secrets.SMTP_PASS}}" >> .env.test
           echo "TZ=Asia/Kolkata" >> .env.test
 
-      # Install root dependencies (Prisma etc.)
       - name: Install root dependencies
         working-directory: .
         run: npm ci
 
-      # Install backend dependencies
       - name: Install backend dependencies
         working-directory: apps/backend
         run: npm ci
 
-      # Generate Prisma client from root
       - name: Prisma Generate
         working-directory: .
         run: npm run db:generate
 
-      # Apply Prisma schema
-      - name: Apply Prisma Schema
+      - name: Apply Prisma Schema (Migration Deploy)
         working-directory: .
         run: npx prisma migrate deploy --schema=libs/db/prisma/schema.prisma || npx prisma db push --schema=libs/db/prisma/schema.prisma
 
-
-      # Run backend lint
       - name: Run backend Lint
         working-directory: apps/backend
         run: npm run lint
 
-      # Run backend type check
       - name: Run backend Type Check
         working-directory: apps/backend
         run: npx tsc --noEmit
+
+      - name: Reset Database for Tests (Clean Test DB)
+        run: npx prisma migrate reset --force --skip-seed --schema=libs/db/prisma/schema.prisma
 
       - name: Run backend Tests (Serial)
         working-directory: apps/backend
