@@ -10,6 +10,21 @@ jobs:
   build-backend:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -18,7 +33,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
+
+      # ✅ Inject env dynamically like previous project
+      - name: Set environment variables for testing
+        run: |
+          echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > .env
+          echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" > apps/backend/.env
 
       # Install root dependencies (Prisma etc.)
       - name: Install root dependencies
@@ -35,6 +56,11 @@ jobs:
         working-directory: .
         run: npm run db:generate
 
+      # Apply Prisma schema
+      - name: Apply Prisma Schema
+        working-directory: .
+        run: npx prisma migrate deploy || npx prisma db push
+
       # Run backend lint
       - name: Run backend Lint
         working-directory: apps/backend
@@ -44,3 +70,7 @@ jobs:
       - name: Run backend Type Check
         working-directory: apps/backend
         run: npx tsc --noEmit
+
+      - name: Run backend Tests (Serial)
+        working-directory: apps/backend
+        run: npm run test:serial
