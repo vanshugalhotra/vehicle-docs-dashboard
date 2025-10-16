@@ -39,6 +39,14 @@ export const mockPrisma = () => ({
     update: jest.fn(),
     delete: jest.fn(),
   },
+  location: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
 });
 
 export type MockedPrisma = ReturnType<typeof mockPrisma>;

@@ -9,6 +9,7 @@ import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-cate
 import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
 import { OwnersModule } from './modules/owner/owners.module';
 import { DriversModule } from './modules/driver/driver.module';
+import { LocationsModule } from './modules/location/location.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DriversModule } from './modules/driver/driver.module';
     VehicleTypesModule,
     OwnersModule,
     DriversModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
