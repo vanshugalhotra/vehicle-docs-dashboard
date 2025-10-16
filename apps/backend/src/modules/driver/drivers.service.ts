@@ -78,7 +78,7 @@ export class DriversService {
           ? {
               OR: [
                 { name: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search } },
+                { phone: { contains: search, mode: 'insensitive' } },
                 { email: { contains: search, mode: 'insensitive' } },
               ],
             }
