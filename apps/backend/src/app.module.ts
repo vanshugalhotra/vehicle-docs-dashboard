@@ -8,6 +8,7 @@ import { VehiclesModule } from './modules/vehicle/vehicles.module';
 import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-categories.module';
 import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
 import { OwnersModule } from './modules/owner/owners.module';
+import { DriversModule } from './modules/driver/driver.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { OwnersModule } from './modules/owner/owners.module';
     VehicleCategoriesModule,
     VehicleTypesModule,
     OwnersModule,
+    DriversModule,
   ],
   controllers: [AppController],
   providers: [AppService],
