@@ -71,7 +71,11 @@ jobs:
 
       - name: Apply Prisma Schema (Migration Deploy)
         working-directory: .
-        run: npx prisma migrate deploy --schema=libs/db/prisma/schema.prisma || npx prisma db push --schema=libs/db/prisma/schema.prisma
+        run: npx prisma migrate deploy --schema=libs/db/prisma/schema.prisma
+
+      - name: Apply Prisma Schema (ensure tables exist)
+        working-directory: .
+        run: npx prisma db push --schema=libs/db/prisma/schema.prisma
 
       - name: Run backend Lint
         working-directory: apps/backend
@@ -81,8 +85,10 @@ jobs:
         working-directory: apps/backend
         run: npx tsc --noEmit
 
-      - name: Reset Database for Tests (Clean Test DB)
-        run: npx prisma migrate reset --force --skip-seed --schema=libs/db/prisma/schema.prisma
+      - name: Prepare Test Database
+        run: |
+          npx prisma db push --schema=libs/db/prisma/schema.prisma
+          npx prisma migrate reset --force --skip-seed --schema=libs/db/prisma/schema.prisma
 
       - name: Run backend Tests (Serial)
         working-directory: apps/backend
