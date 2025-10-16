@@ -7,32 +7,59 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { mapVehicleToResponse } from './vehicles.mapper';
-
+import { LoggerService } from 'src/common/logger/logger.service';
 import { VehicleResponse } from 'src/common/types';
 
 @Injectable()
 export class VehiclesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
+  ) {}
 
   /**
    * Create a new vehicle
    */
   async create(dto: CreateVehicleDto): Promise<VehicleResponse> {
-    // Check uniqueness of licensePlate, rcNumber, chassisNumber, engineNumber
+    // Normalize input (trim + uppercase for consistency)
+    const normalized = {
+      licensePlate: dto.licensePlate?.trim().toUpperCase(),
+      rcNumber: dto.rcNumber?.trim().toUpperCase(),
+      chassisNumber: dto.chassisNumber?.trim().toUpperCase(),
+      engineNumber: dto.engineNumber?.trim().toUpperCase(),
+    };
+
     const existing = await this.prisma.vehicle.findFirst({
       where: {
         OR: [
-          { licensePlate: dto.licensePlate },
-          { rcNumber: dto.rcNumber },
-          { chassisNumber: dto.chassisNumber },
-          { engineNumber: dto.engineNumber },
+          {
+            licensePlate: {
+              equals: normalized.licensePlate,
+              mode: 'insensitive',
+            },
+          },
+          { rcNumber: { equals: normalized.rcNumber, mode: 'insensitive' } },
+          {
+            chassisNumber: {
+              equals: normalized.chassisNumber,
+              mode: 'insensitive',
+            },
+          },
+          {
+            engineNumber: {
+              equals: normalized.engineNumber,
+              mode: 'insensitive',
+            },
+          },
         ],
       },
     });
-    if (existing)
+    if (existing) {
+      this.logger.warn('Vehicle with same identifiers already exists');
       throw new ConflictException(
         'Vehicle with same identifiers already exists',
       );
+    }
 
     // Fetch category and type names for generating the vehicle name
     const category = await this.prisma.vehicleCategory.findUnique({
@@ -46,16 +73,16 @@ export class VehiclesService {
     if (!type) throw new NotFoundException(`Type not found`);
 
     // Generate name: "Category (Type) - LicensePlate"
-    const vehicleName = `${category.name} (${type.name}) - ${dto.licensePlate}`;
+    const vehicleName = `${category.name} (${type.name}) - ${normalized.licensePlate}`;
 
     const vehicle = await this.prisma.vehicle.create({
       data: {
         name: vehicleName,
-        licensePlate: dto.licensePlate,
-        rcNumber: dto.rcNumber,
-        chassisNumber: dto.chassisNumber,
-        engineNumber: dto.engineNumber,
-        notes: dto.notes,
+        licensePlate: normalized.licensePlate,
+        rcNumber: normalized.rcNumber,
+        chassisNumber: normalized.chassisNumber,
+        engineNumber: normalized.engineNumber,
+        notes: dto.notes?.trim() ?? null,
         categoryId: dto.categoryId,
         typeId: dto.typeId,
         ownerId: dto.ownerId ?? null,
@@ -64,6 +91,7 @@ export class VehiclesService {
       },
     });
 
+    this.logger.info(`Created vehicle ${vehicle.id} - ${vehicle.name}`);
     return mapVehicleToResponse(vehicle);
   }
 
@@ -88,7 +116,7 @@ export class VehiclesService {
       },
       orderBy: { createdAt: 'desc' },
     });
-
+    this.logger.info(`Fetched ${vehicles.length} vehicles`);
     return vehicles.map(mapVehicleToResponse);
   }
 
@@ -177,6 +205,8 @@ export class VehiclesService {
       data: updatedData,
     });
 
+    this.logger.info(`Updated vehicle ${updated.id} - ${updated.name}`);
+
     return mapVehicleToResponse(updated);
   }
 
@@ -189,6 +219,7 @@ export class VehiclesService {
       throw new NotFoundException(`Vehicle with id ${id} not found`);
 
     await this.prisma.vehicle.delete({ where: { id } });
+    this.logger.info(`Deleted vehicle ${vehicle.id} - ${vehicle.name}`);
     return { success: true };
   }
 }

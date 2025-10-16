@@ -5,7 +5,7 @@ import {
   Body,
   Param,
   Delete,
-  Put,
+  Patch,
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -66,7 +66,7 @@ export class VehiclesController {
   // ────────────────────────────────────────────────
   // UPDATE
   // ────────────────────────────────────────────────
-  @Put(':id')
+  @Patch(':id')
   @ApiResponse({ status: 200, description: 'Vehicle updated successfully' })
   @ApiResponse({ status: 404, description: 'Vehicle not found' })
   @ApiResponse({
