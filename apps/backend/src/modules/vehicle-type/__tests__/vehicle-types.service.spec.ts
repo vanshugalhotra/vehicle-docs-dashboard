@@ -28,6 +28,7 @@ describe('VehicleTypeService', () => {
       prisma.vehicleType.create.mockResolvedValue({
         id: 'type1',
         name: 'Sedan',
+        vehicles: [],
       });
 
       const result = await service.create({

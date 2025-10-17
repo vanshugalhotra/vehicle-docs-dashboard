@@ -162,7 +162,7 @@ export class VehicleTypeService {
         this.logger.warn(`Vehicle type not found: ${id}`);
         throw new NotFoundException(`Vehicle type with id "${id}" not found`);
       }
-      if (type.vehicles.length > 0) {
+      if (type.vehicles?.length > 0) {
         throw new ConflictException(
           `Cannot delete vehicle type "${type.name}" because vehicles exist for this type`,
         );

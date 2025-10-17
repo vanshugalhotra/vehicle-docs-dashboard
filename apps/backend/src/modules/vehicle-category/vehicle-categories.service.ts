@@ -144,7 +144,7 @@ export class VehicleCategoryService {
         );
       }
 
-      if (category.vehicles.length > 0) {
+      if (category.vehicles?.length > 0) {
         throw new ConflictException(
           `Cannot delete vehicle type "${category.name}" because vehicles exist for this type`,
         );
