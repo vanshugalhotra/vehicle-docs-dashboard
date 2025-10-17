@@ -154,12 +154,19 @@ export class VehicleTypeService {
   async remove(id: string): Promise<{ success: boolean }> {
     this.logger.info(`Deleting vehicle type: ${id}`);
     try {
-      const type = await this.prisma.vehicleType.findUnique({ where: { id } });
+      const type = await this.prisma.vehicleType.findUnique({
+        where: { id },
+        include: { vehicles: true },
+      });
       if (!type) {
         this.logger.warn(`Vehicle type not found: ${id}`);
         throw new NotFoundException(`Vehicle type with id "${id}" not found`);
       }
-
+      if (type.vehicles.length > 0) {
+        throw new ConflictException(
+          `Cannot delete vehicle type "${type.name}" because vehicles exist for this type`,
+        );
+      }
       await this.prisma.vehicleType.delete({ where: { id } });
       this.logger.info(`Vehicle type deleted: ${id}`);
       return { success: true };

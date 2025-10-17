@@ -72,6 +72,12 @@ export class VehiclesService {
     if (!category) throw new NotFoundException(`Category not found`);
     if (!type) throw new NotFoundException(`Type not found`);
 
+    if (type.categoryId !== dto.categoryId) {
+      throw new ConflictException(
+        `Vehicle type "${type.name}" does not belong to category "${category.name}"`,
+      );
+    }
+
     // Generate name: "Category (Type) - LicensePlate"
     const vehicleName = `${category.name} (${type.name}) - ${normalized.licensePlate}`;
 

@@ -130,7 +130,7 @@ export class VehicleCategoryService {
     try {
       const category = await this.prisma.vehicleCategory.findUnique({
         where: { id },
-        include: { types: true },
+        include: { types: true, vehicles: true },
       });
       if (!category) {
         this.logger.warn(`Delete failed, category not found: ${id}`);
@@ -141,6 +141,12 @@ export class VehicleCategoryService {
         this.logger.warn(`Delete failed, category has dependent types: ${id}`);
         throw new ConflictException(
           `Cannot delete category "${category.name}" because it has ${category.types.length} type(s)`,
+        );
+      }
+
+      if (category.vehicles.length > 0) {
+        throw new ConflictException(
+          `Cannot delete vehicle type "${category.name}" because vehicles exist for this type`,
         );
       }
 
