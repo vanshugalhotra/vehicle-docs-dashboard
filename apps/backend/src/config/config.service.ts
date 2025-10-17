@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import * as Joi from 'joi';
 
 export interface AppConfig {
@@ -19,10 +20,14 @@ export class ConfigService {
   private readonly config: AppConfig;
 
   constructor() {
-    // Load .env
-    dotenv.config({ path: '.env' });
+    let envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+    if (!fs.existsSync(envFile)) {
+      // fallback to .env if the specific file doesn't exist
+      envFile = '.env';
+    }
 
-    // Type-safe schema
+    dotenv.config({ path: envFile });
+
     const schema = Joi.object<AppConfig>({
       DATABASE_URL: Joi.string().required(),
       NODE_ENV: Joi.string()

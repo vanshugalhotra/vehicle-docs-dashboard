@@ -2,6 +2,7 @@
 node_modules/
 dist/
 .env
+.env.test
 .DS_Store
 
 # VSCode
@@ -11,4 +12,4 @@ dist/
 *.log
 
 # Prisma
-prisma/migrations/
+libs/db/prisma/migrations/

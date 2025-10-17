@@ -3,29 +3,25 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from './common/logger/logger.module';
-import { LoggerModule as NestLoggerModule } from 'nestjs-pino';
 import { ConfigModule } from './config/config.module';
-import { ConfigService } from './config/config.service';
+import { VehiclesModule } from './modules/vehicle/vehicles.module';
+import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-categories.module';
+import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
+import { OwnersModule } from './modules/owner/owners.module';
+import { DriversModule } from './modules/driver/driver.module';
+import { LocationsModule } from './modules/location/location.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     LoggerModule,
-    NestLoggerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        pinoHttp: {
-          level: config.get('NODE_ENV') === 'production' ? 'info' : 'debug',
-          transport:
-            config.get('NODE_ENV') !== 'production'
-              ? { target: 'pino-pretty', options: { colorize: true } }
-              : undefined,
-          timestamp: () => `,"time":"${new Date().toISOString()}"`,
-        },
-      }),
-    }),
+    VehiclesModule,
+    VehicleCategoriesModule,
+    VehicleTypesModule,
+    OwnersModule,
+    DriversModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
