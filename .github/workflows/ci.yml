@@ -90,3 +90,31 @@ jobs:
       - name: Run backend Tests (Serial)
         working-directory: apps/backend
         run: npm run test:serial
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install root dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: apps/frontend
+        run: npm ci
+
+      - name: Run frontend Lint
+        working-directory: apps/frontend
+        run: npm run lint
+
+      - name: Run frontend Type Check
+        working-directory: apps/frontend
+        run: npx tsc --noEmit
