@@ -60,7 +60,7 @@ describe('Location E2E (comprehensive + extended)', () => {
   describe('Create Location', () => {
     it('should create a location', async () => {
       const res = await request(server)
-        .post('/api/v1/location')
+        .post('/api/v1/locations')
         .send({ name: 'East Yard' })
         .expect(201);
 
@@ -70,20 +70,20 @@ describe('Location E2E (comprehensive + extended)', () => {
     });
 
     it('should return 400 when name is missing', async () => {
-      await request(server).post('/api/v1/location').send({}).expect(400);
+      await request(server).post('/api/v1/locations').send({}).expect(400);
     });
 
     it('should return 409 on duplicate name (case-insensitive)', async () => {
       // Central Warehouse exists; try lowercased or different casing
       await request(server)
-        .post('/api/v1/location')
+        .post('/api/v1/locations')
         .send({ name: 'central warehouse' })
         .expect(409);
     });
 
     it('should reject names with invalid characters', async () => {
       await request(server)
-        .post('/api/v1/location')
+        .post('/api/v1/locations')
         .send({ name: 'Bad@Name!' })
         .expect(400);
     });
@@ -91,14 +91,14 @@ describe('Location E2E (comprehensive + extended)', () => {
 
   describe('Fetch Location', () => {
     it('should fetch all locations', async () => {
-      const res = await request(server).get('/api/v1/location').expect(200);
+      const res = await request(server).get('/api/v1/locations').expect(200);
       const list = res.body as LocationResponse[];
       expect(list.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should search locations (case-insensitive contains)', async () => {
       const res = await request(server)
-        .get('/api/v1/location?search=central')
+        .get('/api/v1/locations?search=central')
         .expect(200);
       const list = res.body as LocationResponse[];
       expect(list.length).toBe(1);
@@ -107,7 +107,7 @@ describe('Location E2E (comprehensive + extended)', () => {
 
     it('should fetch single location by ID', async () => {
       const res = await request(server)
-        .get(`/api/v1/location/${locA.id}`)
+        .get(`/api/v1/locations/${locA.id}`)
         .expect(200);
       const single = res.body as LocationResponse;
       expect(single.name).toBe('Central Warehouse');
@@ -115,12 +115,12 @@ describe('Location E2E (comprehensive + extended)', () => {
 
     it('should return 404 for non-existent location', async () => {
       await request(server)
-        .get('/api/v1/location/00000000-0000-0000-0000-000000000000')
+        .get('/api/v1/locations/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
 
     it('should return 400 for invalid UUID', async () => {
-      await request(server).get('/api/v1/location/invalid-uuid').expect(400);
+      await request(server).get('/api/v1/locations/invalid-uuid').expect(400);
     });
   });
 
@@ -136,7 +136,7 @@ describe('Location E2E (comprehensive + extended)', () => {
 
     it('should update name successfully', async () => {
       const res = await request(server)
-        .patch(`/api/v1/location/${createdId}`)
+        .patch(`/api/v1/locations/${createdId}`)
         .send({ name: 'Updated Name' })
         .expect(200);
 
@@ -146,14 +146,14 @@ describe('Location E2E (comprehensive + extended)', () => {
 
     it('should return 409 when updating to a duplicate name', async () => {
       await request(server)
-        .patch(`/api/v1/location/${createdId}`)
+        .patch(`/api/v1/locations/${createdId}`)
         .send({ name: 'North Dock' })
         .expect(409);
     });
 
     it('should return 404 when updating non-existent location', async () => {
       await request(server)
-        .patch('/api/v1/location/00000000-0000-0000-0000-000000000000')
+        .patch('/api/v1/locations/00000000-0000-0000-0000-000000000000')
         .send({ name: 'DoesNotExist' })
         .expect(404);
     });
@@ -162,14 +162,14 @@ describe('Location E2E (comprehensive + extended)', () => {
   describe('Delete Location', () => {
     it('should delete a location without linked vehicles', async () => {
       const loc = await prisma.location.create({ data: { name: 'ToDelete' } });
-      await request(server).delete(`/api/v1/location/${loc.id}`).expect(200);
+      await request(server).delete(`/api/v1/locations/${loc.id}`).expect(200);
       const found = await prisma.location.findUnique({ where: { id: loc.id } });
       expect(found).toBeNull();
     });
 
     it('should return 404 when deleting a non-existent location', async () => {
       await request(server)
-        .delete('/api/v1/location/00000000-0000-0000-0000-000000000000')
+        .delete('/api/v1/locations/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
   });

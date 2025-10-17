@@ -17,7 +17,7 @@ import { LocationResponse } from 'src/common/types';
 import { LocationResponseDto } from './dto/location-response';
 
 @ApiTags('Location')
-@Controller({ path: 'location', version: '1' })
+@Controller({ path: 'locations', version: '1' })
 export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
