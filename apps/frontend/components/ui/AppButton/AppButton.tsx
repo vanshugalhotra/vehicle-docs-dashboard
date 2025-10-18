@@ -1,5 +1,6 @@
 import React, { ButtonHTMLAttributes, FC } from "react";
 import clsx from "clsx";
+import { colors, radius, transition } from "../../tokens/designTokens";
 
 type ButtonVariant =
   | "primary"
@@ -16,15 +17,6 @@ interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   loading?: boolean;
 }
-
-const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
-  secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300",
-  outline: "border border-gray-400 text-gray-800 hover:bg-gray-100",
-  ghost: "bg-transparent text-gray-800 hover:bg-gray-50",
-  danger: "bg-red-600 text-white hover:bg-red-700",
-  link: "text-blue-600 underline hover:text-blue-700",
-};
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "px-3 py-1 text-sm",
@@ -43,10 +35,12 @@ export const AppButton: FC<AppButtonProps> = ({
   return (
     <button
       className={clsx(
-        "inline-flex items-center justify-center rounded-md font-medium transition-colors duration-200",
-        variantClasses[variant],
+        "inline-flex items-center justify-center font-medium",
+        radius.md,
+        transition,
+        colors[variant],
         sizeClasses[size],
-        disabled && "opacity-50 cursor-not-allowed",
+        (disabled || loading) && colors.disabledOpacity,
         loading && "opacity-70"
       )}
       disabled={disabled || loading}

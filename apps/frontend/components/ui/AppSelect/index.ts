@@ -1,1 +1,1 @@
-export { AppSelect } from "./AppSelect";
+export * from "./AppSelect";

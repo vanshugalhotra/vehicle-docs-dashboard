@@ -1,11 +1,14 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { AppCard } from "./AppCard";
-import { AppButton } from "../AppButton"; // optional for actions in story
+import { AppButton } from "../AppButton";
 
 const meta: Meta<typeof AppCard> = {
   title: "UI/AppCard",
   component: AppCard,
+  tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof AppCard>;
 

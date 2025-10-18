@@ -7,15 +7,18 @@ const meta: Meta<typeof AppButton> = {
   component: AppButton,
   tags: ["autodocs"],
   argTypes: {
-    variant: { control: "select", options: ["primary","secondary","outline","ghost","danger","link"] },
-    size: { control: "select", options: ["sm","md","lg"] },
+    variant: {
+      control: { type: "select" },
+      options: ["primary", "secondary", "outline", "ghost", "danger", "link"],
+    },
+    size: { control: { type: "select" }, options: ["sm", "md", "lg"] },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
+    children: { control: "text" },
   },
 };
 
 export default meta;
-
 type Story = StoryObj<typeof AppButton>;
 
 export const Default: Story = {

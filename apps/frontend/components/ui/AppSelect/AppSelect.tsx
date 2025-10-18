@@ -6,8 +6,8 @@ import {
   ListboxOptions,
   ListboxOption,
 } from "@headlessui/react";
-
 import { ChevronDown } from "lucide-react";
+import { colors, radius, shadow, transition } from "../../tokens/designTokens";
 
 export interface Option {
   label: string;
@@ -36,15 +36,22 @@ export const AppSelect: FC<AppSelectProps> = ({
       <div className="relative w-full">
         <ListboxButton
           className={clsx(
-            "w-full flex items-center justify-between rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
-            disabled && "opacity-50"
+            "w-full flex items-center justify-between border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+            radius.md,
+            shadow.sm,
+            transition,
+            disabled && colors.disabledOpacity
           )}
         >
           {value ? value.label : placeholder}
           <ChevronDown className="ml-2 h-4 w-4" />
         </ListboxButton>
 
-        <ListboxOptions className="absolute mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-auto z-10">
+        <ListboxOptions
+          className={clsx(
+            "absolute mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-auto z-10"
+          )}
+        >
           {options.map((opt) => (
             <ListboxOption
               key={opt.value}

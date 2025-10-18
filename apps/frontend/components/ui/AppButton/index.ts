@@ -1,1 +1,1 @@
-export { AppButton } from "./AppButton";
+export * from "./AppButton";
