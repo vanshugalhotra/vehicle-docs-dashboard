@@ -23,3 +23,15 @@ export const colors = {
   errorBorder: "border-red-500",
   disabledOpacity: "opacity-50 cursor-not-allowed",
 };
+
+export const typography = {
+  sm: "text-sm leading-5",
+  md: "text-base leading-6",
+  lg: "text-lg leading-7",
+  xl: "text-xl leading-8",
+  heading1: "text-2xl font-bold leading-9",
+  heading2: "text-xl font-semibold leading-8",
+  heading3: "text-lg font-semibold leading-7",
+  body: "text-base leading-6",
+  label: "text-sm font-medium leading-5",
+};
