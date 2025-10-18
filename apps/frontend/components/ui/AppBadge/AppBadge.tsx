@@ -27,7 +27,7 @@ export const AppBadge: FC<AppBadgeProps> = ({
       className={clsx(
         "inline-block text-sm font-medium px-2 py-1",
         radius.sm,
-        transition,
+        transition.base,
         variantClasses[variant],
         className
       )}

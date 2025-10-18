@@ -29,7 +29,7 @@ export const AppInput: FC<AppInputProps> = ({
           className={clsx(
             "w-full border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
             radius.md,
-            transition,
+            transition.base,
             prefixIcon && "pl-10",
             suffixIcon && "pr-10",
             error ? colors.errorBorder : colors.border,

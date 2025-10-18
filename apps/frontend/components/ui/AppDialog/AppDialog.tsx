@@ -74,7 +74,7 @@ export const AppDialog: FC<AppDialogProps> = ({
                 "inline-block w-full bg-white p-6 text-left align-middle",
                 radius.md,
                 shadow.lg,
-                transition,
+                transition.base,
                 sizeClasses[size]
               )}
             >

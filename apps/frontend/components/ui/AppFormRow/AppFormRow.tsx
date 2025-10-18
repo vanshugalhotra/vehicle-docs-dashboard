@@ -24,7 +24,7 @@ export const AppFormRow: FC<AppFormRowProps> = ({
         className={clsx(
           "w-full",
           radius.sm,          // consistent rounded corners
-          transition          // smooth transition for any child changes
+          transition.base          // smooth transition for any child changes
         )}
       >
         {children}

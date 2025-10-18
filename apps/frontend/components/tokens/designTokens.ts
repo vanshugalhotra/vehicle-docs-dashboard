@@ -10,7 +10,11 @@ export const shadow = {
   lg: "shadow-lg",
 };
 
-export const transition = "transition-all duration-150 ease-in-out";
+export const transition = {
+  base: "transition-all duration-150 ease-in-out",
+  fast: "transition-all duration-100 ease-in",
+  slow: "transition-all duration-300 ease-out",
+};
 
 export const colors = {
   primary: "bg-blue-600 hover:bg-blue-700 text-white",

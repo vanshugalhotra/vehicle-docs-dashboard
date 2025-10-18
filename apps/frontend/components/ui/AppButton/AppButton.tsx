@@ -37,7 +37,7 @@ export const AppButton: FC<AppButtonProps> = ({
       className={clsx(
         "inline-flex items-center justify-center font-medium",
         radius.md,
-        transition,
+        transition.base,
         colors[variant],
         sizeClasses[size],
         (disabled || loading) && colors.disabledOpacity,

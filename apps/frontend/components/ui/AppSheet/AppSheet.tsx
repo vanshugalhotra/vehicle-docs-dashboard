@@ -66,7 +66,7 @@ export const AppSheet: FC<AppSheetProps> = ({
                   sizeClasses[size],
                   radius.md,
                   shadow.lg,
-                  transition
+                  transition.base
                 )}
               >
                 {title && (
