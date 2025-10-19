@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import type { Meta, StoryFn } from "@storybook/react";
 import { z } from "zod";
 import EntityFormModal, { EntityField } from "./EntityFormModal";
-import { Option as AppSelectOption } from "../ui/AppSelect";
+import { Option as AppSelectOption } from "../../ui/AppSelect";
 
 const meta: Meta<typeof EntityFormModal> = {
   title: "Components/EntityFormModal",

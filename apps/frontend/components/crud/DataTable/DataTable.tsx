@@ -8,9 +8,9 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import clsx from "clsx";
-import { AppButton } from "../ui/AppButton";
+import { AppButton } from "../../ui/AppButton";
 import { Edit, Trash2 } from "lucide-react";
-import { shadow, typography } from "../tokens/designTokens";
+import { shadow, typography } from "../../tokens/designTokens";
 
 export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
