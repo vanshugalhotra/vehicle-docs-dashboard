@@ -1,33 +1,25 @@
+// Border radius
 export const radius = {
   sm: "rounded-md",
   md: "rounded-lg",
   lg: "rounded-xl",
 };
 
+// Shadows
 export const shadow = {
   sm: "shadow-sm",
   md: "shadow",
   lg: "shadow-lg",
 };
 
+// Transitions
 export const transition = {
   base: "transition-all duration-150 ease-in-out",
   fast: "transition-all duration-100 ease-in",
   slow: "transition-all duration-300 ease-out",
 };
 
-export const colors = {
-  primary: "bg-blue-600 hover:bg-blue-700 text-white",
-  secondary: "bg-gray-200 hover:bg-gray-300 text-gray-800",
-  outline: "border border-gray-400 text-gray-800 hover:bg-gray-100",
-  ghost: "bg-transparent hover:bg-gray-50 text-gray-800",
-  danger: "bg-red-600 hover:bg-red-700 text-white",
-  link: "text-blue-600 underline hover:text-blue-700",
-  border: "border-gray-300",
-  errorBorder: "border-red-500",
-  disabledOpacity: "opacity-50 cursor-not-allowed",
-};
-
+// Typography
 export const typography = {
   sm: "text-sm leading-5",
   md: "text-base leading-6",
@@ -39,3 +31,61 @@ export const typography = {
   body: "text-base leading-6",
   label: "text-sm font-medium leading-5",
 };
+
+// Light and dark themes (future-proof for theming)
+export const theme = {
+  light: {
+    colors: {
+      primary: "bg-blue-600 hover:bg-blue-700 text-white",
+      secondary: "bg-gray-200 hover:bg-gray-300 text-gray-800",
+      outline: "border border-gray-400 text-gray-800 hover:bg-gray-100",
+      ghost: "bg-transparent hover:bg-gray-50 text-gray-800",
+      danger: "bg-red-600 hover:bg-red-700 text-white",
+      link: "text-blue-600 underline hover:text-blue-700",
+      border: "border-gray-300",
+      errorBorder: "border-red-500",
+      disabledOpacity: "opacity-50 cursor-not-allowed",
+      background: "bg-white",
+      surface: "bg-gray-50",
+      textPrimary: "text-gray-900",
+      textSecondary: "text-gray-700",
+
+      neutralBadge: "bg-gray-200 text-gray-800 hover:bg-gray-300",
+      successBadge: "bg-green-100 text-green-800 hover:bg-green-200",
+      warningBadge: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+      dangerBadge: "bg-red-100 text-red-800 hover:bg-red-200",
+    },
+    radius,
+    shadow,
+    transition,
+    typography,
+  },
+  dark: {
+    colors: {
+      primary: "bg-blue-500 hover:bg-blue-600 text-white",
+      secondary: "bg-gray-700 hover:bg-gray-600 text-white",
+      outline: "border border-white text-white hover:bg-gray-700",
+      ghost: "bg-transparent text-white hover:bg-gray-600",
+      danger: "bg-red-500 hover:bg-red-600 text-white",
+      link: "text-blue-400 underline hover:text-blue-500",
+      border: "border-gray-600",
+      errorBorder: "border-red-400",
+      disabledOpacity: "opacity-50 cursor-not-allowed",
+      background: "bg-gray-900",
+      surface: "bg-gray-800",
+      textPrimary: "text-white",
+      textSecondary: "text-gray-300",
+
+      neutralBadge: "bg-gray-700 text-gray-200 hover:bg-gray-600",
+      successBadge: "bg-green-800 text-green-100 hover:bg-green-700",
+      warningBadge: "bg-yellow-800 text-yellow-100 hover:bg-yellow-700",
+      dangerBadge: "bg-red-800 text-red-100 hover:bg-red-700",
+    },
+    radius,
+    shadow,
+    transition,
+    typography,
+  },
+};
+
+export type ThemeType = keyof typeof theme;

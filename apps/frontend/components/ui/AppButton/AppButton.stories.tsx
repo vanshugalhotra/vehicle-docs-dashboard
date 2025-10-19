@@ -1,6 +1,6 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { AppButton } from "./AppButton";
+import { Bell } from "lucide-react";
 
 const meta: Meta<typeof AppButton> = {
   title: "UI/AppButton",
@@ -14,6 +14,8 @@ const meta: Meta<typeof AppButton> = {
     size: { control: { type: "select" }, options: ["sm", "md", "lg"] },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
+    startIcon: { control: false },
+    endIcon: { control: false },
     children: { control: "text" },
   },
 };
@@ -31,15 +33,50 @@ export const Default: Story = {
   },
 };
 
-export const AllVariants: Story = {
+export const WithIcons: Story = {
   render: () => (
     <div className="flex flex-wrap gap-2">
-      <AppButton variant="primary">Primary</AppButton>
-      <AppButton variant="secondary">Secondary</AppButton>
-      <AppButton variant="outline">Outline</AppButton>
-      <AppButton variant="ghost">Ghost</AppButton>
-      <AppButton variant="danger">Danger</AppButton>
-      <AppButton variant="link">Link</AppButton>
+      <AppButton startIcon={<Bell size={16} />}>Start Icon</AppButton>
+      <AppButton endIcon={<Bell size={16} />}>End Icon</AppButton>
+      <AppButton startIcon={<Bell size={16} />} endIcon={<Bell size={16} />}>
+        Both Icons
+      </AppButton>
+    </div>
+  ),
+};
+
+export const Loading: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-2">
+      <AppButton loading>Loading</AppButton>
+      <AppButton variant="secondary" loading>
+        Loading
+      </AppButton>
+    </div>
+  ),
+};
+
+export const DarkMode: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-2 p-4 bg-gray-900">
+      <AppButton variant="primary" themeType="dark">
+        Primary
+      </AppButton>
+      <AppButton variant="secondary" themeType="dark">
+        Secondary
+      </AppButton>
+      <AppButton variant="outline" themeType="dark">
+        Outline
+      </AppButton>
+      <AppButton variant="ghost" themeType="dark">
+        Ghost
+      </AppButton>
+      <AppButton variant="danger" themeType="dark">
+        Danger
+      </AppButton>
+      <AppButton variant="link" themeType="dark">
+        Link
+      </AppButton>
     </div>
   ),
 };

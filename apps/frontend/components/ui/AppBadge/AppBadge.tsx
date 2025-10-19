@@ -1,33 +1,38 @@
-import React, { FC } from "react";
+"use client";
+import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { radius, transition } from "../../tokens/designTokens";
+import { theme, ThemeType } from "../../tokens/designTokens";
 
 export type BadgeVariant = "neutral" | "success" | "warning" | "danger";
 
 interface AppBadgeProps {
-  children: React.ReactNode;
+  children: ReactNode;
   variant?: BadgeVariant;
   className?: string;
+  themeType?: ThemeType;
 }
-
-const variantClasses: Record<BadgeVariant, string> = {
-  neutral: "bg-gray-200 text-gray-800",
-  success: "bg-green-100 text-green-800",
-  warning: "bg-yellow-100 text-yellow-800",
-  danger: "bg-red-100 text-red-800",
-};
 
 export const AppBadge: FC<AppBadgeProps> = ({
   children,
   variant = "neutral",
   className,
+  themeType = "light",
 }) => {
+  const themeColors = theme[themeType].colors;
+
+  const variantClasses: Record<BadgeVariant, string> = {
+    neutral: themeColors.neutralBadge,
+    success: themeColors.successBadge,
+    warning: themeColors.warningBadge,
+    danger: themeColors.dangerBadge,
+  };
+
   return (
     <span
       className={clsx(
-        "inline-block text-sm font-medium px-2 py-1",
-        radius.sm,
-        transition.base,
+        "inline-block text-sm font-medium px-2 py-1 select-none",
+        theme[themeType].radius.sm,
+        theme[themeType].transition.base,
         variantClasses[variant],
         className
       )}

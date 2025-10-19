@@ -1,6 +1,7 @@
-import React, { ButtonHTMLAttributes, FC } from "react";
+"use client";
+import React, { ButtonHTMLAttributes, FC, ReactNode } from "react";
 import clsx from "clsx";
-import { colors, radius, transition } from "../../tokens/designTokens";
+import { theme, ThemeType } from "../../tokens/designTokens";
 
 type ButtonVariant =
   | "primary"
@@ -9,13 +10,15 @@ type ButtonVariant =
   | "ghost"
   | "danger"
   | "link";
-
 type ButtonSize = "sm" | "md" | "lg";
 
 interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  startIcon?: ReactNode;
+  endIcon?: ReactNode;
+  themeType?: ThemeType; // allow dynamic theme switching
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -29,24 +32,44 @@ export const AppButton: FC<AppButtonProps> = ({
   size = "md",
   loading = false,
   disabled = false,
+  startIcon,
+  endIcon,
+  themeType = "light",
   children,
   ...props
 }) => {
+  const isDisabled = disabled || loading;
+  const themeColors = theme[themeType].colors;
+
+  const variantClasses: Record<ButtonVariant, string> = {
+    primary: themeColors.primary,
+    secondary: themeColors.secondary,
+    outline: themeColors.outline,
+    ghost: themeColors.ghost,
+    danger: themeColors.danger,
+    link: themeColors.link,
+  };
+
   return (
     <button
+      disabled={isDisabled}
       className={clsx(
-        "inline-flex items-center justify-center font-medium",
-        radius.md,
-        transition.base,
-        colors[variant],
+        "inline-flex items-center justify-center font-medium gap-2 select-none",
+        theme[themeType].radius.md,
+        theme[themeType].transition.base,
+        variantClasses[variant],
         sizeClasses[size],
-        (disabled || loading) && colors.disabledOpacity,
-        loading && "opacity-70"
+        isDisabled && themeColors.disabledOpacity,
+        loading && "opacity-70 cursor-wait"
       )}
-      disabled={disabled || loading}
       {...props}
     >
-      {loading ? "Loading..." : children}
+      {loading && (
+        <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4" />
+      )}
+      {!loading && startIcon}
+      {!loading && children}
+      {!loading && endIcon}
     </button>
   );
 };
