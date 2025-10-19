@@ -5,7 +5,7 @@ import { sidebarConfig } from "./sidebarConfig";
 import { Car, FileText } from "lucide-react";
 
 const meta: Meta<typeof Sidebar> = {
-  title: "Components/Sidebar",
+  title: "Layout/Sidebar",
   component: Sidebar,
   decorators: [
     (Story) => (

@@ -7,7 +7,7 @@ import FormModal, { EntityField } from "./FormModal";
 import { Option as AppSelectOption } from "../../ui/AppSelect";
 
 const meta: Meta<typeof FormModal> = {
-  title: "Components/FormModal",
+  title: "Forms/FormModal",
   component: FormModal,
 };
 
