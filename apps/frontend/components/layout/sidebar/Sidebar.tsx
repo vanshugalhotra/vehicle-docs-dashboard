@@ -2,58 +2,77 @@
 import React from "react";
 import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
-import { radius, shadow, transition } from "../../tokens/designTokens";
+import {
+  radius,
+  shadow,
+  transition,
+  theme,
+  typography,
+} from "../../tokens/designTokens";
 import { SidebarNavGroup } from "./SidebarNavGroup";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { sidebarConfig } from "./sidebarConfig";
+import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const { isCollapsed, toggle } = useSidebar();
+  const t = theme.light;
 
   return (
     <aside
       className={clsx(
-        "h-screen flex flex-col bg-white border-r border-gray-200 text-gray-800",
+        "h-screen flex flex-col bg-white border-r transition-[width]",
+        t.colors.border,
         shadow.sm,
-        transition.base,
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64",
+        "duration-300 ease-in-out"
       )}
     >
       {/* Header */}
       <div
         className={clsx(
-          "flex items-center justify-between p-4 border-b border-gray-100",
+          "flex items-center justify-between p-4 border-b",
+          t.colors.border,
           transition.base
         )}
       >
         {!isCollapsed && (
-          <span className="text-lg font-semibold tracking-tight">
+          <span className={clsx(typography.heading3, t.colors.textPrimary)}>
             BackTrack
           </span>
         )}
         <button
           onClick={toggle}
           className={clsx(
-            "text-gray-500 hover:text-gray-800 p-1 rounded",
+            "flex items-center justify-center p-1 rounded",
             radius.sm,
-            transition.base
+            "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200"
           )}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? "➡️" : "⬅️"}
+          {isCollapsed ? (
+            <LucideArrowRight size={20} />
+          ) : (
+            <LucideArrowLeft size={20} />
+          )}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto mt-2">
+      <nav className="flex-1 overflow-y-auto mt-2 px-1">
         {sidebarConfig.map((item) =>
           item.children ? (
-            <SidebarNavGroup key={item.label} label={item.label}>
+            <SidebarNavGroup
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+            >
               {item.children.map((child) => (
                 <SidebarNavItem
                   key={child.label}
                   label={child.label}
                   icon={child.icon}
+                  path={child.path}
                 />
               ))}
             </SidebarNavGroup>
@@ -62,6 +81,7 @@ export const Sidebar: React.FC = () => {
               key={item.label}
               label={item.label}
               icon={item.icon}
+              path={item.path}
             />
           )
         )}

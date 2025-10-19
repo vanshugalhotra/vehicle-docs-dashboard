@@ -1,7 +1,8 @@
 "use client";
+
 import React from "react";
 import clsx from "clsx";
-import { shadow, transition } from "../../tokens/designTokens";
+import { shadow, transition, theme } from "../../tokens/designTokens";
 import { TopbarAction } from "./TopbarAction";
 
 export interface TopbarActionItem {
@@ -23,23 +24,29 @@ export const Topbar: React.FC<TopbarProps> = ({
   children,
   showShadow = true,
 }) => {
+  const t = theme.light;
+
   return (
     <header
       className={clsx(
-        "sticky top-0 z-40 flex items-center justify-between h-14 w-full bg-white border-b border-gray-100",
-        transition.base,
-        showShadow && shadow.sm
+        "sticky top-0 z-40 flex items-center justify-between h-14 w-full px-4 sm:px-6",
+        t.colors.background,
+        t.colors.border ? "border-b" : "",
+        showShadow && shadow.sm,
+        transition.base
       )}
     >
-      <div className="flex items-center gap-3 px-4 sm:px-6">
+      {/* Left: Title */}
+      <div className="flex items-center gap-3">
         {title && (
-          <h1 className="text-lg font-semibold tracking-tight text-gray-900">
+          <h1 className={`${t.typography.heading3} ${t.colors.textPrimary}`}>
             {title}
           </h1>
         )}
       </div>
 
-      <div className="flex items-center gap-2 px-4 sm:px-6">
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2">
         {actions?.map((action, i) => (
           <TopbarAction
             key={i}

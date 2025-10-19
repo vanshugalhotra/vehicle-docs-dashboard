@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Topbar } from "./Topbar";
 import { Bell, Settings, User, Search } from "lucide-react";
+import { theme } from "../../tokens/designTokens";
 
 const meta: Meta<typeof Topbar> = {
   title: "Layout/Topbar",
@@ -56,12 +57,18 @@ export const WithActions: Story = {
 // 🙋 With custom right-side content
 export const WithCustomChildren: Story = {
   render: () => (
-    <Topbar title="Profile">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-700">Hello, Vanshu</span>
-        <User size={18} className="text-gray-600" />
-      </div>
-    </Topbar>
+    <div className="bg-gray-50">
+      <Topbar title="Profile">
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-sm ${theme.light.colors.textSecondary}`}
+          >
+            Hello, Vanshu
+          </span>
+          <User size={18} className={theme.light.colors.textSecondary} />
+        </div>
+      </Topbar>
+    </div>
   ),
   name: "With Custom Children",
 };
@@ -80,4 +87,26 @@ export const NoShadow: Story = {
     ],
   },
   name: "No Shadow",
+};
+
+// 🔹 Only title (minimal)
+export const OnlyTitle: Story = {
+  args: {
+    title: "Minimal Header",
+    actions: [],
+  },
+  name: "Only Title",
+};
+
+// 🔹 Dense variant (smaller height)
+export const Dense: Story = {
+  render: () => (
+    <Topbar title="Compact Topbar" showShadow={true}>
+      <div className="flex items-center gap-2">
+        <Bell size={18} className={theme.light.colors.textSecondary} />
+        <Settings size={18} className={theme.light.colors.textSecondary} />
+      </div>
+    </Topbar>
+  ),
+  name: "Dense",
 };

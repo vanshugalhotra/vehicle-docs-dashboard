@@ -1,7 +1,9 @@
 "use client";
+
 import React from "react";
 import { AppTooltip } from "@/components/ui/AppTooltip";
 import { AppButton } from "@/components/ui/AppButton";
+import { transition } from "../../tokens/designTokens";
 
 interface TopbarActionProps {
   icon: React.ElementType;
@@ -18,8 +20,9 @@ export const TopbarAction: React.FC<TopbarActionProps> = ({
     <AppButton
       variant="ghost"
       size="sm"
-      className="p-2 text-gray-600 hover:text-gray-900"
+      className={`p-2 text-gray-600 hover:text-gray-900 ${transition.base}`}
       onClick={onClick}
+      aria-label={tooltip}
     >
       <Icon size={18} />
     </AppButton>
