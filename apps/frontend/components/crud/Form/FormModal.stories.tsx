@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import type { Meta, StoryFn } from "@storybook/react";
 import { z } from "zod";
-import EntityFormModal, { EntityField } from "./EntityFormModal";
+import FormModal, { EntityField } from "./FormModal";
 import { Option as AppSelectOption } from "../../ui/AppSelect";
 
-const meta: Meta<typeof EntityFormModal> = {
-  title: "Components/EntityFormModal",
-  component: EntityFormModal,
+const meta: Meta<typeof FormModal> = {
+  title: "Components/FormModal",
+  component: FormModal,
 };
 
 export default meta;
@@ -37,11 +37,11 @@ const schema = z.object({
   dueDate: z.string().optional(), // Changed from date() to string() since date inputs typically return strings
 });
 
-const Template: StoryFn<typeof EntityFormModal> = (args) => {
+const Template: StoryFn<typeof FormModal> = (args) => {
   const [open, setOpen] = useState(true);
 
   return (
-    <EntityFormModal
+    <FormModal
       {...args}
       open={open}
       onClose={() => setOpen(false)}

@@ -21,7 +21,7 @@ export interface EntityField {
   placeholder?: string;
 }
 
-export interface EntityFormModalProps<T extends object> {
+export interface FormModalProps<T extends object> {
   title: string;
   fields: EntityField[];
   defaultValues?: Partial<T>;
@@ -32,7 +32,7 @@ export interface EntityFormModalProps<T extends object> {
   loading?: boolean;
 }
 
-export const EntityFormModal = <T extends object>({
+export const FormModal = <T extends object>({
   title,
   fields,
   defaultValues,
@@ -41,7 +41,7 @@ export const EntityFormModal = <T extends object>({
   onClose,
   onSubmit,
   loading = false,
-}: EntityFormModalProps<T>) => {
+}: FormModalProps<T>) => {
   // Fallback schema from field requirements
   const zodSchema =
     schema ??
@@ -96,4 +96,4 @@ export const EntityFormModal = <T extends object>({
   );
 };
 
-export default EntityFormModal;
+export default FormModal;

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Controller, Control, FieldErrors, FieldValues } from "react-hook-form";
-import { EntityField } from "./EntityFormModal";
+import { EntityField } from "./FormModal";
 import { AppInput } from "../../ui/AppInput";
 import { AppTextArea } from "../../ui/AppTextArea";
 import { AppSelect } from "../../ui/AppSelect";
