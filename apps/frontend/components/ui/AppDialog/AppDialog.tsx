@@ -1,3 +1,4 @@
+"use client";
 import React, { FC, ReactNode, Fragment } from "react";
 import {
   Dialog,
@@ -7,7 +8,8 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import clsx from "clsx";
-import { radius, shadow, transition } from "../../tokens/designTokens";
+import { theme } from "../../tokens/designTokens";
+import { AppText } from "../AppText";
 
 interface AppDialogProps {
   open: boolean;
@@ -32,6 +34,8 @@ export const AppDialog: FC<AppDialogProps> = ({
   footer,
   size = "md",
 }) => {
+  const t = theme.light; // for now only light mode focus
+
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog
@@ -40,6 +44,7 @@ export const AppDialog: FC<AppDialogProps> = ({
         onClose={onClose}
       >
         <div className="min-h-screen px-4 text-center">
+          {/* Overlay */}
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
@@ -52,7 +57,7 @@ export const AppDialog: FC<AppDialogProps> = ({
             <div className="fixed inset-0 bg-black opacity-50" />
           </TransitionChild>
 
-          {/* Trick for centering */}
+          {/* Trick for vertical centering */}
           <span
             className="inline-block h-screen align-middle"
             aria-hidden="true"
@@ -60,6 +65,7 @@ export const AppDialog: FC<AppDialogProps> = ({
             &#8203;
           </span>
 
+          {/* Dialog Panel */}
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
@@ -72,20 +78,25 @@ export const AppDialog: FC<AppDialogProps> = ({
             <DialogPanel
               className={clsx(
                 "inline-block w-full bg-white p-6 text-left align-middle",
-                radius.md,
-                shadow.lg,
-                transition.base,
+                t.radius.md,
+                t.shadow.lg,
+                t.transition.base,
                 sizeClasses[size]
               )}
             >
+              {/* Title */}
               {title && (
-                <DialogTitle as="h3" className="text-lg font-semibold mb-4">
-                  {title}
+                <DialogTitle as="div" className="mb-4">
+                  <AppText size="heading3">{title}</AppText>
                 </DialogTitle>
               )}
 
-              <div className="mb-4">{children}</div>
+              {/* Content */}
+              <div className="mb-4">
+                <AppText>{children}</AppText>
+              </div>
 
+              {/* Footer */}
               {footer && (
                 <div className="mt-4 flex justify-end gap-2">{footer}</div>
               )}

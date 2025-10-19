@@ -1,6 +1,8 @@
+"use client";
 import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { radius, shadow } from "../../tokens/designTokens";
+import { radius, shadow, transition, theme } from "../../tokens/designTokens";
+import { AppText } from "../AppText";
 
 interface AppTableContainerProps {
   title?: string;
@@ -15,11 +17,28 @@ export const AppTableContainer: FC<AppTableContainerProps> = ({
   toolbar,
   className,
 }) => {
+  const t = theme.light; // light mode for now
+
   return (
-    <div className={clsx("bg-white p-4", radius.md, shadow.md, className)}>
+    <div
+      className={clsx(
+        "bg-white p-4",
+        radius.md,
+        shadow.md,
+        transition.base,
+        className
+      )}
+    >
       {(title || toolbar) && (
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
-          {title && <h2 className="text-lg font-semibold">{title}</h2>}
+          {title && (
+            <AppText
+              size="heading3"
+              className={clsx(t.colors.textPrimary)}
+            >
+              {title}
+            </AppText>
+          )}
           {toolbar && <div>{toolbar}</div>}
         </div>
       )}

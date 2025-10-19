@@ -1,13 +1,8 @@
+"use client";
 import React, { FC, ReactNode, Fragment } from "react";
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Transition,
-  TransitionChild,
-} from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import clsx from "clsx";
-import { radius, shadow, transition } from "../../tokens/designTokens";
+import { radius, shadow, transition, theme } from "../../tokens/designTokens";
 
 interface AppSheetProps {
   open: boolean;
@@ -30,6 +25,8 @@ export const AppSheet: FC<AppSheetProps> = ({
   children,
   size = "md",
 }) => {
+  const t = theme.light; // focus on light mode for now
+
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog
@@ -38,6 +35,7 @@ export const AppSheet: FC<AppSheetProps> = ({
         onClose={onClose}
       >
         <div className="absolute inset-0 overflow-hidden">
+          {/* Overlay */}
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
@@ -47,9 +45,10 @@ export const AppSheet: FC<AppSheetProps> = ({
             leaveFrom="opacity-50"
             leaveTo="opacity-0"
           >
-            <div className="absolute inset-0 bg-black opacity-50" />
+            <div className="absolute inset-0 bg-black" style={{ opacity: 0.5 }} />
           </TransitionChild>
 
+          {/* Sheet Panel */}
           <div className="fixed inset-y-0 right-0 flex max-w-full pl-4">
             <TransitionChild
               as={Fragment}
@@ -71,18 +70,20 @@ export const AppSheet: FC<AppSheetProps> = ({
               >
                 {title && (
                   <div className="px-6 py-4 border-b flex justify-between items-center">
-                    <DialogTitle as="h3" className="text-lg font-semibold">
+                    <DialogTitle as="h3" className={clsx("text-lg font-semibold", t.colors.textPrimary)}>
                       {title}
                     </DialogTitle>
                     <button
                       onClick={onClose}
-                      className="text-gray-500 hover:text-gray-700"
+                      className={clsx("text-gray-500 hover:text-gray-700")}
                     >
                       ✕
                     </button>
                   </div>
                 )}
-                <div className="p-6 overflow-auto flex-1">{children}</div>
+                <div className="p-6 overflow-auto flex-1">
+                  {children}
+                </div>
               </DialogPanel>
             </TransitionChild>
           </div>

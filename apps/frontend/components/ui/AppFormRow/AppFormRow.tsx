@@ -1,6 +1,8 @@
+"use client";
 import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { radius, transition } from "../../tokens/designTokens";
+import { radius, transition, theme } from "../../tokens/designTokens";
+import { AppText } from "../AppText";
 
 interface AppFormRowProps {
   label?: string;
@@ -15,22 +17,24 @@ export const AppFormRow: FC<AppFormRowProps> = ({
   error,
   className,
 }) => {
+  const t = theme.light; // for now focus on light mode
+
   return (
-    <div className={clsx("flex flex-col w-full mb-4", className)}>
+    <div className={clsx("flex flex-col w-full mb-4 gap-1", className)}>
       {label && (
-        <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>
+        <AppText as="label" size="label" className={t.colors.textSecondary}>
+          {label}
+        </AppText>
       )}
-      <div
-        className={clsx(
-          "w-full",
-          radius.sm,          // consistent rounded corners
-          transition.base          // smooth transition for any child changes
-        )}
-      >
+
+      <div className={clsx("w-full", radius.sm, transition.base)}>
         {children}
       </div>
+
       {error && (
-        <span className="text-red-500 text-sm mt-1">{error}</span>
+        <AppText size="sm" variant="error">
+          {error}
+        </AppText>
       )}
     </div>
   );
