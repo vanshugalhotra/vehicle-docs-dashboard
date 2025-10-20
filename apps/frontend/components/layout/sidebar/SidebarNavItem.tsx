@@ -2,10 +2,11 @@
 import React, { FC, ReactNode, useState, useEffect } from "react";
 import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
-import { radius, theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { AppTooltip } from "@/components/ui/AppTooltip";
+import { AppText } from "@/components/ui/AppText";
 
 export interface SidebarNavItemProps {
   label: string;
@@ -25,7 +26,6 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
   const { isCollapsed } = useSidebar();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const t = theme.light;
 
   const hasChildren = !!children;
   const isActive = path ? pathname === path : false;
@@ -50,20 +50,30 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
     <button
       onClick={handleToggle}
       className={clsx(
-        "flex items-center gap-3 w-full px-4 py-4 text-left rounded transition-colors duration-200",
-        radius.sm,
-        isActive
-          ? clsx("bg-blue-100 text-blue-700 font-semibold")
-          : "text-gray-700 hover:bg-gray-100",
-        open && !isActive ? "bg-gray-50" : ""
+        componentTokens.sidebar.item,
+        isActive && componentTokens.sidebar.itemActive,
+        !isActive && componentTokens.sidebar.itemHover,
+        open && !isActive && componentTokens.sidebar.itemOpen
       )}
     >
-      {icon && <span className={clsx("text-gray-600", isActive && t.colors.primary)}>{icon}</span>}
-      {!isCollapsed && <span className="flex-1">{label}</span>}
+      {icon && (
+        <span
+          className={clsx(
+            componentTokens.sidebar.icon,
+            isActive && "text-primary"
+          )}
+        >
+          {icon}
+        </span>
+      )}
+      {!isCollapsed && <AppText size="label">{label}</AppText>}
       {!isCollapsed && hasChildren && (
         <ChevronDown
           size={16}
-          className={clsx("transition-transform duration-200", open ? "rotate-180" : "rotate-0")}
+          className={clsx(
+            "transition-transform duration-200",
+            open ? "rotate-180" : "rotate-0"
+          )}
         />
       )}
     </button>
@@ -71,7 +81,11 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
 
   return (
     <div>
-      {isCollapsed ? <AppTooltip content={label}>{content}</AppTooltip> : content}
+      {isCollapsed ? (
+        <AppTooltip content={label}>{content}</AppTooltip>
+      ) : (
+        content
+      )}
       {hasChildren && open && !isCollapsed && (
         <div className="ml-6 mt-1 flex flex-col gap-1">{children}</div>
       )}

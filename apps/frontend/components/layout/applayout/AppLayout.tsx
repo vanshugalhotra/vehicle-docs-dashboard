@@ -1,11 +1,11 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { FC, ReactNode } from "react";
+import { componentTokens } from "@/styles/design-system";
 import { SidebarProvider } from "../sidebar/SidebarProvider";
 import { Sidebar } from "../sidebar";
 import { Topbar, TopbarActionItem } from "../topbar";
 import { PageWrapper } from "../pagewrapper";
-import { transition} from "../../tokens/designTokens";
 
 interface AppLayoutProps {
   title?: string;
@@ -14,7 +14,7 @@ interface AppLayoutProps {
   showTopbarShadow?: boolean;
 }
 
-export const AppLayout: React.FC<AppLayoutProps> = ({
+export const AppLayout: FC<AppLayoutProps> = ({
   title,
   children,
   topbarActions,
@@ -22,14 +22,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-gray-50">
+      <div className={componentTokens.layout.app}>
         {/* Sidebar */}
         <Sidebar />
 
         {/* Main Content */}
-        <div
-          className={`flex flex-col flex-1 overflow-auto transition-all ${transition.base}`}
-        >
+        <div className={componentTokens.layout.main}>
           {/* Topbar */}
           <Topbar
             title={title}

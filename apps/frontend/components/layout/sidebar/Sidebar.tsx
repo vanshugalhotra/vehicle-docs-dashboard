@@ -3,53 +3,35 @@
 import React from "react";
 import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
-import {
-  radius,
-  shadow,
-  transition,
-  theme,
-  typography,
-} from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { sidebarConfig } from "./sidebarConfig";
 import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
+import { AppText } from "@/components/ui/AppText";
 
 export const Sidebar: React.FC = () => {
   const { isCollapsed, toggle } = useSidebar();
-  const t = theme.light;
 
   const brandItem = sidebarConfig.find((item) => item.type === "brand");
 
   return (
     <aside
       className={clsx(
-        "h-screen flex flex-col bg-white border-r transition-[width]",
-        t.colors.border,
-        shadow.sm,
-        isCollapsed ? "w-16" : "w-64",
-        "duration-300 ease-in-out"
+        componentTokens.sidebar.base,
+        isCollapsed ? componentTokens.sidebar.collapsed : componentTokens.sidebar.expanded
       )}
     >
       {/* Header */}
-      <div
-        className={clsx(
-          "flex items-center justify-between p-4 border-b",
-          t.colors.border,
-          transition.base
-        )}
-      >
+      <div className={componentTokens.sidebar.header}>
         {!isCollapsed && brandItem && (
-          <span className={clsx(typography.heading3, t.colors.textPrimary)}>
+          <AppText size="heading2">
             {brandItem.label}
-          </span>
+          </AppText>
+
         )}
         <button
           onClick={toggle}
-          className={clsx(
-            "flex items-center justify-center p-1 rounded",
-            radius.sm,
-            "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200"
-          )}
+          className={componentTokens.sidebar.toggle}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
@@ -61,7 +43,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto mt-2 px-1">
+      <nav className={componentTokens.sidebar.nav}>
         {sidebarConfig
           .filter((item) => item.type !== "brand")
           .map((item) =>
@@ -69,7 +51,7 @@ export const Sidebar: React.FC = () => {
               <SidebarNavItem
                 key={item.label}
                 label={item.label}
-                icon={item.icon} // render top-level icon always
+                icon={item.icon}
               >
                 {!isCollapsed &&
                   item.children.map((child) => (
@@ -93,7 +75,7 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 text-xs text-gray-400 border-t border-gray-100">
+      <div className={componentTokens.sidebar.footer}>
         {!isCollapsed && <p>v1.0.0</p>}
       </div>
     </aside>

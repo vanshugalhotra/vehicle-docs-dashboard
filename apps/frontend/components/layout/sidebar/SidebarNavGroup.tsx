@@ -2,7 +2,7 @@
 import React, { FC, ReactNode, useState, useEffect } from "react";
 import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
-import { radius } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { AppTooltip } from "@/components/ui/AppTooltip";
@@ -41,14 +41,11 @@ export const SidebarNavGroup: FC<SidebarNavGroupProps> = ({
   const content = (
     <button
       onClick={toggleOpen}
-      className={clsx(
-        "flex items-center gap-2 justify-between w-full px-4 py-2 text-left rounded transition-colors duration-200 hover:bg-gray-100",
-        radius.sm
-      )}
+      className={componentTokens.sidebar.group}
     >
       {!isCollapsed && (
-        <span className="font-semibold flex items-center gap-2">
-          {icon && <span className="text-gray-600">{icon}</span>}
+        <span className={componentTokens.sidebar.groupLabel}>
+          {icon && <span className={componentTokens.sidebar.icon}>{icon}</span>}
           {label}
         </span>
       )}

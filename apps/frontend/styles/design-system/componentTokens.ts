@@ -155,6 +155,40 @@ export const componentTokens = {
     page: "bg-background min-h-screen",
     container: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
     section: "py-6 space-y-6",
+    app: "flex h-screen w-full overflow-hidden bg-background",
+    main: "flex flex-col flex-1 overflow-auto transition-all duration-150",
+    // Page-specific
+    pageHeader:
+      "flex items-center justify-between px-6 py-4 bg-surface shadow-sm rounded-md border-b border-border transition-all duration-150",
+    pageHeaderActions: "flex gap-2",
+    pageContent: "flex-1 px-6 py-4 rounded-md shadow-sm",
+  },
+
+  topbar: {
+    base: "sticky top-0 z-40 flex items-center justify-between h-14 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
+    titleSection: "flex items-center gap-3",
+    actionsSection: "flex items-center gap-2",
+    shadow: "shadow-sm",
+  },
+
+  sidebar: {
+    base: "h-screen flex flex-col bg-surface border-r border-border shadow-sm transition-all duration-300 ease-in-out",
+    collapsed: "w-16",
+    expanded: "w-64",
+    header:
+      "flex items-center justify-between p-4 border-b border-border transition-all duration-150",
+    toggle:
+      "flex items-center justify-center p-1 rounded hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-light transition-all duration-150",
+    nav: "flex-1 overflow-y-auto mt-2 px-1",
+    item: "flex items-center gap-3 w-full px-4 py-4 text-left rounded transition-all duration-200",
+    itemActive: "bg-primary-light text-primary font-semibold",
+    itemHover: "hover:bg-surface-subtle",
+    itemOpen: "bg-surface-subtle",
+    icon: "text-text-tertiary",
+    group:
+      "flex items-center gap-2 justify-between w-full px-4 py-2 text-left rounded transition-all duration-200 hover:bg-surface-subtle",
+    groupLabel: "font-semibold flex items-center gap-2 text-text-primary",
+    footer: "p-4 text-caption text-text-tertiary border-t border-border-subtle",
   },
 };
 
