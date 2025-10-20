@@ -8,7 +8,7 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import clsx from "clsx";
-import { theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { AppText } from "../AppText";
 
 interface AppDialogProps {
@@ -20,11 +20,7 @@ interface AppDialogProps {
   size?: "sm" | "md" | "lg";
 }
 
-const sizeClasses: Record<string, string> = {
-  sm: "max-w-md",
-  md: "max-w-lg",
-  lg: "max-w-2xl",
-};
+const sizeClasses: Record<string, string> = componentTokens.dialog.sizes;
 
 export const AppDialog: FC<AppDialogProps> = ({
   open,
@@ -34,34 +30,25 @@ export const AppDialog: FC<AppDialogProps> = ({
   footer,
   size = "md",
 }) => {
-  const t = theme.light; // for now only light mode focus
-
   return (
     <Transition appear show={open} as={Fragment}>
-      <Dialog
-        as="div"
-        className="fixed inset-0 z-50 overflow-y-auto"
-        onClose={onClose}
-      >
+      <Dialog as="div" className="fixed inset-0 z-50 overflow-y-auto" onClose={onClose}>
         <div className="min-h-screen px-4 text-center">
           {/* Overlay */}
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0"
-            enterTo="opacity-50"
+            enterTo="opacity-100"
             leave="ease-in duration-200"
-            leaveFrom="opacity-50"
+            leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black opacity-50" />
+            <div className={componentTokens.dialog.overlay} />
           </TransitionChild>
 
           {/* Trick for vertical centering */}
-          <span
-            className="inline-block h-screen align-middle"
-            aria-hidden="true"
-          >
+          <span className="inline-block h-screen align-middle" aria-hidden="true">
             &#8203;
           </span>
 
@@ -75,31 +62,19 @@ export const AppDialog: FC<AppDialogProps> = ({
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel
-              className={clsx(
-                "inline-block w-full bg-white p-6 text-left align-middle",
-                t.radius.md,
-                t.shadow.lg,
-                t.transition.base,
-                sizeClasses[size]
-              )}
-            >
+            <DialogPanel className={clsx(componentTokens.dialog.panel, sizeClasses[size])}>
               {/* Title */}
               {title && (
-                <DialogTitle as="div" className="mb-4">
-                  <AppText size="heading3">{title}</AppText>
+                <DialogTitle as="div" className={componentTokens.dialog.header}>
+                  <AppText className={componentTokens.text.primary}>{title}</AppText>
                 </DialogTitle>
               )}
 
               {/* Content */}
-              <div className="mb-4">
-                <AppText>{children}</AppText>
-              </div>
+              <div className={componentTokens.dialog.content}>{children}</div>
 
               {/* Footer */}
-              {footer && (
-                <div className="mt-4 flex justify-end gap-2">{footer}</div>
-              )}
+              {footer && <div className={componentTokens.dialog.footer}>{footer}</div>}
             </DialogPanel>
           </TransitionChild>
         </div>

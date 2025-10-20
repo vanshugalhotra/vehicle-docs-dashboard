@@ -1,7 +1,7 @@
 "use client";
 import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { theme, radius, shadow, transition } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { AppText } from "../AppText";
 
 interface AppCardProps {
@@ -10,7 +10,7 @@ interface AppCardProps {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
-  hoverable?: boolean; // subtle hover elevation for dashboard cards
+  hoverable?: boolean;
   bordered?: boolean;
   padded?: boolean;
 }
@@ -25,44 +25,45 @@ export const AppCard: FC<AppCardProps> = ({
   bordered = true,
   padded = true,
 }) => {
-  const t = theme.light;
-
   return (
     <div
       className={clsx(
-        "bg-white flex flex-col",
-        radius.md,
-        shadow.sm,
-        transition.base,
-        bordered && "border border-gray-200",
-        hoverable && "hover:shadow-md hover:-translate-y-[1px]",
+        "flex flex-col", // Base flex layout
+        componentTokens.card.base,
+        bordered && "border border-border",
+        hoverable && componentTokens.card.hover,
         className
       )}
     >
       {(title || actions) && (
         <div
-          className={clsx(
-            "flex justify-between items-start gap-2",
-            padded && "px-4 pt-4"
-          )}
+          className={clsx(componentTokens.card.header, !padded && "px-0 pt-0")}
         >
-          <div className="flex flex-col">
+          <div className={componentTokens.card.titleSection}>
             {title && (
-              <AppText as="h3" size="heading3" className={t.colors.textPrimary}>
+              <AppText
+                as="h3"
+                size="heading3"
+                className={componentTokens.text.primary}
+              >
                 {title}
               </AppText>
             )}
             {subtitle && (
-              <AppText size="sm" className={t.colors.textSecondary}>
+              <AppText size="label" className={componentTokens.text.bodySecondary}>
                 {subtitle}
               </AppText>
             )}
           </div>
-          {actions && <div className="flex-shrink-0">{actions}</div>}
+          {actions && (
+            <div className="flex-shrink-0">{actions}</div>
+          )}
         </div>
       )}
 
-      <div className={clsx(padded && "p-4 pt-2")}>{children}</div>
+      <div className={clsx(padded && componentTokens.card.content)}>
+        {children}
+      </div>
     </div>
   );
 };

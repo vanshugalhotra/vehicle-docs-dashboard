@@ -10,14 +10,13 @@ const meta: Meta<typeof AppText> = {
     size: {
       control: "select",
       options: [
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "heading1",
-        "heading2",
-        "heading3",
+        "caption",
+        "body",
+        "bodySecondary",
         "label",
+        "heading3",
+        "heading2",
+        "heading1",
       ],
     },
     variant: {
@@ -38,21 +37,18 @@ type Story = StoryObj<typeof AppText>;
 export const AllSizes: Story = {
   render: () => (
     <div className="flex flex-col gap-2">
-      <AppText size="sm">Small Text</AppText>
-      <AppText size="md">Medium Text</AppText>
-      <AppText size="lg">Large Text</AppText>
-      <AppText size="xl">XL Text</AppText>
-      <AppText size="heading1" as="h1">
-        Heading 1
+      <AppText size="caption">Caption Text</AppText>
+      <AppText size="body">Body Text</AppText>
+      <AppText size="bodySecondary">Body Secondary Text</AppText>
+      <AppText size="label">Label Text</AppText>
+      <AppText size="heading3" as="h3">
+        Heading 3
       </AppText>
       <AppText size="heading2" as="h2">
         Heading 2
       </AppText>
-      <AppText size="heading3" as="h3">
-        Heading 3
-      </AppText>
-      <AppText size="label" as="label">
-        Form Label
+      <AppText size="heading1" as="h1">
+        Heading 1
       </AppText>
     </div>
   ),

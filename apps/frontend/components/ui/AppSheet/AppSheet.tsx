@@ -2,7 +2,7 @@
 import React, { FC, ReactNode, Fragment } from "react";
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import clsx from "clsx";
-import { radius, shadow, transition, theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 
 interface AppSheetProps {
   open: boolean;
@@ -12,11 +12,7 @@ interface AppSheetProps {
   size?: "sm" | "md" | "lg";
 }
 
-const sizeClasses: Record<string, string> = {
-  sm: "w-80",
-  md: "w-96",
-  lg: "w-[500px]",
-};
+const sizeClasses: Record<string, string> = componentTokens.sheet.sizes;
 
 export const AppSheet: FC<AppSheetProps> = ({
   open,
@@ -25,8 +21,6 @@ export const AppSheet: FC<AppSheetProps> = ({
   children,
   size = "md",
 }) => {
-  const t = theme.light; // focus on light mode for now
-
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog
@@ -40,16 +34,16 @@ export const AppSheet: FC<AppSheetProps> = ({
             as={Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0"
-            enterTo="opacity-50"
+            enterTo="opacity-100"
             leave="ease-in duration-200"
-            leaveFrom="opacity-50"
+            leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="absolute inset-0 bg-black" style={{ opacity: 0.5 }} />
+            <div className={componentTokens.sheet.overlay} />
           </TransitionChild>
 
           {/* Sheet Panel */}
-          <div className="fixed inset-y-0 right-0 flex max-w-full pl-4">
+          <div className={componentTokens.sheet.container}>
             <TransitionChild
               as={Fragment}
               enter="transform transition ease-in-out duration-300"
@@ -59,29 +53,21 @@ export const AppSheet: FC<AppSheetProps> = ({
               leaveFrom="translate-x-0"
               leaveTo="translate-x-full"
             >
-              <DialogPanel
-                className={clsx(
-                  "h-full bg-white flex flex-col",
-                  sizeClasses[size],
-                  radius.md,
-                  shadow.lg,
-                  transition.base
-                )}
-              >
+              <DialogPanel className={clsx(componentTokens.sheet.panel, sizeClasses[size])}>
                 {title && (
-                  <div className="px-6 py-4 border-b flex justify-between items-center">
-                    <DialogTitle as="h3" className={clsx("text-lg font-semibold", t.colors.textPrimary)}>
+                  <div className={componentTokens.sheet.header}>
+                    <DialogTitle as="h3" className={componentTokens.text.primary}>
                       {title}
                     </DialogTitle>
                     <button
                       onClick={onClose}
-                      className={clsx("text-gray-500 hover:text-gray-700")}
+                      className={componentTokens.sheet.close}
                     >
                       ✕
                     </button>
                   </div>
                 )}
-                <div className="p-6 overflow-auto flex-1">
+                <div className={componentTokens.sheet.content}>
                   {children}
                 </div>
               </DialogPanel>

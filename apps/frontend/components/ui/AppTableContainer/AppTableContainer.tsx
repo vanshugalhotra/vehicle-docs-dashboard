@@ -1,13 +1,13 @@
 "use client";
 import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { radius, shadow, transition, theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { AppText } from "../AppText";
 
 interface AppTableContainerProps {
   title?: string;
-  children: ReactNode; // table body or custom content
-  toolbar?: ReactNode; // filters, buttons, search
+  children: ReactNode;
+  toolbar?: ReactNode;
   className?: string;
 }
 
@@ -17,32 +17,25 @@ export const AppTableContainer: FC<AppTableContainerProps> = ({
   toolbar,
   className,
 }) => {
-  const t = theme.light; // light mode for now
-
   return (
     <div
       className={clsx(
-        "bg-white p-4",
-        radius.md,
-        shadow.md,
-        transition.base,
+        componentTokens.card.base,
+        componentTokens.table.content, // Overflow for table scroll
         className
       )}
     >
       {(title || toolbar) && (
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+        <div className={componentTokens.table.header}>
           {title && (
-            <AppText
-              size="heading3"
-              className={clsx(t.colors.textPrimary)}
-            >
+            <AppText size="heading3">
               {title}
             </AppText>
           )}
-          {toolbar && <div>{toolbar}</div>}
+          {toolbar && <div className={componentTokens.table.toolbar}>{toolbar}</div>}
         </div>
       )}
-      <div className="overflow-auto">{children}</div>
+      <div>{children}</div>
     </div>
   );
 };

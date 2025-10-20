@@ -8,7 +8,7 @@ import {
   ListboxOption,
 } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
-import { theme, radius, shadow, transition } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { AppText } from "../AppText";
 
 export interface Option {
@@ -39,12 +39,10 @@ export const AppSelect: FC<AppSelectProps> = ({
   disabled = false,
   allowAdd = false,
 }) => {
-  const t = theme.light;
-
   return (
     <div className="flex flex-col w-full gap-1">
       {label && (
-        <AppText size="label" className={t.colors.textSecondary}>
+        <AppText size="label" className={componentTokens.text.primary}>
           {label}
         </AppText>
       )}
@@ -53,41 +51,27 @@ export const AppSelect: FC<AppSelectProps> = ({
         <div className="relative w-full">
           <ListboxButton
             className={clsx(
-              "w-full flex items-center justify-between bg-white px-3 py-2 border text-left",
-              "focus:outline-none focus:ring-2",
-              radius.md,
-              transition.base,
-              shadow.sm,
-              t.colors.textPrimary,
-              error ? t.colors.errorBorder : t.colors.border,
-              disabled && t.colors.disabledOpacity,
-              !disabled && "hover:border-gray-400 focus:ring-blue-500"
+              componentTokens.select.button,
+              error && componentTokens.input.error,
+              disabled && componentTokens.input.disabled
             )}
           >
-            <span className={clsx(value ? "" : "text-gray-400")}>
+            <span className={clsx(value ? "" : componentTokens.select.placeholder)}>
               {value ? value.label : placeholder}
             </span>
-            <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
+            <ChevronDown className={componentTokens.select.icon} />
           </ListboxButton>
 
-          <ListboxOptions
-            className={clsx(
-              "absolute mt-1 w-full bg-white border",
-              radius.md,
-              shadow.lg,
-              "max-h-60 overflow-auto z-10 divide-y divide-gray-100"
-            )}
-          >
+          <ListboxOptions className={componentTokens.select.options}>
             {options.map((opt) => (
               <ListboxOption
                 key={opt.value}
                 value={opt}
                 className={({ active, selected }) =>
                   clsx(
-                    "cursor-pointer px-3 py-2",
-                    transition.fast,
-                    selected && "bg-blue-50 font-semibold text-blue-700",
-                    active && "bg-blue-100"
+                    componentTokens.select.option,
+                    selected && componentTokens.select.optionSelected,
+                    active && componentTokens.select.optionActive
                   )
                 }
               >
@@ -96,7 +80,7 @@ export const AppSelect: FC<AppSelectProps> = ({
             ))}
 
             {allowAdd && (
-              <div className="px-3 py-2 text-blue-600 cursor-pointer hover:bg-blue-50">
+              <div className={componentTokens.select.addNew}>
                 + Add new
               </div>
             )}
@@ -105,12 +89,12 @@ export const AppSelect: FC<AppSelectProps> = ({
       </Listbox>
 
       {error ? (
-        <AppText size="sm" className="text-red-600">
+        <AppText size="body" className={componentTokens.text.error} variant="error">
           {error}
         </AppText>
       ) : (
         helperText && (
-          <AppText size="sm" className={t.colors.textSecondary}>
+          <AppText size="body" className={componentTokens.text.bodySecondary}>
             {helperText}
           </AppText>
         )

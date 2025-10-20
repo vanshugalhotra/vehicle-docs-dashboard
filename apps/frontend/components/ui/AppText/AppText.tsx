@@ -1,36 +1,43 @@
+"use client";
 import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
-import { typography, theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
+
+type TextSize = keyof typeof componentTokens.text['sizes'] | 'bodySecondary'; // Union for autocomplete; add more semantics as needed
 
 interface AppTextProps {
   children: ReactNode;
-  size?: keyof typeof typography;
+  size?: TextSize;
   variant?: "primary" | "secondary" | "muted" | "error" | "success";
-  as?: React.ElementType; // e.g. span, p, h1, label, or a component
+  as?: React.ElementType;
   className?: string;
 }
 
+const getSizeClass = (size: TextSize): string => {
+  if (size === 'bodySecondary') return componentTokens.text.bodySecondary;
+  return componentTokens.text.sizes[size] || componentTokens.text.sizes.body;
+};
+
+const variantClasses = {
+  primary: componentTokens.text.primary,
+  secondary: componentTokens.text.secondary,
+  muted: componentTokens.text.muted,
+  error: componentTokens.text.error,
+  success: componentTokens.text.success,
+} as const;
+
 export const AppText: FC<AppTextProps> = ({
   children,
-  size = "md",
+  size = "body",
   variant = "primary",
   as: Tag = "span",
   className,
 }) => {
-  const colorClasses = {
-    primary: theme.light.colors.textPrimary,
-    secondary: theme.light.colors.textSecondary,
-    muted: "text-gray-500",
-    error: "text-red-600",
-    success: "text-green-600",
-  };
-
   return (
     <Tag
       className={clsx(
-        typography[size],
-        colorClasses[variant],
-        "font-normal",
+        getSizeClass(size),
+        variantClasses[variant],
         className
       )}
     >

@@ -55,28 +55,3 @@ export const Loading: Story = {
     </div>
   ),
 };
-
-export const DarkMode: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-2 p-4 bg-gray-900">
-      <AppButton variant="primary" themeType="dark">
-        Primary
-      </AppButton>
-      <AppButton variant="secondary" themeType="dark">
-        Secondary
-      </AppButton>
-      <AppButton variant="outline" themeType="dark">
-        Outline
-      </AppButton>
-      <AppButton variant="ghost" themeType="dark">
-        Ghost
-      </AppButton>
-      <AppButton variant="danger" themeType="dark">
-        Danger
-      </AppButton>
-      <AppButton variant="link" themeType="dark">
-        Link
-      </AppButton>
-    </div>
-  ),
-};

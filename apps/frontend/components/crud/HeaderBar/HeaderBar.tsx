@@ -29,7 +29,7 @@ export const HeaderBar: FC<HeaderBarProps> = ({
       )}
     >
       <div className="flex items-center gap-4">
-        <AppText size="xl" className="font-bold">
+        <AppText size="heading1" className="font-bold">
           {title}
         </AppText>
 

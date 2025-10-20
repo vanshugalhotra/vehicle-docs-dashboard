@@ -1,8 +1,7 @@
 "use client";
-
 import React, { FC, TextareaHTMLAttributes, ReactNode } from "react";
 import clsx from "clsx";
-import { theme, radius, transition } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 import { AppText } from "../AppText";
 
 interface AppTextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -23,24 +22,17 @@ export const AppTextArea: FC<AppTextAreaProps> = ({
   className,
   ...props
 }) => {
-  const t = theme.light;
-
   return (
     <div className="flex flex-col w-full gap-1">
       {label && (
-        <AppText as="label" size="label" className={t.colors.textSecondary}>
+        <AppText as="label" size="label" className={componentTokens.text.primary}>
           {label}
         </AppText>
       )}
 
-      <div
-        className={clsx(
-          "relative flex items-start w-full",
-          disabled && t.colors.disabledOpacity
-        )}
-      >
+      <div className="relative flex items-start w-full">
         {prefixIcon && (
-          <span className="absolute top-3 left-3 flex items-center text-gray-400">
+          <span className={clsx(componentTokens.input.icon, "top-3 left-3")}>
             {prefixIcon}
           </span>
         )}
@@ -48,18 +40,12 @@ export const AppTextArea: FC<AppTextAreaProps> = ({
         <textarea
           className={clsx(
             "w-full px-3 py-2 min-h-[80px] resize-none",
-            transition.base,
-            radius.md,
-            t.input.base,
-            !disabled && t.input.hover,
-            error
-              ? t.input.error
-              : !disabled
-              ? t.input.focus
-              : t.input.disabled,
+            componentTokens.input.base,
+            !disabled && componentTokens.input.focus,
+            error && componentTokens.input.error,
+            disabled && componentTokens.input.disabled,
             prefixIcon && "pl-10",
             suffixIcon && "pr-10",
-            disabled && t.input.disabled,
             className
           )}
           disabled={disabled}
@@ -67,19 +53,19 @@ export const AppTextArea: FC<AppTextAreaProps> = ({
         />
 
         {suffixIcon && (
-          <span className="absolute top-3 right-3 flex items-center text-gray-400">
+          <span className={clsx(componentTokens.input.icon, "top-3 right-3")}>
             {suffixIcon}
           </span>
         )}
       </div>
 
       {error ? (
-        <AppText size="sm" className="text-red-600">
+        <AppText size="body" className={componentTokens.text.error}>
           {error}
         </AppText>
       ) : (
         helperText && (
-          <AppText size="sm" className={t.colors.textSecondary}>
+          <AppText size="body" className={componentTokens.text.bodySecondary}>
             {helperText}
           </AppText>
         )

@@ -35,14 +35,3 @@ export const AllVariants: Story = {
     </div>
   ),
 };
-
-export const DarkMode: Story = {
-  render: () => (
-    <div className="p-4 bg-gray-900">
-      <AppBadge variant="neutral">Neutral</AppBadge>
-      <AppBadge variant="success">Success</AppBadge>
-      <AppBadge variant="warning">Warning</AppBadge>
-      <AppBadge variant="danger">Danger</AppBadge>
-    </div>
-  ),
-};

@@ -1,7 +1,7 @@
 "use client";
 import React, { ButtonHTMLAttributes, FC, ReactNode } from "react";
 import clsx from "clsx";
-import { theme, ThemeType } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 
 type ButtonVariant =
   | "primary"
@@ -18,14 +18,9 @@ interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
-  themeType?: ThemeType; // allow dynamic theme switching
 }
 
-const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-3 py-1 text-sm",
-  md: "px-4 py-2 text-base",
-  lg: "px-5 py-3 text-lg",
-};
+const sizeClasses: Record<ButtonSize, string> = componentTokens.button.sizes;
 
 export const AppButton: FC<AppButtonProps> = ({
   variant = "primary",
@@ -34,38 +29,25 @@ export const AppButton: FC<AppButtonProps> = ({
   disabled = false,
   startIcon,
   endIcon,
-  themeType = "light",
   children,
   ...props
 }) => {
   const isDisabled = disabled || loading;
-  const themeColors = theme[themeType].colors;
-
-  const variantClasses: Record<ButtonVariant, string> = {
-    primary: themeColors.primary,
-    secondary: themeColors.secondary,
-    outline: themeColors.outline,
-    ghost: themeColors.ghost,
-    danger: themeColors.danger,
-    link: themeColors.link,
-  };
 
   return (
     <button
       disabled={isDisabled}
       className={clsx(
-        "inline-flex items-center justify-center font-medium gap-2 select-none",
-        theme[themeType].radius.md,
-        theme[themeType].transition.base,
-        variantClasses[variant],
+        "inline-flex items-center justify-center font-medium gap-2 select-none rounded-md transition-all duration-150",
+        componentTokens.button[variant],
         sizeClasses[size],
-        isDisabled && themeColors.disabledOpacity,
-        loading && "opacity-70 cursor-wait"
+        isDisabled && componentTokens.button.disabled,
+        loading && "cursor-wait"
       )}
       {...props}
     >
       {loading && (
-        <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4" />
+        <span className="animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4" />
       )}
       {!loading && startIcon}
       {!loading && children}

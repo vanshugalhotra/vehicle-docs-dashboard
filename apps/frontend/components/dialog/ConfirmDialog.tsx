@@ -57,7 +57,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         </>
       }
     >
-      <AppText variant="secondary" size="md">
+      <AppText variant="secondary" size="heading2">
         {description}
       </AppText>
     </AppDialog>
