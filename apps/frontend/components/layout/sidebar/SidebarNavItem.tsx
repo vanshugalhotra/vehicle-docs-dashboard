@@ -55,6 +55,7 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
         !isActive && componentTokens.sidebar.itemHover,
         open && !isActive && componentTokens.sidebar.itemOpen
       )}
+      aria-expanded={open}
     >
       {icon && (
         <span
@@ -66,15 +67,9 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
           {icon}
         </span>
       )}
-      {!isCollapsed && <AppText size="label">{label}</AppText>}
+      {!isCollapsed && <AppText size="body" className={componentTokens.sidebar.label}>{label}</AppText>}
       {!isCollapsed && hasChildren && (
-        <ChevronDown
-          size={16}
-          className={clsx(
-            "transition-transform duration-200",
-            open ? "rotate-180" : "rotate-0"
-          )}
-        />
+        <ChevronDown className={componentTokens.sidebar.chevron} />
       )}
     </button>
   );
@@ -87,7 +82,7 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
         content
       )}
       {hasChildren && open && !isCollapsed && (
-        <div className="ml-6 mt-1 flex flex-col gap-1">{children}</div>
+        <div className={componentTokens.sidebar.childrenIndent}>{children}</div>
       )}
     </div>
   );

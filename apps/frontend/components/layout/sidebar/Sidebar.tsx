@@ -24,15 +24,15 @@ export const Sidebar: React.FC = () => {
       {/* Header */}
       <div className={componentTokens.sidebar.header}>
         {!isCollapsed && brandItem && (
-          <AppText size="heading2">
-            {brandItem.label}
-          </AppText>
-
+          <span className={componentTokens.sidebar.brand}>
+            <AppText size="heading2">{brandItem.label}</AppText>
+          </span>
         )}
         <button
           onClick={toggle}
           className={componentTokens.sidebar.toggle}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
             <LucideArrowRight size={20} />
@@ -46,37 +46,42 @@ export const Sidebar: React.FC = () => {
       <nav className={componentTokens.sidebar.nav}>
         {sidebarConfig
           .filter((item) => item.type !== "brand")
-          .map((item) =>
-            item.children ? (
-              <SidebarNavItem
-                key={item.label}
-                label={item.label}
-                icon={item.icon}
-              >
-                {!isCollapsed &&
-                  item.children.map((child) => (
-                    <SidebarNavItem
-                      key={child.label}
-                      label={child.label}
-                      icon={child.icon}
-                      path={child.path}
-                    />
-                  ))}
-              </SidebarNavItem>
-            ) : (
-              <SidebarNavItem
-                key={item.label}
-                label={item.label}
-                icon={item.icon}
-                path={item.path}
-              />
-            )
-          )}
+          .map((item, ) => (
+            <React.Fragment key={item.label}>
+              {item.children ? (
+                <SidebarNavItem
+                  label={item.label}
+                  icon={item.icon}
+                >
+                  {!isCollapsed &&
+                    item.children.map((child) => (
+                      <SidebarNavItem
+                        key={child.label}
+                        label={child.label}
+                        icon={child.icon}
+                        path={child.path}
+                      />
+                    ))}
+                </SidebarNavItem>
+              ) : (
+                <SidebarNavItem
+                  key={item.label}
+                  label={item.label}
+                  icon={item.icon}
+                  path={item.path}
+                />
+              )}
+            </React.Fragment>
+          ))}
       </nav>
 
       {/* Footer */}
       <div className={componentTokens.sidebar.footer}>
-        {!isCollapsed && <p>v1.0.0</p>}
+        {!isCollapsed && (
+          <span className={componentTokens.sidebar.footerVersion}>
+            © helpmefolks
+          </span>
+        )}
       </div>
     </aside>
   );

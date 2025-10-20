@@ -165,30 +165,43 @@ export const componentTokens = {
   },
 
   topbar: {
-    base: "sticky top-0 z-40 flex items-center justify-between h-14 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
+    base: "sticky top-0 z-40 flex items-center justify-between h-15 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
     titleSection: "flex items-center gap-3",
     actionsSection: "flex items-center gap-2",
     shadow: "shadow-sm",
   },
 
   sidebar: {
-    base: "h-screen flex flex-col bg-surface border-r border-border shadow-sm transition-all duration-300 ease-in-out",
+    base: "h-screen flex flex-col bg-surface border-r border-border shadow-sm transition-all duration-300 ease-out", // Changed: ease-out for smoother collapse
     collapsed: "w-16",
     expanded: "w-64",
     header:
-      "flex items-center justify-between p-4 border-b border-border transition-all duration-150",
+      "flex items-center justify-between p-4 border-b border-border-subtle transition-all duration-150",
     toggle:
-      "flex items-center justify-center p-1 rounded hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-light transition-all duration-150",
-    nav: "flex-1 overflow-y-auto mt-2 px-1",
-    item: "flex items-center gap-3 w-full px-4 py-4 text-left rounded transition-all duration-200",
-    itemActive: "bg-primary-light text-primary font-semibold",
-    itemHover: "hover:bg-surface-subtle",
-    itemOpen: "bg-surface-subtle",
-    icon: "text-text-tertiary",
+      "flex items-center justify-center p-2 rounded-md hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-light/20 transition-all duration-150",
+    brand:
+      "flex items-center gap-3 text-heading3 text-text-primary underline decoration-primary/30 decoration-2 underline-offset-4",
+    nav: "flex-1 overflow-y-auto mt-4 px-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-surface-subtle",
+    item: "flex items-center gap-3 w-full px-3 py-3 text-left rounded-md transition-all duration-200",
+    itemActive:
+      "border-l-3 border-primary/70 text-primary font-medium bg-primary/8",
+    itemHover: "hover:bg-primary/10 hover:text-text-primary",
+    icon: "h-5 w-5 text-text-secondary flex-shrink-0 group-hover:text-primary/80", 
+    itemOpen: "bg-surface-subtle/50 border-l-2 border-primary/30", 
+    label: "text-body font-medium truncate", 
+    chevron:
+      "h-4 w-4 text-text-tertiary transition-transform duration-200 ml-auto", 
     group:
-      "flex items-center gap-2 justify-between w-full px-4 py-2 text-left rounded transition-all duration-200 hover:bg-surface-subtle",
-    groupLabel: "font-semibold flex items-center gap-2 text-text-primary",
-    footer: "p-4 text-caption text-text-tertiary border-t border-border-subtle",
+      "flex items-center justify-between w-full px-3 py-2.5 text-left rounded-md transition-all duration-200 hover:bg-surface-subtle", 
+    groupLabel:
+      "font-semibold text-text-primary flex items-center gap-2 truncate", 
+    childrenIndent:
+      "ml-8 mt-1 flex flex-col gap-0.5 border-l border-border-subtle pl-2", 
+    divider: "my-2 h-px bg-border-subtle",
+    // Footer
+    footer: "p-4 pt-2 border-t border-border-subtle mt-auto",
+    footerVersion:
+      "inline-flex items-center gap-1 text-caption text-text-tertiary", 
   },
 };
 

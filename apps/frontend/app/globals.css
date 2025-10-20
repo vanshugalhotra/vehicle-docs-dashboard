@@ -66,6 +66,7 @@
   --color-disabled: #F3F4F6;
   --color-disabled-text: #9CA3AF;
   --color-overlay: rgba(0, 0, 0, 0.5);
+
 }
 
 @theme inline {

@@ -1,11 +1,11 @@
 "use client";
 import React, { FC, ReactNode, useState, useEffect } from "react";
-import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
 import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { AppTooltip } from "@/components/ui/AppTooltip";
+import { AppText } from "@/components/ui/AppText";
 
 export interface SidebarNavGroupProps {
   label: string;
@@ -42,18 +42,16 @@ export const SidebarNavGroup: FC<SidebarNavGroupProps> = ({
     <button
       onClick={toggleOpen}
       className={componentTokens.sidebar.group}
+      aria-expanded={open}
     >
       {!isCollapsed && (
         <span className={componentTokens.sidebar.groupLabel}>
           {icon && <span className={componentTokens.sidebar.icon}>{icon}</span>}
-          {label}
+          <AppText size="body" className="font-semibold">{label}</AppText>
         </span>
       )}
       {!isCollapsed && (
-        <ChevronDown
-          size={16}
-          className={clsx("transition-transform duration-200", open ? "rotate-180" : "rotate-0")}
-        />
+        <ChevronDown className={componentTokens.sidebar.chevron} />
       )}
     </button>
   );
@@ -61,7 +59,7 @@ export const SidebarNavGroup: FC<SidebarNavGroupProps> = ({
   return (
     <div className="flex flex-col">
       {isCollapsed ? <AppTooltip content={label}>{content}</AppTooltip> : content}
-      {!isCollapsed && open && <div className="flex flex-col ml-4 mt-1 gap-1">{children}</div>}
+      {!isCollapsed && open && <div className={componentTokens.sidebar.childrenIndent}>{children}</div>}
     </div>
   );
 };

@@ -27,7 +27,7 @@ export const sidebarConfig: SidebarItemConfig[] = [
   {
     label: "Dashboard",
     icon: <LayoutDashboard size={24} />,
-    path: "/dashboard",
+    path: "/",
   },
   {
     label: "Vehicles",
