@@ -9,7 +9,7 @@ import { AppTooltip } from "@/components/ui/AppTooltip";
 
 export interface SidebarNavItemProps {
   label: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   path?: string;
   children?: ReactNode;
   onClick?: () => void;
@@ -50,7 +50,7 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
     <button
       onClick={handleToggle}
       className={clsx(
-        "flex items-center gap-3 w-full px-4 py-2 text-left rounded transition-colors duration-200",
+        "flex items-center gap-3 w-full px-4 py-4 text-left rounded transition-colors duration-200",
         radius.sm,
         isActive
           ? clsx("bg-blue-100 text-blue-700 font-semibold")
@@ -58,17 +58,12 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
         open && !isActive ? "bg-gray-50" : ""
       )}
     >
-      <span className={clsx("text-gray-600", isActive && t.colors.primary)}>
-        {icon}
-      </span>
+      {icon && <span className={clsx("text-gray-600", isActive && t.colors.primary)}>{icon}</span>}
       {!isCollapsed && <span className="flex-1">{label}</span>}
       {!isCollapsed && hasChildren && (
         <ChevronDown
           size={16}
-          className={clsx(
-            "transition-transform duration-200",
-            open ? "rotate-180" : "rotate-0"
-          )}
+          className={clsx("transition-transform duration-200", open ? "rotate-180" : "rotate-0")}
         />
       )}
     </button>
@@ -76,11 +71,7 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
 
   return (
     <div>
-      {isCollapsed ? (
-        <AppTooltip content={label}>{content}</AppTooltip>
-      ) : (
-        content
-      )}
+      {isCollapsed ? <AppTooltip content={label}>{content}</AppTooltip> : content}
       {hasChildren && open && !isCollapsed && (
         <div className="ml-6 mt-1 flex flex-col gap-1">{children}</div>
       )}

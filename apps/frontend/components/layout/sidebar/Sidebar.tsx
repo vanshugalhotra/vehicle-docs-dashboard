@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import clsx from "clsx";
 import { useSidebar } from "./useSidebar";
@@ -9,7 +10,6 @@ import {
   theme,
   typography,
 } from "../../tokens/designTokens";
-import { SidebarNavGroup } from "./SidebarNavGroup";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { sidebarConfig } from "./sidebarConfig";
 import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
@@ -17,6 +17,8 @@ import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
 export const Sidebar: React.FC = () => {
   const { isCollapsed, toggle } = useSidebar();
   const t = theme.light;
+
+  const brandItem = sidebarConfig.find((item) => item.type === "brand");
 
   return (
     <aside
@@ -36,9 +38,9 @@ export const Sidebar: React.FC = () => {
           transition.base
         )}
       >
-        {!isCollapsed && (
+        {!isCollapsed && brandItem && (
           <span className={clsx(typography.heading3, t.colors.textPrimary)}>
-            BackTrack
+            {brandItem.label}
           </span>
         )}
         <button
@@ -60,31 +62,34 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto mt-2 px-1">
-        {sidebarConfig.map((item) =>
-          item.children ? (
-            <SidebarNavGroup
-              key={item.label}
-              label={item.label}
-              icon={item.icon}
-            >
-              {item.children.map((child) => (
-                <SidebarNavItem
-                  key={child.label}
-                  label={child.label}
-                  icon={child.icon}
-                  path={child.path}
-                />
-              ))}
-            </SidebarNavGroup>
-          ) : (
-            <SidebarNavItem
-              key={item.label}
-              label={item.label}
-              icon={item.icon}
-              path={item.path}
-            />
-          )
-        )}
+        {sidebarConfig
+          .filter((item) => item.type !== "brand")
+          .map((item) =>
+            item.children ? (
+              <SidebarNavItem
+                key={item.label}
+                label={item.label}
+                icon={item.icon} // render top-level icon always
+              >
+                {!isCollapsed &&
+                  item.children.map((child) => (
+                    <SidebarNavItem
+                      key={child.label}
+                      label={child.label}
+                      icon={child.icon}
+                      path={child.path}
+                    />
+                  ))}
+              </SidebarNavItem>
+            ) : (
+              <SidebarNavItem
+                key={item.label}
+                label={item.label}
+                icon={item.icon}
+                path={item.path}
+              />
+            )
+          )}
       </nav>
 
       {/* Footer */}
