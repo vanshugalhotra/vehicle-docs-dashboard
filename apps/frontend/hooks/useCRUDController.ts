@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchWithAuth } from "../lib/fetchWithAuth";
+import { fetchWithAuth } from "../lib/utils/fetchWithAuth";
 
-export interface CRUDControllerConfig {
-  baseUrl: string; // e.g. /api/vehicles
-  queryKey: string; // e.g. "vehicles"
+export interface CRUDControllerConfigBase {
+  baseUrl: string;
+  queryKey: string;
   defaultPageSize?: number;
   defaultFilters?: Record<string, unknown>;
 }
 
-export function useCRUDController<T extends { id?: string | number }>(
-  config: CRUDControllerConfig
-) {
+export function useCRUDController<
+  T extends { id?: string | number },
+  C extends CRUDControllerConfigBase = CRUDControllerConfigBase
+>(config: C) {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState(config.defaultFilters ?? {});
@@ -52,19 +53,27 @@ export function useCRUDController<T extends { id?: string | number }>(
         method: "POST",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
   });
 
   // -------------------
   // UPDATE
   // -------------------
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string | number; data: Partial<T> }) =>
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string | number;
+      data: Partial<T>;
+    }) =>
       fetchWithAuth(`${config.baseUrl}/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
   });
 
   // -------------------
@@ -75,7 +84,8 @@ export function useCRUDController<T extends { id?: string | number }>(
       fetchWithAuth(`${config.baseUrl}/${id}`, {
         method: "DELETE",
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [config.queryKey] }),
   });
 
   // -------------------
@@ -83,7 +93,10 @@ export function useCRUDController<T extends { id?: string | number }>(
   // -------------------
   return {
     // Data
-    data: (listQuery.data as { items: T[] })?.items ?? (listQuery.data as T[]) ?? [],
+    data:
+      (listQuery.data as { items: T[] })?.items ??
+      (listQuery.data as T[]) ??
+      [],
     total: (listQuery.data as { total: number })?.total ?? 0,
     isLoading: listQuery.isLoading,
     error: listQuery.error as Error | null,

@@ -1,41 +1,78 @@
 "use client";
 
-import React, { FC, ReactNode } from "react";
-import clsx from "clsx";
-import { componentTokens } from "@/styles/design-system";
-import { AppText } from "@/components/ui/AppText";
-
+import React from "react";
+import { componentTokens } from "@/styles/design-system/componentTokens";
+import { HeaderBar } from "./HeaderBar/HeaderBar";
+import { AppCard } from "@/components/ui/AppCard";
+import { AppButton } from "../ui/AppButton";
+import { toastUtils } from "@/lib/utils/toastUtils";
+import { Download } from "lucide-react";
 interface CRUDPageLayoutProps {
-  title?: string;
-  actions?: ReactNode;
-  children: ReactNode;
-  className?: string;
+  title: string;
+  isEditing?: boolean;
+  onCancelEdit?: () => void;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  onAdd?: () => void;
+  addLabel?: string;
+  form: React.ReactNode;
+  table: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
-export const CRUDPageLayout: FC<CRUDPageLayoutProps> = ({
+/**
+ * Generic layout for all CRUD pages (form + table + header).
+ */
+export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
   title,
-  actions,
-  children,
-  className,
+  isEditing,
+  onCancelEdit,
+  search,
+  onSearchChange,
+  addLabel,
+  form,
+  table,
+  footer,
 }) => {
   return (
-    <div className={clsx("flex-1 flex flex-col h-full", className)}>
+    <div className="space-y-4">
       {/* Header */}
-      {title && (
-        <div className={componentTokens.layout.pageHeader}>
-          <AppText size="heading2">
-            {title}
-          </AppText>
-          {actions && <div className={componentTokens.layout.pageHeaderActions}>{actions}</div>}
-        </div>
-      )}
+      <HeaderBar
+        title={title}
+        isEditing={isEditing}
+        onCancelEdit={onCancelEdit}
+        search={search}
+        onSearchChange={onSearchChange}
+        addLabel={addLabel}
+        rightActions={
+          <div className="flex items-center gap-2">
+            <AppButton
+              variant="primary"
+              size="md"
+              onClick={() => toastUtils.info("Export feature coming soon")}
+              endIcon={<Download size={16}/>}
+            >
+              Export
+            </AppButton>
+          </div>
+        }
+      />
 
-      {/* Content area */}
-      <div className={componentTokens.layout.pageContent}>
-        {children}
+      {/* Grid Layout */}
+      <div className="grid lg:grid-cols-3 gap-4">
+        {/* Left Column: Form */}
+        <div className="lg:col-span-1">{form}</div>
+
+        {/* Right Column: Table */}
+        <div className="lg:col-span-2">
+          <AppCard className={componentTokens.card.base} padded={false}>
+            {table}
+          </AppCard>
+        </div>
       </div>
+
+      {/* Optional Footer (modals / dialogs) */}
+      {footer && <div>{footer}</div>}
     </div>
   );
 };
-
-export default CRUDPageLayout;

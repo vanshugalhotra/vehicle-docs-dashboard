@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/ui/AppToaster/AppToaster";
 import { AppLayout } from "@/components/layout/applayout";
+import { Providers } from "@/lib/providers/ReactQueryProvider";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -24,10 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        <AppLayout title="Yash Group Dashboard">
-          {children}
-        </AppLayout>
-        <AppToaster />
+        <Providers>
+          <AppLayout title="Yash Group Dashboard">
+            {children}
+          </AppLayout>
+          <AppToaster />
+        </Providers>
       </body>
     </html>
   );

@@ -1,91 +1,45 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { z } from "zod";
-import { ColumnDef } from "@tanstack/react-table";
-import { AppCard } from "@/components/ui/AppCard";
-import { AppButton } from "@/components/ui/AppButton";
-import { AppText } from "@/components/ui/AppText";
-import { DataTable } from "@/components/crud/DataTable/DataTable";
-import { toastUtils } from "@/lib/toastUtils";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { AppInput } from "@/components/ui/AppInput";
-import { componentTokens } from "@/styles/design-system/componentTokens";
+import React, { useState } from "react";
 import { FormEmbeddedPanel } from "@/components/crud/Form/FormEmbeddedPanel";
-import { AppBadge } from "@/components/ui/AppBadge";
-import { formatReadableDate } from "@/lib/dateUtils";
+import { DataTable } from "@/components/crud/DataTable/DataTable";
 import ConfirmDialog from "@/components/dialog/ConfirmDialog";
-
-const driverSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  phone: z.string().min(1, "Phone is required"),
-  email: z
-    .string()
-    .email("Invalid email")
-    .nullable()
-    .optional()
-    .or(z.literal("")),
-});
-
-type Driver = z.infer<typeof driverSchema> & {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+import { toastUtils } from "@/lib/utils/toastUtils";
+import { useCRUDController } from "@/hooks/useCRUDController";
+import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
+import { Driver, driverCrudConfig } from "@/lib/crud-configs/driverCrudConfig";
 
 export default function DriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [search, setSearch] = useState("");
   const [formKey, setFormKey] = useState(0);
+
+  const {
+    data: drivers,
+    isLoading: loading,
+    create,
+    update,
+    remove,
+    refetch,
+    filters,
+    setFilters,
+  } = useCRUDController<Driver>(driverCrudConfig);
 
   const resetForm = () => {
     setSelectedDriver(null);
     setFormKey((prev) => prev + 1);
   };
 
-  const loadDrivers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const query = search ? `?search=${encodeURIComponent(search)}` : "";
-      const data = await fetchWithAuth<Driver[]>(`/api/v1/drivers${query}`);
-
-      if (data) {
-        setDrivers(data);
-      } else {
-        toastUtils.error("Failed to load drivers");
-      }
-    } catch (error: unknown) {
-      toastUtils.error(error instanceof Error ? error.message : "Network Error!");
-    } finally {
-      setLoading(false);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    loadDrivers();
-  }, [loadDrivers]);
-
   const handleSubmit = async (values: Driver) => {
     const submitPromise = async (): Promise<void> => {
-      const method = selectedDriver ? "PATCH" : "POST";
-      const url = selectedDriver
-        ? `/api/v1/drivers/${selectedDriver.id}`
-        : `/api/v1/drivers`;
-
-      const data = await fetchWithAuth<Driver>(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      if (!data) throw new Error("Request failed");
-
+      if (selectedDriver?.id) {
+        await update({ id: selectedDriver.id, data: values });
+      } else {
+        await create(values);
+      }
       resetForm();
-      await loadDrivers();
+      await refetch();
     };
 
     toastUtils.promise(submitPromise(), {
@@ -94,162 +48,72 @@ export default function DriversPage() {
         ? "Driver updated successfully"
         : "Driver added successfully",
       error: (error: unknown) =>
-        error instanceof Error ? error.message : String(error) || "Operation failed",
+        error instanceof Error
+          ? error.message
+          : String(error) || "Operation failed",
     });
   };
 
-  const handleDelete = async (driver: Driver) => {
+  const handleDelete = (driver: Driver) => {
     setDriverToDelete(driver);
   };
 
-  const fields = [
-    {
-      key: "name",
-      label: "Name",
-      type: "text" as const,
-      placeholder: "Enter driver name",
-      required: true,
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      type: "text" as const,
-      placeholder: "Enter phone number",
-      required: true,
-    },
-    {
-      key: "email",
-      label: "Email",
-      type: "text" as const,
-      placeholder: "Enter email address",
-    },
-  ];
-
-  const columns: ColumnDef<Driver>[] = [
-    {
-      id: "serial",
-      header: "#",
-      cell: ({ row }) => row.index + 1,
-      size: 40,
-      minSize: 40,
-      maxSize: 60,
-    },
-    { accessorKey: "name", header: "Name" },
-    { accessorKey: "phone", header: "Phone" },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ getValue }) => getValue() || "-",
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created",
-      cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
-    },
-  ];
+  const handleConfirmDelete = async () => {
+    if (!driverToDelete?.id) return;
+    setDeleteLoading(true);
+    try {
+      await remove(driverToDelete.id);
+      await refetch();
+      toastUtils.success("Driver deleted successfully");
+    } catch (err: unknown) {
+      toastUtils.error(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleteLoading(false);
+      setDriverToDelete(null);
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      {/* Page Header */}
-      <div className={componentTokens.layout.pageHeader}>
-        <div className="flex items-center gap-4">
-          <AppText size="heading2" variant="primary">
-            Drivers
-          </AppText>
-          {selectedDriver && (
-            <AppBadge variant="info">
-              <AppText size="caption" variant="secondary">
-                Editing Mode
-              </AppText>
-            </AppBadge>
-          )}
-        </div>
-        {selectedDriver && (
-          <AppButton variant="secondary" onClick={resetForm} size="sm">
-            Cancel Edit
-          </AppButton>
-        )}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Left Column: Form */}
-        <div className="lg:col-span-1">
-          <FormEmbeddedPanel
-            key={formKey}
-            title={selectedDriver ? "Edit Driver" : "Add Driver"}
-            fields={fields}
-            schema={driverSchema}
-            selectedRecord={selectedDriver}
-            onSubmit={handleSubmit}
-            onCancel={resetForm}
-            loading={loading}
-            layout="stacked"
-          />
-        </div>
-
-        {/* Right Column: Table */}
-        <div className="lg:col-span-2">
-          <AppCard className={componentTokens.card.base} padded={false}>
-            <div className={componentTokens.card.header}>
-              <div className="flex-1">
-                <AppInput
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search drivers by name or phone..."
-                  className="w-full max-w-md"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <AppText size="body" variant="secondary">
-                  Showing {drivers.length} drivers
-                </AppText>
-                {drivers.length > 0 && (
-                  <AppBadge variant="success">
-                    <AppText size="caption" variant="success">
-                      {drivers.length} Active
-                    </AppText>
-                  </AppBadge>
-                )}
-              </div>
-            </div>
-            <div className={componentTokens.card.content}>
-              <DataTable
-                columns={columns}
-                data={drivers}
-                loading={loading}
-                onEdit={(row) => setSelectedDriver(row)}
-                onDelete={handleDelete}
-              />
-            </div>
-          </AppCard>
-        </div>
-      </div>
-
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={!!driverToDelete}
-        title="Delete Driver?"
-        description={`Are you sure you want to delete ${driverToDelete?.name}?`}
-        loading={deleteLoading}
-        onCancel={() => setDriverToDelete(null)}
-        onConfirm={async () => {
-          if (!driverToDelete) return;
-          setDeleteLoading(true);
-          try {
-            await fetchWithAuth(`/api/v1/drivers/${driverToDelete.id}`, {
-              method: "DELETE",
-            });
-            await loadDrivers();
-            toastUtils.success("Driver deleted successfully");
-          } catch (err: unknown) {
-            toastUtils.error(err instanceof Error ? err.message : "Delete failed");
-          } finally {
-            setDeleteLoading(false);
-            setDriverToDelete(null);
-          }
-        }}
-      />
-    </div>
+    <CRUDPageLayout
+      title="Drivers"
+      isEditing={!!selectedDriver}
+      onCancelEdit={resetForm}
+      search={(filters.search as string) ?? ""}
+      onSearchChange={(value) => setFilters({ ...filters, search: value })}
+      onAdd={resetForm}
+      addLabel="Add Driver"
+      form={
+        <FormEmbeddedPanel
+          key={formKey}
+          title={selectedDriver ? "Edit Driver" : "Add Driver"}
+          fields={driverCrudConfig.fields}
+          schema={driverCrudConfig.schema}
+          selectedRecord={selectedDriver}
+          onSubmit={handleSubmit}
+          onCancel={resetForm}
+          loading={loading}
+          layout="stacked"
+        />
+      }
+      table={
+        <DataTable
+          columns={driverCrudConfig.columns}
+          data={drivers}
+          loading={loading}
+          onEdit={(row) => setSelectedDriver(row)}
+          onDelete={handleDelete}
+        />
+      }
+      footer={
+        <ConfirmDialog
+          open={!!driverToDelete}
+          title="Delete Driver?"
+          description={`Are you sure you want to delete ${driverToDelete?.name}?`}
+          loading={deleteLoading}
+          onCancel={() => setDriverToDelete(null)}
+          onConfirm={handleConfirmDelete}
+        />
+      }
+    />
   );
 }
