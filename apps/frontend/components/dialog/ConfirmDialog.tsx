@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FC } from "react";
+import { AlertCircle } from "lucide-react";
 import { AppDialog } from "@/components/ui/AppDialog";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -33,9 +34,14 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
       open={open}
       onClose={onCancel}
       size={size}
-      title={title}
+      title={
+        <div className="flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-warning" />
+          <span>{title}</span>
+        </div>
+      }
       footer={
-        <>
+        <div className="flex justify-end gap-3 pt-4">
           <AppButton
             variant="outline"
             onClick={onCancel}
@@ -44,21 +50,23 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           >
             {cancelText}
           </AppButton>
-
           <AppButton
             variant="danger"
             onClick={onConfirm}
             loading={loading}
             size="sm"
+            disabled={loading}
           >
             {confirmText}
           </AppButton>
-        </>
+        </div>
       }
     >
-      <AppText size="body" variant="secondary" className="text-center">
-        {description}
-      </AppText>
+      <div className="space-y-2 text-center">
+        <AppText size="body" variant="secondary">
+          {description}
+        </AppText>
+      </div>
     </AppDialog>
   );
 };

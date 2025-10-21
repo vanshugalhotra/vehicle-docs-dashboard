@@ -95,7 +95,7 @@ export const componentTokens = {
   dialog: {
     overlay: "fixed inset-0 bg-overlay",
     panel:
-      "inline-block w-full bg-surface p-6 text-left align-middle rounded-lg shadow-xl transition-all duration-200", // Includes radius/shadow/transition
+      "inline-block w-full bg-surface p-6 text-left align-middle rounded-lg shadow-xl transition-all duration-200",
     header: "mb-4",
     content: "mb-4",
     footer: "mt-4 flex justify-end gap-2",

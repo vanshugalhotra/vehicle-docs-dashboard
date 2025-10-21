@@ -14,6 +14,7 @@ import { componentTokens } from "@/styles/design-system/componentTokens";
 import { FormEmbeddedPanel } from "@/components/crud/Form/FormEmbeddedPanel";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { formatReadableDate } from "@/lib/dateUtils";
+import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 
 const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,6 +37,8 @@ export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [formKey, setFormKey] = useState(0);
 
@@ -56,11 +59,7 @@ export default function DriversPage() {
         toastUtils.error("Failed to load drivers");
       }
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toastUtils.error(error.message || "Network Error!");
-      } else {
-        toastUtils.error("Network Error!");
-      }
+      toastUtils.error(error instanceof Error ? error.message : "Network Error!");
     } finally {
       setLoading(false);
     }
@@ -83,9 +82,7 @@ export default function DriversPage() {
         body: JSON.stringify(values),
       });
 
-      if (!data) {
-        throw new Error("Request failed");
-      }
+      if (!data) throw new Error("Request failed");
 
       resetForm();
       await loadDrivers();
@@ -97,36 +94,12 @@ export default function DriversPage() {
         ? "Driver updated successfully"
         : "Driver added successfully",
       error: (error: unknown) =>
-        error instanceof Error
-          ? error.message
-          : String(error) || "Operation failed",
+        error instanceof Error ? error.message : String(error) || "Operation failed",
     });
   };
 
   const handleDelete = async (driver: Driver) => {
-    if (!confirm("Are you sure you want to delete this driver?")) return;
-
-    const deletePromise = async (): Promise<void> => {
-      const data = await fetchWithAuth(`/api/v1/drivers/${driver.id}`, {
-        method: "DELETE",
-      });
-
-      if (data === null) {
-        throw new Error("Delete failed");
-      }
-
-      resetForm();
-      await loadDrivers();
-    };
-
-    toastUtils.promise(deletePromise(), {
-      loading: "Deleting driver...",
-      success: "Driver deleted successfully",
-      error: (error: unknown) =>
-        error instanceof Error
-          ? error.message
-          : String(error) || "Delete failed",
-    });
+    setDriverToDelete(driver);
   };
 
   const fields = [
@@ -157,9 +130,9 @@ export default function DriversPage() {
       id: "serial",
       header: "#",
       cell: ({ row }) => row.index + 1,
-      size: 40, // sets the width
-      minSize: 40, // prevents shrinking below this
-      maxSize: 60, // optional, prevents growing too much
+      size: 40,
+      minSize: 40,
+      maxSize: 60,
     },
     { accessorKey: "name", header: "Name" },
     { accessorKey: "phone", header: "Phone" },
@@ -252,6 +225,31 @@ export default function DriversPage() {
           </AppCard>
         </div>
       </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={!!driverToDelete}
+        title="Delete Driver?"
+        description={`Are you sure you want to delete ${driverToDelete?.name}?`}
+        loading={deleteLoading}
+        onCancel={() => setDriverToDelete(null)}
+        onConfirm={async () => {
+          if (!driverToDelete) return;
+          setDeleteLoading(true);
+          try {
+            await fetchWithAuth(`/api/v1/drivers/${driverToDelete.id}`, {
+              method: "DELETE",
+            });
+            await loadDrivers();
+            toastUtils.success("Driver deleted successfully");
+          } catch (err: unknown) {
+            toastUtils.error(err instanceof Error ? err.message : "Delete failed");
+          } finally {
+            setDeleteLoading(false);
+            setDriverToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 }
