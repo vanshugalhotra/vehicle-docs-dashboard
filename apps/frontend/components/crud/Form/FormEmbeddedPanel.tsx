@@ -5,10 +5,11 @@ import { z, ZodType } from "zod";
 import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
+import { componentTokens } from "@/styles/design-system";
 import { AppButton } from "../../ui/AppButton";
 import { AppCard } from "../../ui/AppCard";
-import { transition } from "../../tokens/designTokens";
 import { FormFieldRenderer } from "./FormFieldRenderer";
+import { AppText } from "../../ui/AppText";
 import type { EntityField } from "./FormModal";
 
 export interface FormEmbeddedPanelProps<T extends object> {
@@ -67,8 +68,12 @@ export const FormEmbeddedPanel = <T extends object>({
   }, [selectedRecord, defaultValues, reset]);
 
   return (
-    <AppCard className={clsx("p-6 flex flex-col gap-6", transition.base)}>
-      {title && <h2 className="text-lg font-semibold">{title}</h2>}
+    <AppCard className={clsx("flex flex-col gap-6", componentTokens.layout.section)}>
+      {title && (
+        <AppText size="heading3" className="font-semibold">
+          {title}
+        </AppText>
+      )}
 
       <form
         onSubmit={handleSubmit((values) => onSubmit(values as T))}
@@ -86,18 +91,19 @@ export const FormEmbeddedPanel = <T extends object>({
           />
         ))}
 
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 mt-2">
+        <div className="flex justify-end gap-2 pt-4 border-t border-border-subtle mt-2">
           {onCancel && (
             <AppButton
               variant="outline"
               type="button"
               onClick={onCancel}
               disabled={loading}
+              size="md"
             >
               Cancel
             </AppButton>
           )}
-          <AppButton type="submit" variant="primary" disabled={loading}>
+          <AppButton type="submit" variant="primary" disabled={loading} size="md">
             {loading
               ? selectedRecord
                 ? "Updating..."

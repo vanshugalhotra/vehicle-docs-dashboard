@@ -5,9 +5,9 @@ import { z, ZodType } from "zod";
 import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
+import { componentTokens } from "@/styles/design-system";
 import { AppButton } from "../../ui/AppButton";
 import { AppDialog } from "../../ui/AppDialog";
-import { transition } from "../../tokens/designTokens";
 import { FormFieldRenderer } from "./FormFieldRenderer";
 
 export type FieldType = "text" | "textarea" | "select" | "date" | "number";
@@ -72,7 +72,7 @@ export const FormModal = <T extends object>({
     <AppDialog open={open} onClose={onClose} title={title}>
       <form
         onSubmit={handleSubmit((values) => onSubmit(values as T))}
-        className={clsx("flex flex-col gap-4", transition.base)}
+        className={clsx("flex flex-col gap-4", componentTokens.layout.section)}
       >
         {fields.map((field) => (
           <FormFieldRenderer
@@ -83,11 +83,11 @@ export const FormModal = <T extends object>({
           />
         ))}
 
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
-          <AppButton variant="outline" onClick={onClose} disabled={loading}>
+        <div className="flex justify-end gap-2 pt-4 border-t border-border-subtle">
+          <AppButton variant="outline" onClick={onClose} disabled={loading} size="md">
             Cancel
           </AppButton>
-          <AppButton type="submit" variant="primary" disabled={loading}>
+          <AppButton type="submit" variant="primary" disabled={loading} size="md">
             {loading ? "Saving..." : "Save"}
           </AppButton>
         </div>

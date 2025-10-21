@@ -8,9 +8,10 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import clsx from "clsx";
+import { componentTokens } from "@/styles/design-system";
 import { AppButton } from "../../ui/AppButton";
 import { Edit, Trash2 } from "lucide-react";
-import { shadow, typography } from "../../tokens/designTokens";
+import { AppText } from "../../ui/AppText";
 
 export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
@@ -36,18 +37,18 @@ export const DataTable = <T extends object>({
   });
 
   return (
-    <div className={clsx("overflow-x-auto w-full", className)}>
-      <table className={clsx("w-full border-collapse", shadow.sm)}>
-        <thead className="bg-gray-50">
+    <div className={clsx(componentTokens.table.content, className)}>
+      <table className={componentTokens.card.base}>
+        <thead className="bg-surface-subtle">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
                   className={clsx(
-                    "text-left px-4 py-2",
-                    typography.label,
-                    "border-b border-gray-200"
+                    "text-left px-4 py-3",
+                    componentTokens.text.secondary,
+                    "border-b border-border"
                   )}
                 >
                   {header.isPlaceholder
@@ -58,7 +59,13 @@ export const DataTable = <T extends object>({
                       )}
                 </th>
               ))}
-              {(onEdit || onDelete) && <th className="px-4 py-2">Actions</th>}
+              {(onEdit || onDelete) && (
+                <th className="px-4 py-3 text-left">
+                  <AppText size="label" variant="secondary">
+                    Actions
+                  </AppText>
+                </th>
+              )}
             </tr>
           ))}
         </thead>
@@ -67,56 +74,61 @@ export const DataTable = <T extends object>({
           {loading ? (
             <tr>
               <td
-                colSpan={columns.length + 1}
-                className="text-center py-8 text-gray-400"
+                colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                className="text-center py-8"
               >
-                Loading...
+                <AppText size="body" variant="secondary">
+                  Loading...
+                </AppText>
               </td>
             </tr>
           ) : data.length === 0 ? (
             <tr>
               <td
-                colSpan={columns.length + 1}
-                className="text-center py-8 text-gray-400"
+                colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                className="text-center py-8"
               >
-                No data found
+                <AppText size="body" variant="secondary">
+                  No data found
+                </AppText>
               </td>
             </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="hover:bg-gray-50 transition-colors duration-150"
-              >
+              <tr key={row.id} className="transition-all duration-150">
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-4 py-2 border-b border-gray-200"
+                    className="px-4 py-3 border-b border-border-subtle"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
 
                 {(onEdit || onDelete) && (
-                  <td className="px-4 py-2 border-b border-gray-200 flex gap-2">
-                    {onEdit && (
-                      <AppButton
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(row.original)}
-                      >
-                        <Edit size={16} />
-                      </AppButton>
-                    )}
-                    {onDelete && (
-                      <AppButton
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(row.original)}
-                      >
-                        <Trash2 size={16} />
-                      </AppButton>
-                    )}
+                  <td className="px-4 py-3 border-b border-border-subtle">
+                    <div className="flex gap-1">
+                      {onEdit && (
+                        <AppButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(row.original)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit size={16} />
+                        </AppButton>
+                      )}
+                      {onDelete && (
+                        <AppButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(row.original)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 size={16} />
+                        </AppButton>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>

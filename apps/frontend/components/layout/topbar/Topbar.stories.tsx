@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Topbar } from "./Topbar";
 import { Bell, Settings, User, Search } from "lucide-react";
-import { theme } from "../../tokens/designTokens";
+import { componentTokens } from "@/styles/design-system";
 
 const meta: Meta<typeof Topbar> = {
   title: "Layout/Topbar",
@@ -57,15 +57,13 @@ export const WithActions: Story = {
 // 🙋 With custom right-side content
 export const WithCustomChildren: Story = {
   render: () => (
-    <div className="bg-gray-50">
+    <div className="bg-surface-subtle">
       <Topbar title="Profile">
         <div className="flex items-center gap-2">
-          <span
-            className={`text-sm ${theme.light.colors.textSecondary}`}
-          >
+          <span className={componentTokens.text.bodySecondary}>
             Hello, Vanshu
           </span>
-          <User size={18} className={theme.light.colors.textSecondary} />
+          <User size={18} className={componentTokens.text.secondary} />
         </div>
       </Topbar>
     </div>
@@ -103,8 +101,8 @@ export const Dense: Story = {
   render: () => (
     <Topbar title="Compact Topbar" showShadow={true}>
       <div className="flex items-center gap-2">
-        <Bell size={18} className={theme.light.colors.textSecondary} />
-        <Settings size={18} className={theme.light.colors.textSecondary} />
+        <Bell size={18} className={componentTokens.text.secondary} />
+        <Settings size={18} className={componentTokens.text.secondary} />
       </div>
     </Topbar>
   ),

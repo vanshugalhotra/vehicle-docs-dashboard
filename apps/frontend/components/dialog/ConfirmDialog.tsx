@@ -4,7 +4,6 @@ import React, { FC } from "react";
 import { AppDialog } from "@/components/ui/AppDialog";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
-import { transition } from "../tokens/designTokens";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -38,10 +37,10 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
       footer={
         <>
           <AppButton
-            variant="secondary"
+            variant="outline"
             onClick={onCancel}
             disabled={loading}
-            className={transition.base}
+            size="sm"
           >
             {cancelText}
           </AppButton>
@@ -50,14 +49,14 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
             variant="danger"
             onClick={onConfirm}
             loading={loading}
-            className={transition.base}
+            size="sm"
           >
             {confirmText}
           </AppButton>
         </>
       }
     >
-      <AppText variant="secondary" size="heading2">
+      <AppText size="body" variant="secondary" className="text-center">
         {description}
       </AppText>
     </AppDialog>

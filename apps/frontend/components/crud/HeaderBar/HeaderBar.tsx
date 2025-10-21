@@ -1,16 +1,16 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
+import { componentTokens } from "@/styles/design-system";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
-import { transition } from "../../tokens/designTokens";
 
 interface HeaderBarProps {
   title: string;
   onAdd?: () => void;
   showAddButton?: boolean;
-  filters?: React.ReactNode;
+  filters?: ReactNode;
   className?: string;
 }
 
@@ -24,23 +24,25 @@ export const HeaderBar: FC<HeaderBarProps> = ({
   return (
     <div
       className={clsx(
-        "flex flex-col sm:flex-row sm:items-center justify-between gap-2",
+        componentTokens.layout.section, // Reusable section padding/gap
+        "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
         className
       )}
     >
-      <div className="flex items-center gap-4">
+      <div className={componentTokens.layout.pageHeader}>
         <AppText size="heading1" className="font-bold">
           {title}
         </AppText>
 
-        {filters && <div className="flex gap-2">{filters}</div>}
+        {filters && <div className={componentTokens.layout.pageHeaderActions}>{filters}</div>}
       </div>
 
       {showAddButton && onAdd && (
         <AppButton
           variant="primary"
           onClick={onAdd}
-          className={transition.base}
+          size="md"
+          className="shrink-0"
         >
           Add {title}
         </AppButton>
