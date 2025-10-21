@@ -9,16 +9,16 @@ export const componentTokens = {
   // ============================================
   button: {
     primary:
-      "bg-primary hover:bg-primary-hover text-text-inverse transition-all duration-150",
+      "bg-primary hover:bg-primary-hover text-text-inverse transition-all duration-200",
     secondary:
-      "bg-secondary hover:bg-secondary-hover text-secondary-text transition-all duration-150",
+      "bg-surface hover:bg-sidebar-hover text-text-primary hover:text-surface transition-all duration-200 border-1 border-sidebar-hover",
     outline:
-      "border border-border hover:bg-surface-hover text-text-primary transition-all duration-150",
+      "border border-border hover:bg-surface-hover text-text-primary transition-all duration-200",
     ghost:
-      "hover:bg-surface-hover text-text-primary transition-all duration-150",
+      "hover:bg-surface-hover text-text-primary transition-all duration-200",
     danger:
-      "bg-danger hover:bg-danger-hover text-text-inverse transition-all duration-150",
-    link: "text-primary hover:text-primary-hover underline decoration-from-font transition-all duration-150",
+      "bg-danger hover:bg-danger-hover text-text-inverse transition-all duration-200",
+    link: "text-primary hover:text-primary-hover underline decoration-from-font transition-all duration-200",
     disabled: "opacity-50 cursor-not-allowed", // Reusable for any disabled state
     sizes: {
       sm: "px-3 py-1 text-sm",
@@ -44,7 +44,7 @@ export const componentTokens = {
   // CARDS
   // ============================================
   card: {
-    base: "bg-surface border border-border rounded-lg shadow-sm",
+    base: "bg-surface border border-border rounded-lg shadow-sm p-3",
     hover:
       "hover:border-border-hover hover:shadow-md transition-all duration-150",
     interactive:
@@ -165,14 +165,14 @@ export const componentTokens = {
   },
 
   topbar: {
-    base: "sticky top-0 z-40 flex items-center justify-between h-17 w-full px-4 sm:px-6 bg-surface border-b border-border transition-all duration-150",
+    base: "sticky top-0 z-40 flex items-center justify-between h-17 w-full px-4 sm:px-6 bg-surface border-b border-border transition-all duration-150 flex-shrink-0",
     titleSection: "flex items-center gap-3",
     actionsSection: "flex items-center gap-2",
     shadow: "shadow-xs",
   },
 
   sidebar: {
-    base: "h-screen flex flex-col bg-surface border-r border-border shadow-sm transition-all duration-300 ease-out", // Changed: ease-out for smoother collapse
+    base: "h-screen flex flex-col bg-surface border-r border-border shadow-sm transition-all duration-300 ease-out thin-scrollbar", // Changed: ease-out for smoother collapse
     collapsed: "w-16",
     expanded: "w-64",
     header:
@@ -181,7 +181,7 @@ export const componentTokens = {
       "flex items-center justify-center p-2 rounded-md hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-light/20 transition-all duration-150",
     brand:
       "flex items-center gap-3 text-heading3 text-text-primary underline decoration-primary/30 decoration-2 underline-offset-4",
-    nav: "flex-1 overflow-y-auto mt-4 px-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-surface-subtle",
+    nav: "flex-1 overflow-y-auto mt-4 px-2 thin-scrollbar scrollbar-thumb-border scrollbar-track-surface-subtle",
     item: "flex items-center gap-3 w-full px-3 py-3 text-left rounded-md transition-all duration-200 cursor-pointer",
     itemActive:
       "border-l-3 border-primary/70 text-primary font-semibold bg-primary/8",

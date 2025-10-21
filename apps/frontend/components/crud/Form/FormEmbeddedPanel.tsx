@@ -21,7 +21,7 @@ export interface FormEmbeddedPanelProps<T extends object> {
   onCancel?: () => void;
   loading?: boolean;
   layout?: "stacked" | "split";
-  hoverable? : boolean;
+  hoverable?: boolean;
 }
 
 /**
@@ -65,13 +65,19 @@ export const FormEmbeddedPanel = <T extends object>({
   // if editing existing record, reset form
   useEffect(() => {
     if (selectedRecord) reset(selectedRecord);
-    else reset(defaultValues);
+    else {
+      reset(defaultValues);
+    }
   }, [selectedRecord, defaultValues, reset]);
 
   return (
     <AppCard className="flex flex-col" hoverable={hoverable}>
       {title && (
-        <AppText size="heading3" variant="primary" className="font-semibold my-3 block">
+        <AppText
+          size="heading3"
+          variant="primary"
+          className="font-semibold my-3 block"
+        >
           {title}
         </AppText>
       )}
@@ -105,7 +111,12 @@ export const FormEmbeddedPanel = <T extends object>({
               Cancel
             </AppButton>
           )}
-          <AppButton type="submit" variant="primary" disabled={loading} size="md">
+          <AppButton
+            type="submit"
+            variant="primary"
+            disabled={loading}
+            size="md"
+          >
             {loading
               ? selectedRecord
                 ? "Updating..."

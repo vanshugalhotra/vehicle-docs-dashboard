@@ -25,7 +25,7 @@ export const Sidebar: React.FC = () => {
       <div className={componentTokens.sidebar.header}>
         {!isCollapsed && brandItem && (
           <span className={componentTokens.sidebar.brand}>
-            <AppText size="heading2">{brandItem.label}</AppText>
+            <AppText size="heading1">{brandItem.label}</AppText>
           </span>
         )}
         <button

@@ -2,7 +2,6 @@ export async function fetchWithAuth<T = unknown>(
   url: string,
   options: RequestInit = {}
 ): Promise<T | null> {
-  // Get base URL from environment variable
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
   
@@ -14,8 +13,21 @@ export async function fetchWithAuth<T = unknown>(
   const res = await fetch(fullUrl, { ...options, headers });
 
   if (!res.ok) {
-    const message = await res.text();
-    throw new Error(message || `Request failed: ${res.status}`);
+    let message: string;
+
+    try {
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (json?.message) {
+        message = Array.isArray(json.message) ? json.message.join(", ") : json.message;
+      } else {
+        message = text || `Request failed: ${res.status}`;
+      }
+    } catch {
+      message = `Request failed: ${res.status}`;
+    }
+
+    throw new Error(message);
   }
 
   try {

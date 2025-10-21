@@ -13,11 +13,17 @@ import { AppInput } from "@/components/ui/AppInput";
 import { componentTokens } from "@/styles/design-system/componentTokens";
 import { FormEmbeddedPanel } from "@/components/crud/Form/FormEmbeddedPanel";
 import { AppBadge } from "@/components/ui/AppBadge";
+import { formatReadableDate } from "@/lib/dateUtils";
 
 const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
-  email: z.string().email("Invalid email").nullable().optional().or(z.literal("")),
+  email: z
+    .string()
+    .email("Invalid email")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
 });
 
 type Driver = z.infer<typeof driverSchema> & {
@@ -31,6 +37,12 @@ export default function DriversPage() {
   const [loading, setLoading] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [search, setSearch] = useState("");
+  const [formKey, setFormKey] = useState(0);
+
+  const resetForm = () => {
+    setSelectedDriver(null);
+    setFormKey((prev) => prev + 1);
+  };
 
   const loadDrivers = useCallback(async () => {
     setLoading(true);
@@ -75,7 +87,7 @@ export default function DriversPage() {
         throw new Error("Request failed");
       }
 
-      setSelectedDriver(null);
+      resetForm();
       await loadDrivers();
     };
 
@@ -103,6 +115,7 @@ export default function DriversPage() {
         throw new Error("Delete failed");
       }
 
+      resetForm();
       await loadDrivers();
     };
 
@@ -140,6 +153,14 @@ export default function DriversPage() {
   ];
 
   const columns: ColumnDef<Driver>[] = [
+    {
+      id: "serial",
+      header: "#",
+      cell: ({ row }) => row.index + 1,
+      size: 40, // sets the width
+      minSize: 40, // prevents shrinking below this
+      maxSize: 60, // optional, prevents growing too much
+    },
     { accessorKey: "name", header: "Name" },
     { accessorKey: "phone", header: "Phone" },
     {
@@ -150,13 +171,12 @@ export default function DriversPage() {
     {
       accessorKey: "createdAt",
       header: "Created",
-      cell: ({ getValue }) =>
-        getValue() ? new Date(getValue() as string).toLocaleDateString() : "-",
+      cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
     },
   ];
 
   return (
-    <div className={componentTokens.layout.section}>
+    <div className="space-y-2">
       {/* Page Header */}
       <div className={componentTokens.layout.pageHeader}>
         <div className="flex items-center gap-4">
@@ -172,27 +192,24 @@ export default function DriversPage() {
           )}
         </div>
         {selectedDriver && (
-          <AppButton
-            variant="ghost"
-            onClick={() => setSelectedDriver(null)}
-            size="sm"
-          >
+          <AppButton variant="secondary" onClick={resetForm} size="sm">
             Cancel Edit
           </AppButton>
         )}
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4">
         {/* Left Column: Form */}
         <div className="lg:col-span-1">
           <FormEmbeddedPanel
-            title={selectedDriver ? "Edit Driver" : "Add New Driver"}
+            key={formKey}
+            title={selectedDriver ? "Edit Driver" : "Add Driver"}
             fields={fields}
             schema={driverSchema}
             selectedRecord={selectedDriver}
             onSubmit={handleSubmit}
-            onCancel={() => setSelectedDriver(null)}
+            onCancel={resetForm}
             loading={loading}
             layout="stacked"
           />
@@ -200,7 +217,7 @@ export default function DriversPage() {
 
         {/* Right Column: Table */}
         <div className="lg:col-span-2">
-          <AppCard className={componentTokens.card.base}>
+          <AppCard className={componentTokens.card.base} padded={false}>
             <div className={componentTokens.card.header}>
               <div className="flex-1">
                 <AppInput
