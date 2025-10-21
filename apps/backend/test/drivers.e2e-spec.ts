@@ -9,6 +9,7 @@ import { Express } from 'express';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { DriverResponse } from 'src/common/types';
+import { PaginatedDriverResponseDto } from 'src/modules/driver/dto/driver-response.dto';
 
 describe('Driver E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -127,10 +128,10 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   describe('GET /api/v1/drivers', () => {
     it('should fetch all drivers ordered by name', async () => {
       const res = await request(server).get('/api/v1/drivers').expect(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      const body = res.body as DriverResponse[];
-      expect(body.length).toBeGreaterThanOrEqual(2);
-      expect(body[0]).toHaveProperty('name');
+      const body = res.body as PaginatedDriverResponseDto;
+      expect(Array.isArray(body['items'])).toBe(true);
+      expect(body['items'].length).toBeGreaterThanOrEqual(2);
+      expect(body['items'][0]).toHaveProperty('name');
     });
 
     it('should support search by name', async () => {
@@ -138,9 +139,9 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
         .get('/api/v1/drivers')
         .query({ search: 'john' })
         .expect(200);
-      const body = res.body as DriverResponse[];
-      expect(body.length).toBe(1);
-      expect(body[0].name).toContain('John');
+      const body = res.body as PaginatedDriverResponseDto;
+      expect(body['items'].length).toBe(1);
+      expect(body['items'][0].name).toContain('John');
     });
 
     it('should support search by phone', async () => {
@@ -148,9 +149,9 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
         .get('/api/v1/drivers')
         .query({ search: '8888' })
         .expect(200);
-      const body = res.body as DriverResponse[];
-      expect(body.length).toBe(1);
-      expect(body[0].phone).toContain('8888');
+      const body = res.body as PaginatedDriverResponseDto;
+      expect(body['items'].length).toBe(1);
+      expect(body['items'][0].phone).toContain('8888');
     });
   });
 

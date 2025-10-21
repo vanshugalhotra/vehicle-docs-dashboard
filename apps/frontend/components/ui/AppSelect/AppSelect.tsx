@@ -26,6 +26,7 @@ export interface AppSelectProps {
   error?: string;
   disabled?: boolean;
   allowAdd?: boolean;
+  className?: string;
 }
 
 export const AppSelect: FC<AppSelectProps> = ({
@@ -38,9 +39,10 @@ export const AppSelect: FC<AppSelectProps> = ({
   error,
   disabled = false,
   allowAdd = false,
+  className
 }) => {
   return (
-    <div className="flex flex-col w-full gap-1">
+    <div className={clsx("flex flex-col gap-1", className)}>
       {label && (
         <AppText size="label" className={componentTokens.text.primary}>
           {label}
@@ -48,7 +50,7 @@ export const AppSelect: FC<AppSelectProps> = ({
       )}
 
       <Listbox value={value} onChange={onChange} disabled={disabled}>
-        <div className="relative w-full">
+        <div className={"relative w-full"}>
           <ListboxButton
             className={clsx(
               componentTokens.select.button,

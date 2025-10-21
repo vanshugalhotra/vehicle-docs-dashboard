@@ -162,7 +162,7 @@ export const DataTable = <T extends object>({
                           "border-r border-border-subtle/30 last:border-r-0",
                           "transition-all duration-200",
                           componentTokens.text.primary,
-                          "group-hover:text-text-primary group-hover:font-medium"
+                          "group-hover:text-text-primary"
                         )}
                       >
                         {flexRender(
@@ -207,29 +207,6 @@ export const DataTable = <T extends object>({
           </table>
         </div>
       </div>
-
-      {/* Enhanced Footer */}
-      {!loading && data.length > 0 && (
-        <div className="mt-3 flex justify-between items-center px-1">
-          <AppText size="label" variant="muted" className="font-medium">
-            <span className="text-text-primary">{data.length}</span> record
-            {data.length !== 1 ? "s" : ""} total
-          </AppText>
-          <div className="flex items-center gap-4">
-            <AppText size="label" variant="muted">
-              Page <span className="text-text-primary font-medium">1</span> of{" "}
-              <span className="text-text-primary font-medium">1</span>
-            </AppText>
-            <div className="w-px h-4 bg-border-subtle"></div>
-            <AppText size="label" variant="muted">
-              <span className="text-text-primary font-medium">
-                {columns.length}
-              </span>{" "}
-              columns
-            </AppText>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

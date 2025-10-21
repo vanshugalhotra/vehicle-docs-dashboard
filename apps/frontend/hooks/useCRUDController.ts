@@ -19,10 +19,8 @@ export function useCRUDController<
 
   const [filters, setFilters] = useState(config.defaultFilters ?? {});
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(config.defaultPageSize ?? 10);
-  const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>(
-    {}
-  );
+  const [pageSize, setPageSize] = useState(config.defaultPageSize ?? 5);
+  const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>({});
 
   // -------------------
   // FETCH LIST
@@ -30,9 +28,12 @@ export function useCRUDController<
   const listQuery = useQuery({
     queryKey: [config.queryKey, filters, page, pageSize, sort],
     queryFn: async () => {
+      const skip = (page - 1) * pageSize;
+      const take = pageSize;
+
       const params = new URLSearchParams({
-        page: String(page),
-        limit: String(pageSize),
+        skip: String(skip),
+        take: String(take),
         ...(sort.field ? { sort: `${sort.field}:${sort.order}` } : {}),
         ...Object.fromEntries(
           Object.entries(filters).filter(([, v]) => v != null && v !== "")
@@ -89,36 +90,39 @@ export function useCRUDController<
   });
 
   // -------------------
+  // TOTAL & ITEMS
+  // -------------------
+  const items = Array.isArray(listQuery.data)
+    ? listQuery.data
+    : (listQuery.data as { items?: T[] })?.items ?? [];
+
+  const total =
+    (listQuery.data as { total?: number })?.total ??
+    (Array.isArray(items) ? items.length : 0);
+
+  // -------------------
   // RETURN CONTROLLER
   // -------------------
   return {
-    // Data
-    data:
-      (listQuery.data as { items: T[] })?.items ??
-      (listQuery.data as T[]) ??
-      [],
-    total: (listQuery.data as { total: number })?.total ?? 0,
+    data: items,
+    total,
     isLoading: listQuery.isLoading,
     error: listQuery.error as Error | null,
 
-    // Pagination
     page,
     pageSize,
     setPage,
     setPageSize,
 
-    // Filters & Sort
     filters,
     setFilters,
     sort,
     setSort,
 
-    // CRUD Operations
     create: createMutation.mutateAsync,
     update: updateMutation.mutateAsync,
     remove: deleteMutation.mutateAsync,
 
-    // Utility
     refetch: listQuery.refetch,
   };
 }

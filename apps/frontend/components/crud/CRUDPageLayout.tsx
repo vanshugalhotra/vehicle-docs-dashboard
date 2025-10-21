@@ -50,7 +50,7 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
               variant="primary"
               size="md"
               onClick={() => toastUtils.info("Export feature coming soon")}
-              endIcon={<Download size={16}/>}
+              endIcon={<Download size={16} />}
             >
               Export
             </AppButton>
@@ -59,18 +59,24 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
       />
 
       {/* Grid Layout */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4 min-h-0 h-full">
         {/* Left Column: Form */}
-        <div className="lg:col-span-1">{form}</div>
+        <div className="lg:col-span-1">
+          <div className="sticky top-0">{form}</div>
+        </div>
 
         {/* Right Column: Table */}
-        <div className="lg:col-span-2">
-          <AppCard className={componentTokens.card.base} padded={false}>
-            {table}
+        <div className="lg:col-span-2 flex flex-col min-h-0">
+          <AppCard
+            className={
+              componentTokens.card.base + " flex-1 flex flex-col min-h-0"
+            }
+            padded={false}
+          >
+            <div className="flex-1 overflow-auto">{table}</div>
           </AppCard>
         </div>
       </div>
-
       {/* Optional Footer (modals / dialogs) */}
       {footer && <div>{footer}</div>}
     </div>

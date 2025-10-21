@@ -39,6 +39,7 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   location: {
     findFirst: jest.fn(),

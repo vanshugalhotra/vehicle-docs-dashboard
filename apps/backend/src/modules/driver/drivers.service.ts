@@ -10,6 +10,7 @@ import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { mapDriverToResponse } from './driver.mapper';
 import { DriverResponse } from 'src/common/types';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class DriversService {
@@ -68,31 +69,47 @@ export class DriversService {
     }
   }
 
-  async findAll(search?: string): Promise<DriverResponse[]> {
+  async findAll(
+    skip?: number,
+    take?: number,
+    search?: string,
+  ): Promise<{ items: DriverResponse[]; total: number }> {
     this.logger.info(
-      `Fetching all drivers${search ? ` with search: ${search}` : ''}`,
+      `Fetching drivers with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
     );
     try {
-      const drivers = await this.prisma.driver.findMany({
-        where: search
-          ? {
-              OR: [
-                { name: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-              ],
-            }
-          : {},
-        orderBy: { name: 'asc' },
-      });
+      let where: Prisma.DriverWhereInput | undefined = undefined;
 
-      this.logger.info(`Fetched ${drivers.length} drivers`);
-      return drivers.map(mapDriverToResponse);
+      if (search) {
+        where = {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        };
+      }
+
+      const [drivers, total] = await Promise.all([
+        this.prisma.driver.findMany({
+          where,
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.driver.count({ where }),
+      ]);
+
+      this.logger.info(`Fetched ${drivers.length} of ${total} drivers`);
+
+      return {
+        items: drivers.map(mapDriverToResponse),
+        total,
+      };
     } catch (error) {
       handlePrismaError(error, 'Driver');
     }
   }
-
   async findOne(id: string): Promise<DriverResponse> {
     this.logger.info(`Fetching driver by id: ${id}`);
     try {

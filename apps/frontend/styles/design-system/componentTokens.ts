@@ -20,6 +20,9 @@ export const componentTokens = {
       "bg-danger hover:bg-danger-hover text-text-inverse transition-all duration-200",
     link: "text-primary hover:text-primary-hover underline decoration-from-font transition-all duration-200",
     disabled: "opacity-50 cursor-not-allowed", // Reusable for any disabled state
+    pagination:
+      "flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-text-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface",
+
     sizes: {
       sm: "px-3 py-1 text-sm",
       md: "px-4 py-2 text-base",
@@ -186,22 +189,21 @@ export const componentTokens = {
     itemActive:
       "border-l-3 border-primary/70 text-primary font-semibold bg-primary/8",
     itemHover: "hover:bg-sidebar-hover/15 hover:text-text-primary",
-    icon: "text-text-secondary flex-shrink-0 group-hover:text-primary/80", 
-    itemOpen: "bg-surface-subtle/50 border-l-2 border-primary/30", 
-    label: "text-body font-medium truncate", 
+    icon: "text-text-secondary flex-shrink-0 group-hover:text-primary/80",
+    itemOpen: "bg-surface-subtle/50 border-l-2 border-primary/30",
+    label: "text-body font-medium truncate",
     chevron:
-      "h-4 w-4 text-text-tertiary transition-transform duration-200 ml-auto", 
+      "h-4 w-4 text-text-tertiary transition-transform duration-200 ml-auto",
     group:
-      "flex items-center justify-between w-full px-3 py-2.5 text-left rounded-md transition-all duration-200 hover:bg-surface-subtle", 
+      "flex items-center justify-between w-full px-3 py-2.5 text-left rounded-md transition-all duration-200 hover:bg-surface-subtle",
     groupLabel:
-      "font-semibold text-text-primary flex items-center gap-2 truncate", 
-    childrenIndent:
-      "ml-8 mt-1 flex flex-col gap-0.5 pl-2", 
+      "font-semibold text-text-primary flex items-center gap-2 truncate",
+    childrenIndent: "ml-8 mt-1 flex flex-col gap-0.5 pl-2",
     divider: "my-2 h-px bg-border-subtle",
     // Footer
     footer: "p-4 pt-2 border-t border-border-subtle mt-auto",
     footerVersion:
-      "inline-flex items-center gap-1 text-caption text-text-tertiary", 
+      "inline-flex items-center gap-1 text-caption text-text-tertiary",
   },
 };
 

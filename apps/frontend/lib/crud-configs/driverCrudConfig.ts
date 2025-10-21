@@ -72,4 +72,5 @@ export const driverCrudConfig = {
   schema: driverSchema,
   fields: driverFields,
   columns: driverColumns,
+  defaultPageSize: 5
 };

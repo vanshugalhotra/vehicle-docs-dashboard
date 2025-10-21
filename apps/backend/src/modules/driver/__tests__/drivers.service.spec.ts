@@ -121,13 +121,13 @@ describe('DriversService', () => {
       ]);
 
       const result = await service.findAll();
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Alpha');
+      expect(result.items).toHaveLength(2);
+      expect(result.items[0].name).toBe('Alpha');
       expect(prisma.driver.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: { name: 'asc' } }),
       );
       expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Fetching all drivers'),
+        expect.stringContaining('Fetching drivers'),
       );
     });
 
@@ -136,8 +136,8 @@ describe('DriversService', () => {
         { id: '1', name: 'John Doe', phone: '9999', email: 'john@example.com' },
       ]);
 
-      const result = await service.findAll('john');
-      expect(result).toHaveLength(1);
+      const result = await service.findAll(0, 5, 'john');
+      expect(result.items).toHaveLength(1);
       expect(prisma.driver.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {

@@ -14,7 +14,10 @@ import { DriversService } from './drivers.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { DriverResponse } from 'src/common/types';
-import { DriverResponseDto } from './dto/driver-response.dto';
+import {
+  DriverResponseDto,
+  PaginatedDriverResponseDto,
+} from './dto/driver-response.dto';
 
 @ApiTags('Drivers')
 @Controller({ path: 'drivers', version: '1' })
@@ -42,6 +45,8 @@ export class DriversController {
   // READ ALL (search-enabled)
   // ────────────────────────────────────────────────
   @Get()
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
@@ -52,10 +57,14 @@ export class DriversController {
   @ApiResponse({
     status: 200,
     description: 'List of drivers retrieved successfully',
-    type: [DriverResponseDto],
+    type: PaginatedDriverResponseDto,
   })
-  async findAll(@Query('search') search?: string): Promise<DriverResponse[]> {
-    return this.driversService.findAll(search);
+  async findAll(
+    @Query('search') search?: string,
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ): Promise<PaginatedDriverResponseDto> {
+    return this.driversService.findAll(skip, take, search);
   }
 
   // ────────────────────────────────────────────────

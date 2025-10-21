@@ -8,6 +8,7 @@ import { toastUtils } from "@/lib/utils/toastUtils";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { Driver, driverCrudConfig } from "@/lib/crud-configs/driverCrudConfig";
+import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 
 export default function DriversPage() {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
@@ -24,6 +25,11 @@ export default function DriversPage() {
     refetch,
     filters,
     setFilters,
+    pageSize,
+    setPageSize,
+    page,
+    setPage,
+    total,
   } = useCRUDController<Driver>(driverCrudConfig);
 
   const resetForm = () => {
@@ -96,13 +102,22 @@ export default function DriversPage() {
         />
       }
       table={
-        <DataTable
-          columns={driverCrudConfig.columns}
-          data={drivers}
-          loading={loading}
-          onEdit={(row) => setSelectedDriver(row)}
-          onDelete={handleDelete}
-        />
+        <div className="flex flex-col gap-4">
+          <DataTable
+            columns={driverCrudConfig.columns}
+            data={drivers}
+            loading={loading}
+            onEdit={(row) => setSelectedDriver(row)}
+            onDelete={handleDelete}
+          />
+          <PaginationBar
+            page={page}
+            pageSize={pageSize}
+            totalCount={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
       }
       footer={
         <ConfirmDialog
