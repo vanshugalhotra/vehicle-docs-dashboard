@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat } from "next/font/google"; // Single font: Inter for all
 import "./globals.css";
 import AppToaster from "@/components/ui/AppToaster/AppToaster";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const montserrat = Montserrat({
+  variable: "--font-sans", // Global var
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"], // Regular, medium, semi-bold, bold
+  display: "swap", // Quick fallback
 });
 
 export const metadata: Metadata = {
@@ -24,11 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${montserrat.variable} antialiased`}>
         {children}
-        <AppToaster/>
+        <AppToaster />
       </body>
     </html>
   );

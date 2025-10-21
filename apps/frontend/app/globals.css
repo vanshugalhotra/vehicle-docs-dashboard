@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --font-sans: var(--font-inter-sans);
   /* ============================================ */
   /* SEMANTIC COLOR TOKENS */
   /* ============================================ */
@@ -19,13 +20,13 @@
 
   /* Borders */
   --color-border: #E5E7EB;
-  --color-border-subtle: #F3F4F6;
+  --color-border-subtle: #e3e7ef;
   --color-border-hover: #D1D5DB;
   --color-border-focus: #2563EB;
 
   /* Primary */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
+  --color-primary: #04a9f5;;
+  --color-primary-hover: #04a9f5;;
   --color-primary-light: #EFF6FF;
   --color-primary-light-hover: #DBEAFE;
 
@@ -65,8 +66,8 @@
   /* Special States */
   --color-disabled: #F3F4F6;
   --color-disabled-text: #9CA3AF;
+  --color-sidebar-hover: #39465f;
   --color-overlay: rgba(0, 0, 0, 0.5);
-
 }
 
 @theme inline {
@@ -136,6 +137,7 @@
   --color-disabled: var(--color-disabled);
   --color-disabled-text: var(--color-disabled-text);
   --color-overlay: var(--color-overlay);
+  --color-sidebar-hover: var(--color-sidebar-hover);
 
   /* Fonts (keep your existing) */
   --font-sans: var(--font-geist-sans);
@@ -145,5 +147,6 @@
 body {
   background: var(--color-background);
   color: var(--color-text-primary);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-sans, Arial, sans-serif);
+  font-weight: 400;
 }

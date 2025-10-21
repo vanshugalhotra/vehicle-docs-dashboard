@@ -6,7 +6,6 @@ import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { AppTooltip } from "@/components/ui/AppTooltip";
-import { AppText } from "@/components/ui/AppText";
 
 export interface SidebarNavItemProps {
   label: string;
@@ -67,7 +66,7 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
           {icon}
         </span>
       )}
-      {!isCollapsed && <AppText size="body" className={componentTokens.sidebar.label}>{label}</AppText>}
+      {!isCollapsed && <span>{label}</span>}
       {!isCollapsed && hasChildren && (
         <ChevronDown className={componentTokens.sidebar.chevron} />
       )}

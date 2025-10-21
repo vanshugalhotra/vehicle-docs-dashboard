@@ -35,7 +35,7 @@ export const Topbar: FC<TopbarProps> = ({
       {/* Left: Title */}
       <div className={componentTokens.topbar.titleSection}>
         {title && (
-          <AppText as="h1" size="heading3">
+          <AppText as="h1" size="heading1">
             {title}
           </AppText>
         )}

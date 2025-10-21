@@ -165,10 +165,10 @@ export const componentTokens = {
   },
 
   topbar: {
-    base: "sticky top-0 z-40 flex items-center justify-between h-15 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
+    base: "sticky top-0 z-40 flex items-center justify-between h-17 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
     titleSection: "flex items-center gap-3",
     actionsSection: "flex items-center gap-2",
-    shadow: "shadow-sm",
+    shadow: "shadow-xs",
   },
 
   sidebar: {
@@ -182,11 +182,11 @@ export const componentTokens = {
     brand:
       "flex items-center gap-3 text-heading3 text-text-primary underline decoration-primary/30 decoration-2 underline-offset-4",
     nav: "flex-1 overflow-y-auto mt-4 px-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-surface-subtle",
-    item: "flex items-center gap-3 w-full px-3 py-3 text-left rounded-md transition-all duration-200",
+    item: "flex items-center gap-3 w-full px-3 py-3 text-left rounded-md transition-all duration-200 cursor-pointer",
     itemActive:
-      "border-l-3 border-primary/70 text-primary font-medium bg-primary/8",
-    itemHover: "hover:bg-primary/10 hover:text-text-primary",
-    icon: "h-5 w-5 text-text-secondary flex-shrink-0 group-hover:text-primary/80", 
+      "border-l-3 border-primary/70 text-primary font-semibold bg-primary/8",
+    itemHover: "hover:bg-sidebar-hover/15 hover:text-text-primary",
+    icon: "text-text-secondary flex-shrink-0 group-hover:text-primary/80", 
     itemOpen: "bg-surface-subtle/50 border-l-2 border-primary/30", 
     label: "text-body font-medium truncate", 
     chevron:
@@ -196,7 +196,7 @@ export const componentTokens = {
     groupLabel:
       "font-semibold text-text-primary flex items-center gap-2 truncate", 
     childrenIndent:
-      "ml-8 mt-1 flex flex-col gap-0.5 border-l border-border-subtle pl-2", 
+      "ml-8 mt-1 flex flex-col gap-0.5 pl-2", 
     divider: "my-2 h-px bg-border-subtle",
     // Footer
     footer: "p-4 pt-2 border-t border-border-subtle mt-auto",
