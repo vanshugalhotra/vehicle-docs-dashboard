@@ -165,7 +165,7 @@ export const componentTokens = {
   },
 
   topbar: {
-    base: "sticky top-0 z-40 flex items-center justify-between h-17 w-full px-4 sm:px-6 bg-background border-b border-border transition-all duration-150",
+    base: "sticky top-0 z-40 flex items-center justify-between h-17 w-full px-4 sm:px-6 bg-surface border-b border-border transition-all duration-150",
     titleSection: "flex items-center gap-3",
     actionsSection: "flex items-center gap-2",
     shadow: "shadow-xs",

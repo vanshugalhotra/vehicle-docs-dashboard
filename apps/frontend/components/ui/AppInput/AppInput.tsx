@@ -25,14 +25,14 @@ export const AppInput: FC<AppInputProps> = ({
   return (
     <div className="flex flex-col w-full gap-1">
       {label && (
-        <AppText as="label" size="label" className={componentTokens.text.primary}>
+        <AppText as="label" size="label" className={componentTokens.text.secondary}>
           {label}
         </AppText>
       )}
 
       <div className="relative flex items-center w-full">
         {prefixIcon && (
-          <span className={clsx(componentTokens.input.icon)}>
+          <span className={clsx(componentTokens.input.icon, "left-3")}>
             {prefixIcon}
           </span>
         )}
@@ -43,6 +43,8 @@ export const AppInput: FC<AppInputProps> = ({
             !disabled && componentTokens.input.focus,
             error && componentTokens.input.error,
             disabled && componentTokens.input.disabled,
+            prefixIcon && "pl-10",
+            suffixIcon && "pr-10",
             className
           )}
           disabled={disabled}
@@ -50,7 +52,7 @@ export const AppInput: FC<AppInputProps> = ({
         />
 
         {suffixIcon && (
-          <span className={clsx(componentTokens.input.icon)}>
+          <span className={clsx(componentTokens.input.icon, "right-3")}>
             {suffixIcon}
           </span>
         )}

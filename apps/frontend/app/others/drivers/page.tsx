@@ -12,11 +12,12 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { AppInput } from "@/components/ui/AppInput";
 import { componentTokens } from "@/styles/design-system/componentTokens";
 import { FormEmbeddedPanel } from "@/components/crud/Form/FormEmbeddedPanel";
+import { AppBadge } from "@/components/ui/AppBadge";
 
 const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email("Invalid email").nullable().optional().or(z.literal("")),
 });
 
 type Driver = z.infer<typeof driverSchema> & {
@@ -155,47 +156,85 @@ export default function DriversPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <AppText size="heading3">Drivers</AppText>
+    <div className={componentTokens.layout.section}>
+      {/* Page Header */}
+      <div className={componentTokens.layout.pageHeader}>
+        <div className="flex items-center gap-4">
+          <AppText size="heading2" variant="primary">
+            Drivers
+          </AppText>
+          {selectedDriver && (
+            <AppBadge variant="info">
+              <AppText size="caption" variant="secondary">
+                Editing Mode
+              </AppText>
+            </AppBadge>
+          )}
+        </div>
         {selectedDriver && (
-          <AppButton variant="ghost" onClick={() => setSelectedDriver(null)}>
+          <AppButton
+            variant="ghost"
+            onClick={() => setSelectedDriver(null)}
+            size="sm"
+          >
             Cancel Edit
           </AppButton>
         )}
       </div>
 
-      {/* Embedded Form */}
-      <FormEmbeddedPanel
-        title={selectedDriver ? "Edit Driver" : "Add Driver"}
-        fields={fields}
-        schema={driverSchema}
-        selectedRecord={selectedDriver}
-        onSubmit={handleSubmit}
-        onCancel={() => setSelectedDriver(null)}
-        layout="split"
-      />
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left Column: Form */}
+        <div className="lg:col-span-1">
+          <FormEmbeddedPanel
+            title={selectedDriver ? "Edit Driver" : "Add New Driver"}
+            fields={fields}
+            schema={driverSchema}
+            selectedRecord={selectedDriver}
+            onSubmit={handleSubmit}
+            onCancel={() => setSelectedDriver(null)}
+            loading={loading}
+            layout="stacked"
+          />
+        </div>
 
-      {/* Search */}
-      <div className="flex justify-end">
-        <AppInput
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search drivers..."
-          className="w-64"
-        />
+        {/* Right Column: Table */}
+        <div className="lg:col-span-2">
+          <AppCard className={componentTokens.card.base}>
+            <div className={componentTokens.card.header}>
+              <div className="flex-1">
+                <AppInput
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search drivers by name or phone..."
+                  className="w-full max-w-md"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <AppText size="body" variant="secondary">
+                  Showing {drivers.length} drivers
+                </AppText>
+                {drivers.length > 0 && (
+                  <AppBadge variant="success">
+                    <AppText size="caption" variant="success">
+                      {drivers.length} Active
+                    </AppText>
+                  </AppBadge>
+                )}
+              </div>
+            </div>
+            <div className={componentTokens.card.content}>
+              <DataTable
+                columns={columns}
+                data={drivers}
+                loading={loading}
+                onEdit={(row) => setSelectedDriver(row)}
+                onDelete={handleDelete}
+              />
+            </div>
+          </AppCard>
+        </div>
       </div>
-
-      {/* Table */}
-      <AppCard className={componentTokens.card.base}>
-        <DataTable
-          columns={columns}
-          data={drivers}
-          loading={loading}
-          onEdit={(row) => setSelectedDriver(row)}
-          onDelete={handleDelete}
-        />
-      </AppCard>
     </div>
   );
 }
