@@ -6,6 +6,7 @@ import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { AppTooltip } from "@/components/ui/AppTooltip";
+import Link from "next/link";
 
 export interface SidebarNavItemProps {
   label: string;
@@ -45,14 +46,14 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
     if (onClick) onClick();
   };
 
-  const content = (
-    <button
-      onClick={handleToggle}
+  const innerContent = (
+    <div
       className={clsx(
         componentTokens.sidebar.item,
         isActive && componentTokens.sidebar.itemActive,
         !isActive && componentTokens.sidebar.itemHover,
-        open && !isActive && componentTokens.sidebar.itemOpen
+        open && !isActive && componentTokens.sidebar.itemOpen,
+        "group" // New: For group-hover effects
       )}
       aria-expanded={open}
     >
@@ -66,10 +67,24 @@ export const SidebarNavItem: FC<SidebarNavItemProps> = ({
           {icon}
         </span>
       )}
-      {!isCollapsed && <span>{label}</span>}
+      {!isCollapsed && <span className={componentTokens.sidebar.label}>{label}</span>}
       {!isCollapsed && hasChildren && (
         <ChevronDown className={componentTokens.sidebar.chevron} />
       )}
+    </div>
+  );
+
+  const content = path ? (
+    <Link
+      href={path}
+      className="block w-full" // New: Full-width link wrapper
+      onClick={onClick} // Preserve onClick if needed
+    >
+      {innerContent}
+    </Link>
+  ) : (
+    <button onClick={handleToggle} className="w-full">
+      {innerContent}
     </button>
   );
 

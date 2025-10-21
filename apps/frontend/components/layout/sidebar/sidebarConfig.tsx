@@ -77,7 +77,7 @@ export const sidebarConfig: SidebarItemConfig[] = [
     label: "Others",
     icon: <Blinds size={24} />,
     children: [
-      { label: "Drivers", path: "/drivers", icon: <Truck size={20} /> },
+      { label: "Drivers", path: "/others/drivers", icon: <Truck size={20} /> },
       { label: "Owners", path: "/owners", icon: <Users size={20} /> },
       { label: "Categories", path: "/categories", icon: <Layers2 size={20} /> },
       { label: "Types", path: "/types", icon: <Type size={20} /> },

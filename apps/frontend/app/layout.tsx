@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google"; // Single font: Inter for all
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/ui/AppToaster/AppToaster";
+import { AppLayout } from "@/components/layout/applayout";
 
 const montserrat = Montserrat({
-  variable: "--font-sans", // Global var
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // Regular, medium, semi-bold, bold
-  display: "swap", // Quick fallback
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        {children}
+        <AppLayout title="Yash Group Dashboard">
+          {children}
+        </AppLayout>
         <AppToaster />
       </body>
     </html>

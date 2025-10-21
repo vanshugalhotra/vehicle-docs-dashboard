@@ -18,6 +18,14 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  const allowedOrigins = configService.get('ALLOWED_ORIGINS')?.split(',') || [];
+  app.enableCors({
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true, // Allow all if empty
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  });
+
   const logger = await app.resolve(LoggerService);
   app.use(new LoggingMiddleware(logger).use);
 

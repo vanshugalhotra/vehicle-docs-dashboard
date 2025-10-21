@@ -13,6 +13,7 @@ export interface AppConfig {
   SMTP_USER: string;
   SMTP_PASS: string;
   TZ: string;
+  ALLOWED_ORIGINS: string;
 }
 
 @Injectable()
@@ -40,6 +41,7 @@ export class ConfigService {
       SMTP_USER: Joi.string().required(),
       SMTP_PASS: Joi.string().required(),
       TZ: Joi.string().default('UTC'),
+      ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });

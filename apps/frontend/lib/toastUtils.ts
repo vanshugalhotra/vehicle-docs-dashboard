@@ -9,10 +9,12 @@ export const toastUtils = {
   error: (message: string) => toast.error(message),
   info: (message: string) => toast.info(message),
   warning: (message: string) => toast.warning(message),
-  promise: <T>(promise: Promise<T>, messages: { loading: string; success: string; error: string }) =>
-    toast.promise(promise, {
-      loading: messages.loading,
-      success: messages.success,
-      error: messages.error,
-    }),
+  promise: <T>(
+    promise: Promise<T>, 
+    messages: { 
+      loading: string; 
+      success: string | ((data: T) => string); 
+      error: string | ((error: unknown) => string); 
+    }
+  ) => toast.promise(promise, messages),
 };

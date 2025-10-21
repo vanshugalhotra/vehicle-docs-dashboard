@@ -57,7 +57,7 @@ export const AppInput: FC<AppInputProps> = ({
       </div>
 
       {error ? (
-        <AppText size="caption" className={componentTokens.text.error}>
+        <AppText size="caption" className={componentTokens.text.error} variant="error">
           {error}
         </AppText>
       ) : (

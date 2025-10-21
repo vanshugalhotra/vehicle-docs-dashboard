@@ -38,7 +38,7 @@ export const AppButton: FC<AppButtonProps> = ({
     <button
       disabled={isDisabled}
       className={clsx(
-        "inline-flex items-center justify-center font-medium gap-2 select-none rounded-md transition-all duration-150",
+        "inline-flex items-center justify-center font-medium gap-2 select-none rounded-md transition-all duration-150 cursor-pointer",
         componentTokens.button[variant],
         sizeClasses[size],
         isDisabled && componentTokens.button.disabled,
