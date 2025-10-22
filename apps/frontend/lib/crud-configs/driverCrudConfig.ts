@@ -6,11 +6,9 @@ export const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
   email: z
-    .string()
-    .email("Invalid email")
-    .nullable()
+    .union([z.string().email("Invalid email"), z.literal("")])
     .optional()
-    .or(z.literal("")),
+    .transform((val) => (val === "" ? undefined : val)),
 });
 
 export type Driver = z.infer<typeof driverSchema> & {
@@ -72,5 +70,5 @@ export const driverCrudConfig = {
   schema: driverSchema,
   fields: driverFields,
   columns: driverColumns,
-  defaultPageSize: 5
+  defaultPageSize: 5,
 };

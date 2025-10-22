@@ -70,7 +70,7 @@ export function useCRUDController<
       data: Partial<T>;
     }) =>
       fetchWithAuth(`${config.baseUrl}/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
     onSuccess: () =>

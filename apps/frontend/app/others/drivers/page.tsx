@@ -9,16 +9,23 @@ import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { Driver, driverCrudConfig } from "@/lib/crud-configs/driverCrudConfig";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
+import { useFormStateController } from "@/hooks/useFormStateController";
 
 export default function DriversPage() {
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const formCtrl = useFormStateController<Driver>("embedded");
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [formKey, setFormKey] = useState(0);
+
+  const handleCancel = () => {
+    formCtrl.closeForm();
+    setFormKey((k) => k + 1); // remount form to reset all fields
+  };
 
   const {
     data: drivers,
-    isLoading: loading,
+    isLoading,
     create,
     update,
     remove,
@@ -32,37 +39,31 @@ export default function DriversPage() {
     total,
   } = useCRUDController<Driver>(driverCrudConfig);
 
-  const resetForm = () => {
-    setSelectedDriver(null);
-    setFormKey((prev) => prev + 1);
-  };
+  // -------------------
+  // HANDLERS
+  // -------------------
 
   const handleSubmit = async (values: Driver) => {
-    const submitPromise = async (): Promise<void> => {
-      if (selectedDriver?.id) {
-        await update({ id: selectedDriver.id, data: values });
-      } else {
-        await create(values);
-      }
-      resetForm();
-      await refetch();
-    };
+    const action =
+      formCtrl.isEditing && formCtrl.selectedItem?.id
+        ? update({ id: formCtrl.selectedItem.id, data: values })
+        : create(values);
 
-    toastUtils.promise(submitPromise(), {
-      loading: selectedDriver ? "Updating driver..." : "Adding driver...",
-      success: selectedDriver
+    toastUtils.promise(action, {
+      loading: formCtrl.isEditing ? "Updating driver..." : "Adding driver...",
+      success: formCtrl.isEditing
         ? "Driver updated successfully"
         : "Driver added successfully",
-      error: (error: unknown) =>
-        error instanceof Error
-          ? error.message
-          : String(error) || "Operation failed",
+      error: (err) =>
+        (err instanceof Error && err.message) ||
+        (typeof err === "string" ? err : "Operation failed"),
     });
+
+    formCtrl.closeForm();
+    await refetch();
   };
 
-  const handleDelete = (driver: Driver) => {
-    setDriverToDelete(driver);
-  };
+  const handleDelete = (driver: Driver) => setDriverToDelete(driver);
 
   const handleConfirmDelete = async () => {
     if (!driverToDelete?.id) return;
@@ -71,7 +72,7 @@ export default function DriversPage() {
       await remove(driverToDelete.id);
       await refetch();
       toastUtils.success("Driver deleted successfully");
-    } catch (err: unknown) {
+    } catch (err) {
       toastUtils.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setDeleteLoading(false);
@@ -79,35 +80,41 @@ export default function DriversPage() {
     }
   };
 
+  // -------------------
+  // RENDER
+  // -------------------
+
   return (
     <CRUDPageLayout
       title="Drivers"
-      isEditing={!!selectedDriver}
-      onCancelEdit={resetForm}
+      isEditing={formCtrl.isEditing}
+      onCancelEdit={formCtrl.closeForm}
       search={(filters.search as string) ?? ""}
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
-      onAdd={resetForm}
+      onAdd={formCtrl.openCreate}
       addLabel="Add Driver"
       form={
-        <FormEmbeddedPanel
-          key={formKey}
-          title={selectedDriver ? "Edit Driver" : "Add Driver"}
-          fields={driverCrudConfig.fields}
-          schema={driverCrudConfig.schema}
-          selectedRecord={selectedDriver}
-          onSubmit={handleSubmit}
-          onCancel={resetForm}
-          loading={loading}
-          layout="stacked"
-        />
+        formCtrl.isOpen && (
+          <FormEmbeddedPanel
+            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            title={formCtrl.isEditing ? "Edit Driver" : "Add Driver"}
+            fields={driverCrudConfig.fields}
+            schema={driverCrudConfig.schema}
+            selectedRecord={formCtrl.selectedItem}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            loading={isLoading}
+            layout="stacked"
+          />
+        )
       }
       table={
         <div className="flex flex-col gap-4">
           <DataTable
             columns={driverCrudConfig.columns}
             data={drivers}
-            loading={loading}
-            onEdit={(row) => setSelectedDriver(row)}
+            loading={isLoading}
+            onEdit={formCtrl.openEdit}
             onDelete={handleDelete}
           />
           <PaginationBar
