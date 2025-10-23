@@ -14,7 +14,10 @@ import { VehicleCategoryService } from './vehicle-categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { VehicleCategoryResponse } from 'src/common/types';
-import { CategoryResponseDto } from './dto/category-response.dto';
+import {
+  CategoryResponseDto,
+  PaginatedCategoryResponseDto,
+} from './dto/category-response.dto';
 
 @ApiTags('Vehicle Categories')
 @Controller({ path: 'vehicle-categories', version: '1' })
@@ -44,6 +47,8 @@ export class VehicleCategoryController {
   // READ ALL (search-enabled for dropdown)
   // ────────────────────────────────────────────────
   @Get()
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
@@ -54,12 +59,14 @@ export class VehicleCategoryController {
   @ApiResponse({
     status: 200,
     description: 'List of vehicle categories retrieved successfully',
-    type: [CategoryResponseDto],
+    type: [PaginatedCategoryResponseDto],
   })
   async findAll(
     @Query('search') search?: string,
-  ): Promise<VehicleCategoryResponse[]> {
-    return this.categoryService.findAll(search);
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ): Promise<PaginatedCategoryResponseDto> {
+    return this.categoryService.findAll(skip, take, search);
   }
 
   // ────────────────────────────────────────────────

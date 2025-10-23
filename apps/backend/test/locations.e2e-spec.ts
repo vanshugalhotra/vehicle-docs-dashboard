@@ -9,6 +9,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as request from 'supertest';
 import { Express } from 'express';
 import { LocationResponse } from 'src/common/types';
+import { PaginatedLocationResponseDto } from 'src/modules/location/dto/location-response';
 
 describe('Location E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -92,17 +93,17 @@ describe('Location E2E (comprehensive + extended)', () => {
   describe('Fetch Location', () => {
     it('should fetch all locations', async () => {
       const res = await request(server).get('/api/v1/locations').expect(200);
-      const list = res.body as LocationResponse[];
-      expect(list.length).toBeGreaterThanOrEqual(2);
+      const list = res.body as PaginatedLocationResponseDto;
+      expect(list.items.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should search locations (case-insensitive contains)', async () => {
       const res = await request(server)
         .get('/api/v1/locations?search=central')
         .expect(200);
-      const list = res.body as LocationResponse[];
-      expect(list.length).toBe(1);
-      expect(list[0].name).toBe('Central Warehouse');
+      const list = res.body as PaginatedLocationResponseDto;
+      expect(list.items.length).toBe(1);
+      expect(list.items[0].name).toBe('Central Warehouse');
     });
 
     it('should fetch single location by ID', async () => {

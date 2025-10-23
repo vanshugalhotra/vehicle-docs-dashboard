@@ -14,7 +14,10 @@ import { LocationsService } from './locations.service';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { LocationResponse } from 'src/common/types';
-import { LocationResponseDto } from './dto/location-response';
+import {
+  LocationResponseDto,
+  PaginatedLocationResponseDto,
+} from './dto/location-response';
 
 @ApiTags('Location')
 @Controller({ path: 'locations', version: '1' })
@@ -34,8 +37,13 @@ export class LocationsController {
   async create(@Body() dto: CreateLocationDto): Promise<LocationResponse> {
     return this.locationsService.create(dto);
   }
+  // ────────────────────────────────────────────────
+  // READ ALL (search-enabled)
+  // ────────────────────────────────────────────────
 
   @Get()
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
@@ -46,10 +54,14 @@ export class LocationsController {
   @ApiResponse({
     status: 200,
     description: 'List of locations retrieved successfully',
-    type: [LocationResponseDto],
+    type: PaginatedLocationResponseDto,
   })
-  async findAll(@Query('search') search?: string): Promise<LocationResponse[]> {
-    return this.locationsService.findAll(search);
+  async findAll(
+    @Query('search') search?: string,
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ): Promise<PaginatedLocationResponseDto> {
+    return this.locationsService.findAll(skip, take, search);
   }
 
   @Get(':id')

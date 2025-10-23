@@ -10,6 +10,7 @@ import { VehicleTypeResponse } from 'src/common/types';
 import { mapTypeToResponse } from './vehicle-types.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class VehicleTypeService {
@@ -65,24 +66,38 @@ export class VehicleTypeService {
   }
 
   async findAll(
+    skip?: number,
+    take?: number,
     categoryId?: string,
     search?: string,
-  ): Promise<VehicleTypeResponse[]> {
+  ): Promise<{ items: VehicleTypeResponse[]; total: number }> {
     this.logger.info(
-      `Fetching vehicle types${categoryId ? ` for category: ${categoryId}` : ''}${search ? ` with search: ${search}` : ''}`,
+      `Fetching vehicle types with pagination: skip=${skip}, take=${take}${categoryId ? ` for category: ${categoryId}` : ''}${search ? ` with search: ${search}` : ''}`,
     );
     try {
-      const types = await this.prisma.vehicleType.findMany({
-        where: {
-          categoryId: categoryId || undefined,
-          name: search ? { contains: search, mode: 'insensitive' } : undefined,
-        },
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
-      });
+      let where: Prisma.VehicleTypeWhereInput | undefined = undefined;
+      where = {
+        categoryId: categoryId || undefined,
+        name: search ? { contains: search, mode: 'insensitive' } : undefined,
+      };
 
-      this.logger.info(`Fetched ${types.length} vehicle types`);
-      return types.map(mapTypeToResponse);
+      const [types, total] = await Promise.all([
+        this.prisma.vehicleType.findMany({
+          where,
+          skip,
+          take,
+          include: { category: true },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.vehicleType.count({ where }),
+      ]);
+
+      this.logger.info(`Fetched ${types.length} of ${total} vehicle types`);
+
+      return {
+        items: types.map(mapTypeToResponse),
+        total,
+      };
     } catch (error) {
       handlePrismaError(error, 'Vehicle type');
     }

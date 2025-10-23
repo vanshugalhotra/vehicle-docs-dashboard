@@ -10,6 +10,7 @@ import { mapCategoryToResponse } from './vehicle-categories.mapper';
 import { VehicleCategoryResponse } from 'src/common/types';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class VehicleCategoryService {
@@ -48,21 +49,37 @@ export class VehicleCategoryService {
     }
   }
 
-  async findAll(search?: string): Promise<VehicleCategoryResponse[]> {
+  async findAll(
+    skip?: number,
+    take?: number,
+    search?: string,
+  ): Promise<{ items: VehicleCategoryResponse[]; total: number }> {
     this.logger.info(
-      `Fetching all vehicle categories${search ? ` with search: ${search}` : ''}`,
+      `Fetching vehicle categories with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
     );
     try {
-      const categories = await this.prisma.vehicleCategory.findMany({
-        where: search
-          ? { name: { contains: search, mode: 'insensitive' } }
-          : {},
-        include: { types: true },
-        orderBy: { name: 'asc' },
-      });
+      let where: Prisma.VehicleCategoryWhereInput | undefined = undefined;
+      where = search
+        ? { name: { contains: search, mode: 'insensitive' } }
+        : undefined;
 
-      this.logger.info(`Fetched ${categories.length} categories`);
-      return categories.map(mapCategoryToResponse);
+      const [categories, total] = await Promise.all([
+        this.prisma.vehicleCategory.findMany({
+          where,
+          skip,
+          take,
+          include: { types: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.vehicleCategory.count({ where }),
+      ]);
+
+      this.logger.info(`Fetched ${categories.length} of ${total} categories`);
+
+      return {
+        items: categories.map(mapCategoryToResponse),
+        total,
+      };
     } catch (error) {
       handlePrismaError(error, 'Vehicle category');
     }

@@ -9,6 +9,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as request from 'supertest';
 import { Express } from 'express';
 import { VehicleTypeResponse } from 'src/common/types';
+import { PaginatedTypeResponseDto } from 'src/modules/vehicle-type/dto/type-response.dto';
 
 describe('VehicleType E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -141,17 +142,17 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
       const res = await request(server)
         .get('/api/v1/vehicle-types')
         .expect(200);
-      const body = res.body as VehicleTypeResponse[];
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBeGreaterThanOrEqual(4);
+      const body = res.body as PaginatedTypeResponseDto;
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(body.items.length).toBeGreaterThanOrEqual(4);
     });
 
     it('should filter by categoryId', async () => {
       const res = await request(server)
         .get(`/api/v1/vehicle-types?categoryId=${suvCategoryId}`)
         .expect(200);
-      const body = res.body as VehicleTypeResponse[];
-      body.forEach((t: VehicleTypeResponse) =>
+      const body = res.body as PaginatedTypeResponseDto;
+      body.items.forEach((t: VehicleTypeResponse) =>
         expect(t.categoryId).toBe(suvCategoryId),
       );
     });
@@ -160,17 +161,18 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
       const res = await request(server)
         .get('/api/v1/vehicle-types?search=del')
         .expect(200);
-      const body = res.body as VehicleTypeResponse[];
-      expect(body.some((t: VehicleTypeResponse) => t.name === 'Deluxe')).toBe(
-        true,
-      );
+      const body = res.body as PaginatedTypeResponseDto;
+      expect(
+        body.items.some((t: VehicleTypeResponse) => t.name === 'Deluxe'),
+      ).toBe(true);
     });
 
     it('should return empty list if no match', async () => {
       const res = await request(server)
         .get('/api/v1/vehicle-types?search=nonexistent')
         .expect(200);
-      expect(res.body).toEqual([]);
+      const body = res.body as PaginatedTypeResponseDto;
+      expect(body.items).toEqual([]);
     });
   });
 

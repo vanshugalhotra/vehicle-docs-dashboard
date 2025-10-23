@@ -11,8 +11,16 @@ export class TypeResponseDto {
   categoryId: string; // FK reference, no full category object to avoid circular nesting
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt: string | Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt: string | Date;
+}
+
+export class PaginatedTypeResponseDto {
+  @ApiProperty({ type: [TypeResponseDto] })
+  items: TypeResponseDto[];
+
+  @ApiProperty({ example: 150 })
+  total: number;
 }

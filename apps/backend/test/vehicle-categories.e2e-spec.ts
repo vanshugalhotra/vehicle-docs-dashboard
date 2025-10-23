@@ -9,6 +9,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as request from 'supertest';
 import { Express } from 'express';
 import { VehicleCategoryResponse } from 'src/common/types';
+import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/category-response.dto';
 
 describe('VehicleCategory E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -104,8 +105,8 @@ describe('VehicleCategory E2E (comprehensive + extended)', () => {
         .get('/api/v1/vehicle-categories')
         .expect(200);
 
-      const categories = res.body as VehicleCategoryResponse[];
-      expect(categories.length).toBeGreaterThanOrEqual(4);
+      const categories = res.body as PaginatedCategoryResponseDto;
+      expect(categories.items.length).toBeGreaterThanOrEqual(4);
     });
 
     it('should fetch categories with search filter', async () => {
@@ -113,9 +114,9 @@ describe('VehicleCategory E2E (comprehensive + extended)', () => {
         .get('/api/v1/vehicle-categories?search=su')
         .expect(200);
 
-      const categories = res.body as VehicleCategoryResponse[];
-      expect(categories.length).toBe(1);
-      expect(categories[0].name).toBe('SUV');
+      const categories = res.body as PaginatedCategoryResponseDto;
+      expect(categories.items.length).toBe(1);
+      expect(categories.items[0].name).toBe('SUV');
     });
 
     it('should fetch single category by ID', async () => {

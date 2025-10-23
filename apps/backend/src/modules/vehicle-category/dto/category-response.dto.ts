@@ -12,8 +12,16 @@ export class CategoryResponseDto {
   types?: TypeResponseDto[];
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt: string | Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt: string | Date;
+}
+
+export class PaginatedCategoryResponseDto {
+  @ApiProperty({ type: [CategoryResponseDto] })
+  items: CategoryResponseDto[];
+
+  @ApiProperty({ example: 150 })
+  total: number;
 }

@@ -10,6 +10,7 @@ import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { mapLocationToResponse } from './location.mapper';
 import { LocationResponse } from 'src/common/types';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class LocationsService {
@@ -42,19 +43,36 @@ export class LocationsService {
     }
   }
 
-  async findAll(search?: string): Promise<LocationResponse[]> {
+  async findAll(
+    skip?: number,
+    take?: number,
+    search?: string,
+  ): Promise<{ items: LocationResponse[]; total: number }> {
     this.logger.info(
-      `Fetching all locations${search ? ` with search: ${search}` : ''}`,
+      `Fetching locations with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
     );
     try {
-      const locations = await this.prisma.location.findMany({
-        where: search
-          ? { name: { contains: search, mode: 'insensitive' } }
-          : {},
-        orderBy: { name: 'asc' },
-      });
-      this.logger.info(`Fetched ${locations.length} locations`);
-      return locations.map(mapLocationToResponse);
+      let where: Prisma.LocationWhereInput | undefined = undefined;
+      where = search
+        ? { name: { contains: search, mode: 'insensitive' } }
+        : undefined;
+
+      const [locations, total] = await Promise.all([
+        this.prisma.location.findMany({
+          where,
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.location.count({ where }),
+      ]);
+
+      this.logger.info(`Fetched ${locations.length} of ${total} locations`);
+
+      return {
+        items: locations.map(mapLocationToResponse),
+        total,
+      };
     } catch (error) {
       handlePrismaError(error, 'Location');
     }

@@ -14,7 +14,10 @@ import { VehicleTypeService } from './vehicle-types.service';
 import { CreateVehicleTypeDto } from './dto/create-type.dto';
 import { UpdateVehicleTypeDto } from './dto/update-type.dto';
 import { VehicleTypeResponse } from 'src/common/types';
-import { TypeResponseDto } from './dto/type-response.dto';
+import {
+  PaginatedTypeResponseDto,
+  TypeResponseDto,
+} from './dto/type-response.dto';
 
 @ApiTags('Vehicle Types')
 @Controller({ path: 'vehicle-types', version: '1' })
@@ -39,6 +42,8 @@ export class VehicleTypeController {
   }
 
   @Get()
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'categoryId',
     required: false,
@@ -52,13 +57,15 @@ export class VehicleTypeController {
   @ApiResponse({
     status: 200,
     description: 'Vehicle types retrieved successfully',
-    type: [TypeResponseDto],
+    type: [PaginatedTypeResponseDto],
   })
   async findAll(
     @Query('categoryId') categoryId?: string,
     @Query('search') search?: string,
-  ): Promise<VehicleTypeResponse[]> {
-    return this.vehicleTypeService.findAll(categoryId, search);
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ): Promise<PaginatedTypeResponseDto> {
+    return this.vehicleTypeService.findAll(skip, take, categoryId, search);
   }
 
   @Get(':id')

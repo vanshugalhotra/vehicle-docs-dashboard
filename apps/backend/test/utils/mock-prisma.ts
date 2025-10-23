@@ -6,6 +6,7 @@ export const mockPrisma = () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   vehicleType: {
     findUnique: jest.fn(),
@@ -14,6 +15,7 @@ export const mockPrisma = () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   vehicle: {
     findUnique: jest.fn(),
@@ -49,6 +51,7 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
 });
 

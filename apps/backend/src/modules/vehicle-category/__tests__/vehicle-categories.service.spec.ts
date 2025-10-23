@@ -51,7 +51,7 @@ describe('VehicleCategoryService', () => {
         { id: '1', name: 'Car' },
       ]);
       const result = await service.findAll();
-      expect(result).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
     });
   });
 
