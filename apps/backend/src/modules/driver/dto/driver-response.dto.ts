@@ -29,13 +29,13 @@ export class DriverResponseDto {
     description: 'Record creation timestamp',
     example: '2025-10-14T09:45:22.123Z',
   })
-  createdAt: string | Date; // Allow both string and Date
+  createdAt: string | Date;
 
   @ApiProperty({
     description: 'Record last update timestamp',
     example: '2025-10-14T09:45:22.123Z',
   })
-  updatedAt: string | Date; // Allow both string and Date
+  updatedAt: string | Date;
 }
 
 export class PaginatedDriverResponseDto {

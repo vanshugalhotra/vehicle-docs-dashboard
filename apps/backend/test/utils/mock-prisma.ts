@@ -31,6 +31,7 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   driver: {
     findFirst: jest.fn(),

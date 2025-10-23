@@ -9,6 +9,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as request from 'supertest';
 import { Express } from 'express';
 import { OwnerResponse } from 'src/common/types';
+import { PaginatedOwnerResponseDto } from 'src/modules/owner/dto/owner-response.dto';
 
 describe('Owner E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -103,15 +104,16 @@ describe('Owner E2E (comprehensive + extended)', () => {
   describe('GET /api/v1/owners', () => {
     it('should fetch all owners (sorted asc)', async () => {
       const res = await request(server).get('/api/v1/owners').expect(200);
-      const body = res.body as OwnerResponse[];
-      const names = body.map((o: OwnerResponse) => o.name);
+      const body = res.body as PaginatedOwnerResponseDto;
+      const names = body.items.map((o: OwnerResponse) => o.name);
       expect(names).toEqual(['Maruti Suzuki', 'Tata Motors']); // sorted asc
     });
 
     it('should return empty array when no owners exist', async () => {
       await prisma.owner.deleteMany({});
       const res = await request(server).get('/api/v1/owners').expect(200);
-      expect(res.body).toEqual([]);
+      const body = res.body as PaginatedOwnerResponseDto;
+      expect(body.items).toEqual([]);
       // recreate owners for next tests
       ownerA = await prisma.owner.create({ data: { name: 'Tata Motors' } });
       ownerB = await prisma.owner.create({ data: { name: 'Maruti Suzuki' } });
@@ -121,9 +123,9 @@ describe('Owner E2E (comprehensive + extended)', () => {
       const res = await request(server)
         .get('/api/v1/owners?search=tA')
         .expect(200);
-      const body = res.body as OwnerResponse[];
-      expect(body.length).toBe(1);
-      expect(body[0].name).toBe('Tata Motors');
+      const body = res.body as PaginatedOwnerResponseDto;
+      expect(body.items.length).toBe(1);
+      expect(body.items[0].name).toBe('Tata Motors');
     });
   });
 

@@ -14,7 +14,10 @@ import { OwnersService } from './owners.service';
 import { CreateOwnerDto } from './dto/create-owner.dto';
 import { UpdateOwnerDto } from './dto/update-owner.dto';
 import { OwnerResponse } from 'src/common/types';
-import { OwnerResponseDto } from './dto/owner-response.dto';
+import {
+  OwnerResponseDto,
+  PaginatedOwnerResponseDto,
+} from './dto/owner-response.dto';
 
 @ApiTags('Owners')
 @Controller({ path: 'owners', version: '1' })
@@ -42,6 +45,8 @@ export class OwnersController {
   // READ ALL (search-enabled)
   // ────────────────────────────────────────────────
   @Get()
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
@@ -51,11 +56,15 @@ export class OwnersController {
   })
   @ApiResponse({
     status: 200,
-    description: 'List of owners retrieved successfully',
-    type: [OwnerResponseDto],
+    description: 'List of Owners retrieved successfully',
+    type: PaginatedOwnerResponseDto,
   })
-  async findAll(@Query('search') search?: string): Promise<OwnerResponse[]> {
-    return this.ownersService.findAll(search);
+  async findAll(
+    @Query('search') search?: string,
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ): Promise<PaginatedOwnerResponseDto> {
+    return this.ownersService.findAll(skip, take, search);
   }
 
   // ────────────────────────────────────────────────
