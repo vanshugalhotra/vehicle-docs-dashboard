@@ -32,7 +32,7 @@ export const AppInput: FC<AppInputProps> = ({
 
       <div className="relative flex items-center w-full">
         {prefixIcon && (
-          <span className={clsx(componentTokens.input.icon, "left-3")}>
+          <span className={clsx(componentTokens.input.icon, "left-7")}>
             {prefixIcon}
           </span>
         )}
@@ -52,7 +52,7 @@ export const AppInput: FC<AppInputProps> = ({
         />
 
         {suffixIcon && (
-          <span className={clsx(componentTokens.input.icon, "right-3")}>
+          <span className={clsx(componentTokens.input.icon, "right-7")}>
             {suffixIcon}
           </span>
         )}

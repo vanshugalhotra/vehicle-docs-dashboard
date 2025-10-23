@@ -6,6 +6,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { AppInput } from "@/components/ui/AppInput";
 import { componentTokens } from "@/styles/design-system/componentTokens";
+import { Search } from "lucide-react";
 
 interface HeaderBarProps {
   /** Page or section title */
@@ -72,7 +73,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             value={search ?? ""}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={`Search ${title.toLowerCase()}...`}
-            className="w-full max-w-sm"
+            className="w-lg max-w-lg"
+            prefixIcon={<Search size={18}/>}
           />
         )}
 

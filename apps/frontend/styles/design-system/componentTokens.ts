@@ -40,7 +40,7 @@ export const componentTokens = {
     error: "border-danger focus:border-danger focus:ring-danger-light",
     disabled:
       "bg-disabled text-disabled-text cursor-not-allowed border-border-subtle",
-    icon: "inset-y-0 flex items-center text-text-tertiary",
+    icon: "inset-y-0 flex items-center text-text-tertiary relative",
   },
 
   // ============================================
