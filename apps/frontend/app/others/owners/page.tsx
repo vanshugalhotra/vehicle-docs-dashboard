@@ -9,7 +9,7 @@ import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
-import { Owner, ownerCrudConfig } from "@/lib/crud-configs/ownerCrudConfig";
+import { Owner, ownerCrudConfig } from "@/configs/crud/owners.config";
 
 export default function OwnersPage() {
   const formCtrl = useFormStateController<Owner>("embedded");

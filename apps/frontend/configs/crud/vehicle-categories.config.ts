@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatReadableDate } from "../utils/dateUtils";
+import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export const vehicleCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -41,7 +42,7 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
 
 export const vehicleCategoryCrudConfig = {
   name: "Vehicle Category",
-  baseUrl: "/api/v1/vehicle-categories",
+  baseUrl: apiRoutes.vehicle_categories.base,
   queryKey: "vehicle-categories",
   schema: vehicleCategorySchema,
   fields: vehicleCategoryFields,

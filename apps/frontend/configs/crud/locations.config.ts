@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatReadableDate } from "../utils/dateUtils";
+import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export const locationSchema = z.object({
   name: z.string().min(1, "Location name is required"),
@@ -41,7 +42,7 @@ export const locationColumns: ColumnDef<Location>[] = [
 
 export const locationCrudConfig = {
   name: "Location",
-  baseUrl: "/api/v1/locations",
+  baseUrl: apiRoutes.locations.base,
   queryKey: "locations",
   schema: locationSchema,
   fields: locationFields,

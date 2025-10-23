@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatReadableDate } from "../utils/dateUtils";
+import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export const ownerSchema = z.object({
   name: z.string().min(1, "Owner name is required"),
@@ -41,7 +42,7 @@ export const ownerColumns: ColumnDef<Owner>[] = [
 
 export const ownerCrudConfig = {
   name: "Owner",
-  baseUrl: "/api/v1/owners",
+  baseUrl: apiRoutes.owners.base,
   queryKey: "owners",
   schema: ownerSchema,
   fields: ownerFields,

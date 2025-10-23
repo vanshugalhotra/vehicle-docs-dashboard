@@ -9,10 +9,7 @@ import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
-import {
-  VehicleCategory,
-  vehicleCategoryCrudConfig,
-} from "@/lib/crud-configs/vehicleCategoryCrudConfig";
+import { VehicleCategory, vehicleCategoryCrudConfig } from "@/configs/crud/vehicle-categories.config";
 
 export default function VehicleCategoriesPage() {
   const formCtrl = useFormStateController<VehicleCategory>("embedded");

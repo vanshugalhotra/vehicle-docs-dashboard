@@ -2,10 +2,10 @@
 
 import React from "react";
 import clsx from "clsx";
-import { useSidebar } from "./useSidebar";
+import { useSidebar } from "@/hooks/useSidebar";
 import { componentTokens } from "@/styles/design-system";
 import { SidebarNavItem } from "./SidebarNavItem";
-import { sidebarConfig } from "./sidebarConfig";
+import { sidebarConfig } from "@/configs/sidebar.config";
 import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
 import { AppText } from "@/components/ui/AppText";
 

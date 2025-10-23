@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatReadableDate } from "../utils/dateUtils";
+import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -66,7 +67,7 @@ export const driverColumns: ColumnDef<Driver>[] = [
 
 export const driverCrudConfig = {
   name: "Driver",
-  baseUrl: "/api/v1/drivers",
+  baseUrl: apiRoutes.drivers.base,
   queryKey: "drivers",
   schema: driverSchema,
   fields: driverFields,

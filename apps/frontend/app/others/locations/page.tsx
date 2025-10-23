@@ -12,7 +12,7 @@ import { useFormStateController } from "@/hooks/useFormStateController";
 import {
   Location,
   locationCrudConfig,
-} from "@/lib/crud-configs/locationCrudConfig";
+} from "@/configs/crud/locations.config";
 
 export default function LocationsPage() {
   const formCtrl = useFormStateController<Location>("embedded");

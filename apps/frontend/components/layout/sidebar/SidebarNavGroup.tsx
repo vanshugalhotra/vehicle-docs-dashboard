@@ -1,6 +1,6 @@
 "use client";
 import React, { FC, ReactNode, useState, useEffect } from "react";
-import { useSidebar } from "./useSidebar";
+import { useSidebar } from "@/hooks/useSidebar";
 import { componentTokens } from "@/styles/design-system";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";

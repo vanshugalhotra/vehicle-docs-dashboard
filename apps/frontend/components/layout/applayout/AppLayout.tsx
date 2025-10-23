@@ -2,8 +2,8 @@
 
 import React, { FC, ReactNode } from "react";
 import { componentTokens } from "@/styles/design-system";
-import { SidebarProvider } from "../sidebar/SidebarProvider";
-import { Sidebar } from "../sidebar";
+import { SidebarProvider } from "@/lib/providers/SidebarProvider";
+import { Sidebar } from "../sidebar/Sidebar";
 import { Topbar, TopbarActionItem } from "../topbar";
 import { PageWrapper } from "../pagewrapper";
 

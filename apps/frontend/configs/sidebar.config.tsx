@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import {
   LayoutDashboard,
   Car,
@@ -17,7 +18,25 @@ import {
   Type,
   MapPin
 } from "lucide-react";
-import { SidebarItemConfig } from "./types";
+
+export type SidebarSize = "expanded" | "collapsed";
+
+export interface SidebarContextState {
+  size: SidebarSize;
+  isCollapsed: boolean;
+  expand: () => void;
+  toggle: () => void;
+  setSize: (s: SidebarSize) => void;
+}
+
+export interface SidebarItemConfig {
+  type?: "brand"; // optional, used for brand/title
+  label: string;
+  icon?: ReactNode;
+  path?: string;
+  children?: SidebarItemConfig[];
+}
+
 
 export const sidebarConfig: SidebarItemConfig[] = [
   {

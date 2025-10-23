@@ -7,7 +7,7 @@ import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 import { toastUtils } from "@/lib/utils/toastUtils";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
-import { Driver, driverCrudConfig } from "@/lib/crud-configs/driverCrudConfig";
+import { Driver, driverCrudConfig } from "@/configs/crud/drivers.config";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 

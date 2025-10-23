@@ -1,7 +1,7 @@
 // components/layout/useSidebar.ts
 import { useContext, Context } from "react";
-import { SidebarContextState } from "./types";
-import { __unsafe_getSidebarContext } from "./SidebarProvider";
+import { SidebarContextState } from "@/configs/sidebar.config";
+import { __unsafe_getSidebarContext } from "@/lib/providers/SidebarProvider";
 
 /**
  * useSidebar

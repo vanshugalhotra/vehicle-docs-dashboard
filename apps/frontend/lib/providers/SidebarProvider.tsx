@@ -1,6 +1,5 @@
-// components/layout/SidebarProvider.tsx
 import React, { createContext, FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { SidebarContextState, SidebarSize } from "./types";
+import { SidebarContextState, SidebarSize } from "@/configs/sidebar.config";
 
 const STORAGE_KEY = "app:sidebarSize";
 
