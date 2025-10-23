@@ -6,10 +6,11 @@ export const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
   email: z
-    .union([z.string().email("Invalid email"), z.literal("")])
+    .union([z.string().email("Invalid email"), z.literal(""), z.null()])
     .optional()
-    .transform((val) => (val === "" ? undefined : val)),
+    .transform((val) => (val === "" || val === null ? undefined : val)),
 });
+
 
 export type Driver = z.infer<typeof driverSchema> & {
   id?: string;

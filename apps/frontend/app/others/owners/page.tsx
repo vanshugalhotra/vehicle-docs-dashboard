@@ -7,24 +7,23 @@ import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 import { toastUtils } from "@/lib/utils/toastUtils";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
-import { Driver, driverCrudConfig } from "@/lib/crud-configs/driverCrudConfig";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
+import { Owner, ownerCrudConfig } from "@/lib/crud-configs/ownerCrudConfig";
 
-export default function DriversPage() {
-  const formCtrl = useFormStateController<Driver>("embedded");
-  const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
+export default function OwnersPage() {
+  const formCtrl = useFormStateController<Owner>("embedded");
+  const [ownerToDelete, setOwnerToDelete] = useState<Owner | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
   const [formKey, setFormKey] = useState(0);
 
   const handleCancel = () => {
     formCtrl.closeForm();
-    setFormKey((k) => k + 1); // remount form to reset all fields
+    setFormKey((k) => k + 1);
   };
 
   const {
-    data: drivers,
+    data: owners,
     isLoading,
     create,
     update,
@@ -37,23 +36,19 @@ export default function DriversPage() {
     page,
     setPage,
     total,
-  } = useCRUDController<Driver>(driverCrudConfig);
+  } = useCRUDController<Owner>(ownerCrudConfig);
 
-  // -------------------
-  // HANDLERS
-  // -------------------
-
-  const handleSubmit = async (values: Driver) => {
+  const handleSubmit = async (values: Owner) => {
     const action =
       formCtrl.isEditing && formCtrl.selectedItem?.id
         ? update({ id: formCtrl.selectedItem.id, data: values })
         : create(values);
 
     toastUtils.promise(action, {
-      loading: formCtrl.isEditing ? "Updating driver..." : "Adding driver...",
+      loading: formCtrl.isEditing ? "Updating owner..." : "Adding owner...",
       success: formCtrl.isEditing
-        ? "Driver updated successfully"
-        : "Driver added successfully",
+        ? "Owner updated successfully"
+        : "Owner added successfully",
       error: (err) =>
         (err instanceof Error && err.message) ||
         (typeof err === "string" ? err : "Operation failed"),
@@ -64,43 +59,39 @@ export default function DriversPage() {
     await refetch();
   };
 
-  const handleDelete = (driver: Driver) => setDriverToDelete(driver);
+  const handleDelete = (owner: Owner) => setOwnerToDelete(owner);
 
   const handleConfirmDelete = async () => {
-    if (!driverToDelete?.id) return;
+    if (!ownerToDelete?.id) return;
     setDeleteLoading(true);
     try {
-      await remove(driverToDelete.id);
+      await remove(ownerToDelete.id);
       await refetch();
-      toastUtils.success("Driver deleted successfully");
+      toastUtils.success("Owner deleted successfully");
     } catch (err) {
       toastUtils.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setDeleteLoading(false);
-      setDriverToDelete(null);
+      setOwnerToDelete(null);
     }
   };
 
-  // -------------------
-  // RENDER
-  // -------------------
-
   return (
     <CRUDPageLayout
-      title="Drivers"
+      title="Owners"
       isEditing={formCtrl.isEditing}
       onCancelEdit={formCtrl.closeForm}
       search={(filters.search as string) ?? ""}
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
-      addLabel="Add Driver"
+      addLabel="Add Owner"
       form={
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            title={formCtrl.isEditing ? "Edit Driver" : "Add Driver"}
-            fields={driverCrudConfig.fields}
-            schema={driverCrudConfig.schema}
+            title={formCtrl.isEditing ? "Edit Owner" : "Add Owner"}
+            fields={ownerCrudConfig.fields}
+            schema={ownerCrudConfig.schema}
             selectedRecord={formCtrl.selectedItem}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
@@ -112,8 +103,8 @@ export default function DriversPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={driverCrudConfig.columns}
-            data={drivers}
+            columns={ownerCrudConfig.columns}
+            data={owners}
             loading={isLoading}
             onEdit={formCtrl.openEdit}
             onDelete={handleDelete}
@@ -129,11 +120,11 @@ export default function DriversPage() {
       }
       footer={
         <ConfirmDialog
-          open={!!driverToDelete}
-          title="Delete Driver?"
-          description={`Are you sure you want to delete ${driverToDelete?.name}?`}
+          open={!!ownerToDelete}
+          title="Delete Owner?"
+          description={`Are you sure you want to delete ${ownerToDelete?.name}?`}
           loading={deleteLoading}
-          onCancel={() => setDriverToDelete(null)}
+          onCancel={() => setOwnerToDelete(null)}
           onConfirm={handleConfirmDelete}
         />
       }
