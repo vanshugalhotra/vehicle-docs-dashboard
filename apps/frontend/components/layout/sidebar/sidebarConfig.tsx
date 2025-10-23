@@ -81,7 +81,7 @@ export const sidebarConfig: SidebarItemConfig[] = [
       { label: "Owners", path: "/others/owners", icon: <Users size={20} /> },
       { label: "Categories", path: "/categories", icon: <Layers2 size={20} /> },
       { label: "Types", path: "/types", icon: <Type size={20} /> },
-    { label: "Locations", path: "/locations", icon: <MapPin size={20} /> },
+    { label: "Locations", path: "/others/locations", icon: <MapPin size={20} /> },
     ],
   },
   {
