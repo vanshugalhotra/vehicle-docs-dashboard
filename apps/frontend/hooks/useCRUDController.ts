@@ -20,7 +20,9 @@ export function useCRUDController<
   const [filters, setFilters] = useState(config.defaultFilters ?? {});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(config.defaultPageSize ?? 5);
-  const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>({});
+  const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>(
+    {}
+  );
 
   // -------------------
   // FETCH LIST
@@ -31,7 +33,15 @@ export function useCRUDController<
       const skip = (page - 1) * pageSize;
       const take = pageSize;
 
-      const params = new URLSearchParams({
+      const base = new URL(
+        config.baseUrl,
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost"
+      );
+      const baseParams = new URLSearchParams(base.search);
+
+      const dynamicParams = new URLSearchParams({
         skip: String(skip),
         take: String(take),
         ...(sort.field ? { sort: `${sort.field}:${sort.order}` } : {}),
@@ -40,7 +50,10 @@ export function useCRUDController<
         ),
       });
 
-      const res = await fetchWithAuth(`${config.baseUrl}?${params.toString()}`);
+      dynamicParams.forEach((value, key) => baseParams.set(key, value));
+      base.search = baseParams.toString();
+
+      const res = await fetchWithAuth(base.toString());
       return res;
     },
   });

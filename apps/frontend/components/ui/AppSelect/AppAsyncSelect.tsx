@@ -13,6 +13,7 @@ import { AppText } from "../AppText";
 import { componentTokens } from "@/styles/design-system";
 import { Option } from "./AppSelect";
 import { useAsyncOptions } from "@/hooks/useAsyncOptions";
+import { AppInput } from "../AppInput";
 
 export interface AppAsyncSelectProps<T = unknown> {
   endpoint: string;
@@ -106,21 +107,22 @@ export const AppAsyncSelect = <T,>({
 
             {!isLoading && (
               <ListboxOptions className={componentTokens.select.options}>
-                <div
-                  className="px-2 pb-1"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search..."
-                    className="w-full text-sm px-2 py-1 border rounded-md outline-none focus:ring-1 focus:ring-primary"
-                    onFocus={(e) => e.stopPropagation()}
-                  />
-                </div>
+                    <div
+                      className="px-2 pb-1"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <AppInput
+                        ref={inputRef}
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search..."
+                        className="text-sm w-full"
+                        onFocus={(e) => e.stopPropagation()}
+                      />
+                    </div>
 
                 {isError && (
                   <div className="flex items-center justify-between px-3 py-2 text-sm text-red-500">
