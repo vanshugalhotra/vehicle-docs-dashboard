@@ -8,6 +8,7 @@ import { AppTextArea } from "../../ui/AppTextArea";
 import { AppSelect } from "../../ui/AppSelect";
 import { AppDatePicker } from "../../ui/AppDatePicker";
 import { AppText } from "../../ui/AppText";
+import { InlineDropdownCreate } from "@/components/crud/InlineDropdownCreate/InlineDropdownCreate";
 
 export interface FormFieldRendererProps {
   field: EntityField;
@@ -66,7 +67,7 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
               <AppTextArea
                 {...f}
                 value={f.value ?? ""}
-                label="" // Render label outside
+                label=""
                 placeholder={field.placeholder}
                 error={errorMessage}
                 className="w-full"
@@ -89,11 +90,12 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => {
-            const selectedOption = field.options?.find(
-              (o) => o.value === f.value
-            );
+            const selectedOption = field.options?.find((o) => o.value === f.value);
             const placeholderOption = { label: field.placeholder || "Select...", value: "" };
-            const displayOptions = field.placeholder ? [placeholderOption, ...(field.options ?? [])] : field.options ?? [];
+            const displayOptions = field.placeholder
+              ? [placeholderOption, ...(field.options ?? [])]
+              : field.options ?? [];
+
             return (
               <div>
                 {renderLabel()}
@@ -101,7 +103,7 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                   options={displayOptions}
                   value={selectedOption || placeholderOption}
                   onChange={(opt) => f.onChange(opt.value === "" ? undefined : opt.value)}
-                  label="" // Render label outside
+                  label=""
                   error={errorMessage}
                   aria-invalid={!!errorMessage}
                   aria-describedby={errorMessage ? `${field.key}-error` : undefined}
@@ -117,6 +119,32 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
         />
       );
 
+    case "asyncSelect":
+      return (
+        <Controller
+          name={field.key}
+          control={control}
+          render={({ field: f }) => (
+            <div>
+              {renderLabel()}
+              <InlineDropdownCreate
+                config={field.inlineConfig!}
+                value={f.value}
+                onChange={f.onChange}
+                placeholder={field.placeholder}
+                error={errorMessage}
+                helperText={field.placeholder}
+              />
+              {errorMessage && (
+                <AppText size="caption" variant="error" className="mt-1">
+                  {errorMessage}
+                </AppText>
+              )}
+            </div>
+          )}
+        />
+      );
+
     case "date":
       return (
         <Controller
@@ -128,7 +156,7 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
               <AppDatePicker
                 value={f.value ?? null}
                 onChange={f.onChange}
-                label="" // Render label outside
+                label=""
                 placeholder={field.placeholder}
                 error={errorMessage}
                 aria-invalid={!!errorMessage}

@@ -9,8 +9,9 @@ import { componentTokens } from "@/styles/design-system";
 import { AppButton } from "../../ui/AppButton";
 import { AppDialog } from "../../ui/AppDialog";
 import { FormFieldRenderer } from "./FormFieldRenderer";
+import { InlineDropdownCreateConfig } from "@/components/crud/InlineDropdownCreate/InlineDropdownCreate";
 
-export type FieldType = "text" | "textarea" | "select" | "date" | "number";
+export type FieldType = "text" | "textarea" | "select" | "date" | "number" | "asyncSelect";
 
 export interface EntityField {
   key: string;
@@ -19,6 +20,8 @@ export interface EntityField {
   required?: boolean;
   options?: { label: string; value: string }[];
   placeholder?: string;
+  inlineConfig?: InlineDropdownCreateConfig;
+
 }
 
 export interface FormModalProps<T extends object> {
