@@ -43,6 +43,7 @@ export const locationColumns: ColumnDef<Location>[] = [
 export const locationCrudConfig = {
   name: "Location",
   baseUrl: apiRoutes.locations.base,
+  fetchUrl: apiRoutes.locations.base,
   queryKey: "locations",
   schema: locationSchema,
   fields: locationFields,

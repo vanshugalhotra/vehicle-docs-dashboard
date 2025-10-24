@@ -6,6 +6,7 @@ import { fetchWithAuth } from "../lib/utils/fetchWithAuth";
 
 export interface CRUDControllerConfigBase {
   baseUrl: string;
+  fetchUrl: string;
   queryKey: string;
   defaultPageSize?: number;
   defaultFilters?: Record<string, unknown>;
@@ -34,7 +35,7 @@ export function useCRUDController<
       const take = pageSize;
 
       const base = new URL(
-        config.baseUrl,
+        config.fetchUrl,
         typeof window !== "undefined"
           ? window.location.origin
           : "http://localhost"
@@ -43,7 +44,7 @@ export function useCRUDController<
 
       const dynamicParams = new URLSearchParams({
         skip: String(skip),
-        take: String(take),
+      take: String(take),
         ...(sort.field ? { sort: `${sort.field}:${sort.order}` } : {}),
         ...Object.fromEntries(
           Object.entries(filters).filter(([, v]) => v != null && v !== "")

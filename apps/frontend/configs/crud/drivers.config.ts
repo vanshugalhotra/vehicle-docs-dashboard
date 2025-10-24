@@ -68,6 +68,7 @@ export const driverColumns: ColumnDef<Driver>[] = [
 export const driverCrudConfig = {
   name: "Driver",
   baseUrl: apiRoutes.drivers.base,
+  fetchUrl: apiRoutes.drivers.base,
   queryKey: "drivers",
   schema: driverSchema,
   fields: driverFields,

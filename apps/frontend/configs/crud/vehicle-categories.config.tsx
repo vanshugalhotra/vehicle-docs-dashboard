@@ -52,7 +52,7 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
           {preview.map((t) => (
             <AppBadge
               key={t.id}
-              variant="neutral"
+              variant="success"
               className="text-[11px] px-2 py-0.5 rounded-full"
             >
               {t.name}
@@ -77,7 +77,8 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
 
 export const vehicleCategoryCrudConfig = {
   name: "Vehicle Category",
-  baseUrl: `${apiRoutes.vehicle_categories.base}?includeRelations=true`,
+  baseUrl: `${apiRoutes.vehicle_categories.base}`,
+  fetchUrl: `${apiRoutes.vehicle_categories.base}?includeRelations=true`,
   queryKey: "vehicle-categories",
   schema: vehicleCategorySchema,
   fields: vehicleCategoryFields,

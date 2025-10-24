@@ -78,6 +78,7 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
 export const vehicleTypeCrudConfig = {
   name: "Vehicle Type",
   baseUrl: apiRoutes.vehicle_types.base,
+  fetchUrl: apiRoutes.vehicle_types.base,
   queryKey: "vehicle-types",
   schema: vehicleTypeSchema,
   fields: vehicleTypeFields,

@@ -43,6 +43,7 @@ export const ownerColumns: ColumnDef<Owner>[] = [
 export const ownerCrudConfig = {
   name: "Owner",
   baseUrl: apiRoutes.owners.base,
+  fetchUrl: apiRoutes.owners.base,
   queryKey: "owners",
   schema: ownerSchema,
   fields: ownerFields,
