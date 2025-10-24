@@ -44,7 +44,6 @@ export const InlineDropdownCreate = <T,>({
   label,
   placeholder,
   error,
-  helperText,
   disabled,
   filterBy,
   className,
@@ -84,7 +83,6 @@ export const InlineDropdownCreate = <T,>({
         label={label}
         placeholder={placeholder}
         error={error}
-        helperText={helperText}
         disabled={disabled}
         filterBy={filterBy}
         transform={config.transform}

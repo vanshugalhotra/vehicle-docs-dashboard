@@ -18,6 +18,7 @@ import {
   CategoryResponseDto,
   PaginatedCategoryResponseDto,
 } from './dto/category-response.dto';
+import { boolean } from 'joi';
 
 @ApiTags('Vehicle Categories')
 @Controller({ path: 'vehicle-categories', version: '1' })
@@ -50,6 +51,12 @@ export class VehicleCategoryController {
   @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
   @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
+    name: 'includeRelations',
+    required: false,
+    type: boolean,
+    example: true,
+  })
+  @ApiQuery({
     name: 'search',
     required: false,
     type: String,
@@ -65,8 +72,9 @@ export class VehicleCategoryController {
     @Query('search') search?: string,
     @Query('skip') skip?: number,
     @Query('take') take?: number,
+    @Query('includeRelations') includeRelations?: boolean,
   ): Promise<PaginatedCategoryResponseDto> {
-    return this.categoryService.findAll(skip, take, search);
+    return this.categoryService.findAll(skip, take, search, includeRelations);
   }
 
   // ────────────────────────────────────────────────

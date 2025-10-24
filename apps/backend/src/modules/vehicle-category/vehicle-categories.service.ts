@@ -53,9 +53,12 @@ export class VehicleCategoryService {
     skip?: number,
     take?: number,
     search?: string,
+    includeRelations = false,
   ): Promise<{ items: VehicleCategoryResponse[]; total: number }> {
     this.logger.info(
-      `Fetching vehicle categories with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
+      `Fetching vehicle categories with pagination: skip=${skip}, take=${take}${
+        search ? `, search: ${search}` : ''
+      }, includeRelations=${includeRelations}`,
     );
     try {
       let where: Prisma.VehicleCategoryWhereInput | undefined = undefined;
@@ -68,8 +71,8 @@ export class VehicleCategoryService {
           where,
           skip,
           take,
-          include: { types: true },
-          orderBy: { name: 'asc' },
+          include: includeRelations ? { types: true } : undefined,
+          orderBy: { updatedAt: 'desc' },
         }),
         this.prisma.vehicleCategory.count({ where }),
       ]);

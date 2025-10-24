@@ -133,7 +133,6 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 onChange={f.onChange}
                 placeholder={field.placeholder}
                 error={errorMessage}
-                helperText={field.placeholder}
               />
               {errorMessage && (
                 <AppText size="caption" variant="error" className="mt-1">
