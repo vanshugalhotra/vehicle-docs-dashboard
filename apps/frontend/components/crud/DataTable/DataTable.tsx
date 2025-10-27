@@ -8,9 +8,9 @@ import {
 } from "@tanstack/react-table";
 import clsx from "clsx";
 import { componentTokens } from "@/styles/design-system";
-import { AppButton } from "../../ui/AppButton";
-import { Edit, Trash2 } from "lucide-react";
 import { AppText } from "../../ui/AppText";
+import { DataTableActions } from "./DataTableActions";
+import { DataTableEmptyState } from "./DataTableEmptyState";
 
 export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
@@ -40,7 +40,7 @@ export const DataTable = <T extends object>({
       <div className="border border-border-subtle rounded-lg bg-surface overflow-hidden thin-scrollbar">
         <div className="overflow-x-auto thin-scrollbar">
           <table className="w-full min-w-full">
-            <thead className="bg-gradient-to-r from-surface-muted to-surface-muted/80 sticky top-0 z-10">
+            <thead className="bg-linear-to-r from-surface-muted to-surface-muted/80 sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
@@ -104,41 +104,9 @@ export const DataTable = <T extends object>({
                 <tr>
                   <td
                     colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
-                    className="text-center py-12"
+                    className="text-center"
                   >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-surface-muted to-surface-muted/50 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-7 h-7 text-text-muted"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                          />
-                        </svg>
-                      </div>
-                      <AppText
-                        size="body"
-                        variant="muted"
-                        className="font-medium"
-                      >
-                        No records found
-                      </AppText>
-                      <AppText
-                        size="label"
-                        variant="muted"
-                        className="max-w-md text-center opacity-75"
-                      >
-                        {columns.length > 1
-                          ? "Try adjusting your search criteria or add a new record to get started."
-                          : "No data available in the system."}
-                      </AppText>
-                    </div>
+                    <DataTableEmptyState />
                   </td>
                 </tr>
               ) : (
@@ -148,8 +116,7 @@ export const DataTable = <T extends object>({
                     className={clsx(
                       "transition-all duration-300 ease-out",
                       "group relative",
-                      // Beautiful gradient hover effect
-                      "hover:bg-gradient-to-r hover:from-primary/5 hover:via-primary/3 hover:to-transparent",
+                      "hover:bg-linear-to-r hover:from-primary/5 hover:via-primary/3 hover:to-transparent",
                       "hover:shadow-[inset_2px_0_0_0_#0ea5e9]",
                       "hover:translate-x-0.5"
                     )}
@@ -158,7 +125,7 @@ export const DataTable = <T extends object>({
                       <td
                         key={cell.id}
                         className={clsx(
-                          "px-3 py-2", // More compact
+                          "px-3 py-2",
                           "border-r border-border-subtle/30 last:border-r-0",
                           "transition-all duration-200",
                           componentTokens.text.primary,
@@ -174,30 +141,12 @@ export const DataTable = <T extends object>({
 
                     {(onEdit || onDelete) && (
                       <td className="px-3 py-2 border-r border-border-subtle/30 last:border-r-0">
-                        <div className="flex justify-center gap-1 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                          {onEdit && (
-                            <AppButton
-                              variant="ghost"
-                              size="md"
-                              onClick={() => onEdit(row.original)}
-                              className="!p-1.5 hover:bg-primary/15 hover:scale-110 transition-all duration-200"
-                            >
-                              <Edit size={16} className="text-primary" />
-                              <span className="sr-only">Edit</span>
-                            </AppButton>
-                          )}
-                          {onDelete && (
-                            <AppButton
-                              variant="ghost"
-                              size="md"
-                              onClick={() => onDelete(row.original)}
-                              className="!p-1.5 hover:bg-danger/15 hover:scale-110 transition-all duration-200"
-                            >
-                              <Trash2 size={16} className="text-danger" />
-                              <span className="sr-only">Delete</span>
-                            </AppButton>
-                          )}
-                        </div>
+                        <DataTableActions
+                          item={row.original}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onView={() => {}}
+                        />
                       </td>
                     )}
                   </tr>
