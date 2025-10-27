@@ -13,7 +13,10 @@ import { ApiTags, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
-import { VehicleResponseDto } from './dto/vehicle-response.dto';
+import {
+  PaginatedVehicleResponseDto,
+  VehicleResponseDto,
+} from './dto/vehicle-response.dto';
 import { VehicleResponse } from 'src/common/types';
 
 @ApiTags('Vehicles')
@@ -44,11 +47,19 @@ export class VehiclesController {
   @Get()
   @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
   @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Filter vehicles',
+    example: 'John',
+  })
   async findAll(
     @Query('skip') skip?: number,
     @Query('take') take?: number,
-  ): Promise<VehicleResponse[]> {
-    return this.vehiclesService.findAll(skip, take);
+    @Query('search') search?: string,
+  ): Promise<PaginatedVehicleResponseDto> {
+    return this.vehiclesService.findAll(skip, take, search);
   }
 
   // ────────────────────────────────────────────────

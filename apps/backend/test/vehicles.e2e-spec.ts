@@ -14,6 +14,7 @@ import { VehicleTypeResponse } from 'src/common/types';
 import { OwnerResponse } from 'src/common/types';
 import { DriverResponse } from 'src/common/types';
 import { LocationResponse } from 'src/common/types';
+import { PaginatedVehicleResponseDto } from 'src/modules/vehicle/dto/vehicle-response.dto';
 
 describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -239,10 +240,10 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   describe('List and fetch vehicles', () => {
     it('GET /vehicles returns array and includes created vehicles', async () => {
       const res = await request(server).get('/api/v1/vehicles').expect(200);
-      const arr = res.body as VehicleResponse[];
-      expect(Array.isArray(arr)).toBe(true);
-      expect(arr.some((v) => v.id === vehicleA.id)).toBe(true);
-      expect(arr.some((v) => v.id === vehicleB.id)).toBe(true);
+      const arr = res.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(arr.items)).toBe(true);
+      expect(arr.items.some((v) => v.id === vehicleA.id)).toBe(true);
+      expect(arr.items.some((v) => v.id === vehicleB.id)).toBe(true);
     });
 
     it('GET /vehicles/:id should return the vehicle (200)', async () => {
@@ -280,15 +281,16 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
       // default listing
       const all = await request(server).get('/api/v1/vehicles').expect(200);
-      expect(Array.isArray(all.body)).toBe(true);
+      const allBody = all.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(allBody.items)).toBe(true);
 
       // try skip/take if supported (controller likely maps query to skip/take)
       const paged = await request(server)
         .get('/api/v1/vehicles?skip=0&take=3')
         .expect(200);
-      const body = paged.body as VehicleResponse[];
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBeLessThanOrEqual(3);
+      const body = paged.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(body.items.length).toBeLessThanOrEqual(3);
     });
   });
 
@@ -331,11 +333,11 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
         .expect(404);
     });
 
-    it('should reject update with invalid FK (404)', async () => {
+    it('should reject update with invalid FK (409)', async () => {
       await request(server)
         .patch(`/api/v1/vehicles/${vehicleB.id}`)
         .send({ categoryId: '047529c1-5f9e-43e0-9929-d9e56e7d32e6' })
-        .expect(404);
+        .expect(409);
     });
 
     it('changing category/type name externally should NOT retroactively change vehicle name (expected current behaviour)', async () => {

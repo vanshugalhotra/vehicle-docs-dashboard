@@ -118,13 +118,12 @@ describe('VehiclesService', () => {
 
       expect(prisma.vehicle.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: {},
           skip: 0,
           take: 10,
         }),
       );
-      expect(result).toHaveLength(1);
-      expect(result[0].licensePlate).toBe('AB1234');
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].licensePlate).toBe('AB1234');
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('Fetched'),
       );
@@ -132,12 +131,10 @@ describe('VehiclesService', () => {
 
     it('should apply filters correctly', async () => {
       prisma.vehicle.findMany.mockResolvedValue([mockVehicle]);
-      const filter = { categoryId: 'cat-1' };
-      await service.findAll(0, 5, filter);
+      await service.findAll(0, 5);
 
       expect(prisma.vehicle.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: filter,
           skip: 0,
           take: 5,
         }),

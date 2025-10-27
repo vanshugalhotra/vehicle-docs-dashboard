@@ -9,6 +9,9 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { mapVehicleToResponse } from './vehicles.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { VehicleResponse } from 'src/common/types';
+import { Prisma } from '@prisma/client';
+import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { PaginatedVehicleResponseDto } from './dto/vehicle-response.dto';
 
 @Injectable()
 export class VehiclesService {
@@ -105,25 +108,58 @@ export class VehiclesService {
    * Get paginated list of vehicles
    */
   async findAll(
-    skip = 0,
-    take = 20,
-    filter?: Partial<Record<string, any>>,
-  ): Promise<VehicleResponse[]> {
-    const vehicles = await this.prisma.vehicle.findMany({
-      where: filter ?? {},
-      skip,
-      take,
-      include: {
-        category: true,
-        type: true,
-        owner: true,
-        driver: true,
-        location: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-    this.logger.info(`Fetched ${vehicles.length} vehicles`);
-    return vehicles.map(mapVehicleToResponse);
+    skip?: number,
+    take?: number,
+    search?: string,
+  ): Promise<PaginatedVehicleResponseDto> {
+    this.logger.info(
+      `Fetching vehicles with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
+    );
+    try {
+      let where: Prisma.VehicleWhereInput | undefined = undefined;
+
+      if (search) {
+        where = {
+          OR: [
+            { licensePlate: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: 'insensitive' } },
+            { rcNumber: { contains: search, mode: 'insensitive' } },
+            { chassisNumber: { contains: search, mode: 'insensitive' } },
+            { engineNumber: { contains: search, mode: 'insensitive' } },
+            { category: { name: { contains: search, mode: 'insensitive' } } },
+            { type: { name: { contains: search, mode: 'insensitive' } } },
+            { owner: { name: { contains: search, mode: 'insensitive' } } },
+            { driver: { name: { contains: search, mode: 'insensitive' } } },
+          ],
+        };
+      }
+
+      const [vehicles, total] = await Promise.all([
+        this.prisma.vehicle.findMany({
+          where,
+          skip,
+          take,
+          include: {
+            category: true,
+            type: true,
+            owner: true,
+            driver: true,
+            location: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.vehicle.count({ where }),
+      ]);
+
+      this.logger.info(`Fetched ${vehicles.length} of ${total} vehicles`);
+
+      return {
+        items: vehicles.map(mapVehicleToResponse),
+        total,
+      };
+    } catch (error) {
+      handlePrismaError(error, 'Vehicle');
+    }
   }
 
   /**
@@ -155,6 +191,14 @@ export class VehiclesService {
     if (!vehicle)
       throw new NotFoundException(`Vehicle with id ${id} not found`);
 
+    // Normalize input if provided
+    const normalized = {
+      licensePlate: dto.licensePlate?.trim().toUpperCase(),
+      rcNumber: dto.rcNumber?.trim().toUpperCase(),
+      chassisNumber: dto.chassisNumber?.trim().toUpperCase(),
+      engineNumber: dto.engineNumber?.trim().toUpperCase(),
+    };
+
     // Check for uniqueness conflicts if any of the fields are being updated
     if (
       dto.licensePlate ||
@@ -166,10 +210,10 @@ export class VehiclesService {
         where: {
           AND: { id: { not: id } },
           OR: [
-            { licensePlate: dto.licensePlate },
-            { rcNumber: dto.rcNumber },
-            { chassisNumber: dto.chassisNumber },
-            { engineNumber: dto.engineNumber },
+            { licensePlate: normalized.licensePlate },
+            { rcNumber: normalized.rcNumber },
+            { chassisNumber: normalized.chassisNumber },
+            { engineNumber: normalized.engineNumber },
           ],
         },
       });
@@ -179,10 +223,34 @@ export class VehiclesService {
         );
     }
 
+    // Validate category-type relationship if either is being updated
+    if (dto.categoryId || dto.typeId) {
+      const categoryId = dto.categoryId ?? vehicle.categoryId;
+      const typeId = dto.typeId ?? vehicle.typeId;
+
+      const type = await this.prisma.vehicleType.findUnique({
+        where: { id: typeId },
+        include: { category: true },
+      });
+
+      if (!type) throw new NotFoundException('Type not found');
+
+      // Check if the type belongs to the category
+      if (type.categoryId !== categoryId) {
+        const category = await this.prisma.vehicleCategory.findUnique({
+          where: { id: categoryId },
+        });
+        throw new ConflictException(
+          `Vehicle type "${type.name}" does not belong to category "${category?.name}"`,
+        );
+      }
+    }
+
     // If categoryId, typeId, or licensePlate is updated, regenerate name
     const updatedData: Partial<UpdateVehicleDto & { name?: string }> = {
       ...dto,
     };
+
     if (dto.categoryId || dto.typeId || dto.licensePlate) {
       const category = dto.categoryId
         ? await this.prisma.vehicleCategory.findUnique({
@@ -202,9 +270,17 @@ export class VehiclesService {
       if (!category) throw new NotFoundException('Category not found');
       if (!type) throw new NotFoundException('Type not found');
 
-      const license = dto.licensePlate ?? vehicle.licensePlate;
+      const license = normalized.licensePlate ?? vehicle.licensePlate;
       updatedData.name = `${category.name} (${type.name}) - ${license}`;
     }
+
+    if (normalized.licensePlate)
+      updatedData.licensePlate = normalized.licensePlate;
+    if (normalized.rcNumber) updatedData.rcNumber = normalized.rcNumber;
+    if (normalized.chassisNumber)
+      updatedData.chassisNumber = normalized.chassisNumber;
+    if (normalized.engineNumber)
+      updatedData.engineNumber = normalized.engineNumber;
 
     const updated = await this.prisma.vehicle.update({
       where: { id },
