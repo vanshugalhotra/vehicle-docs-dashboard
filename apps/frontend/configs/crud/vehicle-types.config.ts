@@ -74,6 +74,11 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
   },
 ];
 
+export const typeLayout = {
+  gridColumns: 1
+}
+
+
 export const vehicleTypeCrudConfig = {
   name: "Vehicle Type",
   baseUrl: apiRoutes.vehicle_types.base,
@@ -83,4 +88,5 @@ export const vehicleTypeCrudConfig = {
   fields: vehicleTypeFields,
   columns: vehicleTypeColumns,
   defaultPageSize: 5,
+  layout: typeLayout,
 };

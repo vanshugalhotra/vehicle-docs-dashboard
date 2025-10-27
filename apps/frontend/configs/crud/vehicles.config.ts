@@ -211,6 +211,13 @@ export const vehicleFields = [
   },
 ];
 
+export const vehicleLayout = {
+  gridColumns: 3,
+  fieldSpans: {
+    notes: 3
+  }
+}
+
 // =====================
 // 🔹 Table Columns
 // =====================
@@ -247,4 +254,5 @@ export const vehicleCrudConfig = {
   fields: vehicleFields,
   columns: vehicleColumns,
   defaultPageSize: 10,
+  layout: vehicleLayout
 };

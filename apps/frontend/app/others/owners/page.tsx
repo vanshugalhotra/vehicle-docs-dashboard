@@ -96,7 +96,7 @@ export default function OwnersPage() {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="stacked"
+            layout={ownerCrudConfig.layout}
           />
         )
       }

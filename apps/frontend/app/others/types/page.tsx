@@ -101,7 +101,7 @@ export default function VehicleTypesPage() {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="stacked"
+            layout={vehicleTypeCrudConfig.layout}
           />
         )
       }

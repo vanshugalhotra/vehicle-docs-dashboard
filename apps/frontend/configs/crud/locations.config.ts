@@ -40,6 +40,11 @@ export const locationColumns: ColumnDef<Location>[] = [
   },
 ];
 
+export const locationLayout = {
+  gridColumns: 1
+}
+
+
 export const locationCrudConfig = {
   name: "Location",
   baseUrl: apiRoutes.locations.base,
@@ -49,4 +54,5 @@ export const locationCrudConfig = {
   fields: locationFields,
   columns: locationColumns,
   defaultPageSize: 5,
+  layout: locationLayout
 };

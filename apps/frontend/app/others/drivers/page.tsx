@@ -105,7 +105,7 @@ export default function DriversPage() {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="stacked"
+            layout={driverCrudConfig.layout}
           />
         )
       }

@@ -49,6 +49,11 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
   },
 ];
 
+export const categoryLayout = {
+  gridColumns: 1
+}
+
+
 export const vehicleCategoryCrudConfig = {
   name: "Vehicle Category",
   baseUrl: `${apiRoutes.vehicle_categories.base}`,
@@ -58,4 +63,5 @@ export const vehicleCategoryCrudConfig = {
   fields: vehicleCategoryFields,
   columns: vehicleCategoryColumns,
   defaultPageSize: 5,
+  layout: categoryLayout
 };

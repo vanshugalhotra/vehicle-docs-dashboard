@@ -103,7 +103,7 @@ export default function LocationsPage() {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="stacked"
+            layout={locationCrudConfig.layout}
           />
         )
       }

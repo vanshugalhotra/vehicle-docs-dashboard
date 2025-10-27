@@ -18,5 +18,9 @@ export interface EntityField {
   placeholder?: string;
   inlineConfig?: InlineDropdownCreateConfig;
 }
+export interface FormLayoutConfig {
+  gridColumns?: number;
+  fieldSpans?: Record<string, number>; // { fieldKey: span }
+}
 
 export type EntityFormSchema = ZodType | undefined;

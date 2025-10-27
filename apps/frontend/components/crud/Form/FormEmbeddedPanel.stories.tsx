@@ -35,7 +35,11 @@ type Story = StoryObj<typeof FormEmbeddedPanel>;
 export const Default: Story = {};
 
 export const SplitLayout: Story = {
-  args: { layout: "split" },
+  args: {
+    layout: {
+      gridColumns: 2,
+    },
+  },
 };
 
 export const EditMode: Story = {

@@ -65,6 +65,11 @@ export const driverColumns: ColumnDef<Driver>[] = [
   },
 ];
 
+export const driverLayout = {
+  gridColumns: 1
+}
+
+
 export const driverCrudConfig = {
   name: "Driver",
   baseUrl: apiRoutes.drivers.base,
@@ -73,5 +78,6 @@ export const driverCrudConfig = {
   schema: driverSchema,
   fields: driverFields,
   columns: driverColumns,
+  layout: driverLayout,
   defaultPageSize: 5,
 };

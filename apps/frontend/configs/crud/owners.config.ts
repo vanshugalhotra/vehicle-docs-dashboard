@@ -23,6 +23,10 @@ export const ownerFields = [
   },
 ];
 
+export const ownerLayout = {
+  gridColumns: 1
+}
+
 export const ownerColumns: ColumnDef<Owner>[] = [
   {
     id: "serial",
@@ -48,5 +52,6 @@ export const ownerCrudConfig = {
   schema: ownerSchema,
   fields: ownerFields,
   columns: ownerColumns,
+  layout: ownerLayout,
   defaultPageSize: 5,
 };

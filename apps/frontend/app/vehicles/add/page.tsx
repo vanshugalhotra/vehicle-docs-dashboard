@@ -99,7 +99,7 @@ export default function VehiclesPage() {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="split"
+            layout={vehicleCrudConfig.layout}
           />
         )
       }

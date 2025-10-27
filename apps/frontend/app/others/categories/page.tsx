@@ -100,7 +100,7 @@ const handleSubmit = async (values: VehicleCategory) => {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={isLoading}
-            layout="stacked"
+            layout={vehicleCategoryCrudConfig.layout}
           />
         )
       }
