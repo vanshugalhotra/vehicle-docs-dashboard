@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FormEmbeddedPanel } from "./FormEmbeddedPanel";
-import { EntityField } from "./FormModal";
+import { EntityField } from "./EntityFieldTypes";
 
 const fields: EntityField[] = [
   { key: "name", label: "Name", type: "text", required: true },

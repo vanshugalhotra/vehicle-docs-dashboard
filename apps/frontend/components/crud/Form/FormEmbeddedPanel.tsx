@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { z, ZodType } from "zod";
-import { useForm, FieldValues } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
 import clsx from "clsx";
 import { AppButton } from "../../ui/AppButton";
 import { AppCard } from "../../ui/AppCard";
 import { FormFieldRenderer } from "./FormFieldRenderer";
 import { AppText } from "../../ui/AppText";
-import type { EntityField } from "./FormModal";
+import { useEntityForm } from "@/hooks/useEntityForm";
+import type { EntityField } from "./EntityFieldTypes";
+import { ZodType } from "zod";
 
 export interface FormEmbeddedPanelProps<T extends object> {
   title?: string;
   fields: EntityField[];
   defaultValues?: Partial<T>;
   schema?: ZodType;
-  selectedRecord?: T | null; // For edit mode
+  selectedRecord?: T | null;
   onSubmit: (values: T) => void;
   onCancel?: () => void;
   loading?: boolean;
@@ -24,15 +23,11 @@ export interface FormEmbeddedPanelProps<T extends object> {
   hoverable?: boolean;
 }
 
-/**
- * FormEmbeddedPanel
- * Always-visible CRUD form (used for embedded form mode)
- */
 export const FormEmbeddedPanel = <T extends object>({
   title,
   fields,
-  defaultValues,
   schema,
+  defaultValues,
   selectedRecord,
   onSubmit,
   onCancel,
@@ -40,35 +35,15 @@ export const FormEmbeddedPanel = <T extends object>({
   layout = "stacked",
   hoverable = false,
 }: FormEmbeddedPanelProps<T>) => {
-  // build fallback schema
-  const zodSchema =
-    schema ??
-    z.object(
-      fields.reduce((acc, f) => {
-        acc[f.key] = f.required
-          ? z.string().min(1, `${f.label} is required`)
-          : z.string().optional();
-        return acc;
-      }, {} as Record<string, ZodType>)
-    );
-
-  const {
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<FieldValues>({
-    resolver: zodResolver(zodSchema as never),
+  const form = useEntityForm<T>({
+    fields,
+    schema,
     defaultValues,
+    values: selectedRecord,
+    resetDeps: [selectedRecord, defaultValues],
   });
 
-  // if editing existing record, reset form
-  useEffect(() => {
-    if (selectedRecord) reset(selectedRecord);
-    else {
-      reset(defaultValues);
-    }
-  }, [selectedRecord, defaultValues, reset]);
+  const { handleSubmit, control, formState: { errors } } = form;
 
   return (
     <AppCard className="flex flex-col" hoverable={hoverable}>
@@ -90,13 +65,12 @@ export const FormEmbeddedPanel = <T extends object>({
         )}
       >
         {fields.map((field) => (
-          <div key={field.key} className="space-y-1 w-full">
-            <FormFieldRenderer
-              field={field}
-              control={control}
-              errors={errors}
-            />
-          </div>
+          <FormFieldRenderer
+            key={field.key}
+            field={field}
+            control={control}
+            errors={errors}
+          />
         ))}
 
         <div className="flex justify-end gap-3 pt-6 mt-auto">

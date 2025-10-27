@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
-import { AppBadge } from "@/components/ui/AppBadge";
+import { CategoryTypesCell } from "@/components/table-cells/CategoryTypeCell";
 
 export const vehicleCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -39,33 +39,7 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
   {
     accessorKey: "types",
     header: "Types",
-    cell: ({ row }) => {
-      const types = row.original.types || [];
-      const preview = types.slice(0, 3);
-
-      if (!types.length) {
-        return <span className="text-xs text-gray-400">—</span>;
-      }
-
-      return (
-        <div className="flex flex-wrap items-center gap-1">
-          {preview.map((t) => (
-            <AppBadge
-              key={t.id}
-              variant="success"
-              className="text-[11px] px-2 py-0.5 rounded-full"
-            >
-              {t.name}
-            </AppBadge>
-          ))}
-          {types.length > 3 && (
-            <span className="text-xs text-gray-400">
-              +{types.length - 3} more
-            </span>
-          )}
-        </div>
-      );
-    },
+    cell: ({ row }) => <CategoryTypesCell types={row.original.types} />,
   },
 
   {

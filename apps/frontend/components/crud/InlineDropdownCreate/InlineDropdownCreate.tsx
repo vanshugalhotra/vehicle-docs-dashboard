@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AppAsyncSelect } from "../../ui/AppSelect/AppAsyncSelect";
-import { EntityField } from "@/components/crud/Form/FormModal";
+import { EntityField } from "../Form/EntityFieldTypes";
 import FormModal from "@/components/crud/Form/FormModal";
 import { toastUtils } from "@/lib/utils/toastUtils";
 import { fetchWithAuth } from "@/lib/utils/fetchWithAuth";
@@ -62,7 +62,8 @@ export const InlineDropdownCreate = <T,>({
       if (!res || !(res as { id?: string }).id)
         throw new Error("Invalid response from server");
 
-      toastUtils.success("Created successfully");
+      toastUtils.success(`${config.title} created successfully`);
+
       setOpen(false);
 
       // Optional: auto-select newly created value
