@@ -1,4 +1,3 @@
-// /configs/crud/vehicle-types.config.ts
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";

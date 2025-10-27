@@ -1,0 +1,250 @@
+import { z } from "zod";
+import { ColumnDef } from "@tanstack/react-table";
+import { apiRoutes } from "@/lib/apiRoutes";
+import { formatReadableDate } from "@/lib/utils/dateUtils";
+
+// =====================
+// 🔹 Schema
+// =====================
+const optionalString = () =>
+  z.union([z.string(), z.literal(""), z.null()])
+    .optional()
+    .transform((val) => (val === "" || val === null ? undefined : val));
+
+export const vehicleSchema = z.object({
+  categoryId: z.string().min(1, "Category is required"),
+  typeId: z.string().min(1, "Vehicle type is required"),
+  licensePlate: z.string().min(1, "License plate is required"),
+  rcNumber: z.string().min(1, "RC number is required"),
+  chassisNumber: z.string().min(1, "Chassis number is required"),
+  engineNumber: z.string().min(1, "Engine number is required"),
+  ownerId: optionalString(),
+  locationId: optionalString(),
+  driverId: optionalString(),
+  notes: optionalString(),
+});
+export type Vehicle = z.infer<typeof vehicleSchema> & {
+  id?: string;
+  name?: string;
+  categoryName?: string;
+  typeName?: string;
+  ownerName?: string;
+  driverName?: string;
+  locationName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+// =====================
+// 🔹 Fields (inline dropdowns configured)
+// =====================
+export const vehicleFields = [
+  {
+    key: "categoryId",
+    label: "Category",
+    type: "asyncSelect" as const,
+    placeholder: "Select category",
+    required: true,
+    endpoint: apiRoutes.vehicle_categories.base,
+    labelField: "name",
+    valueField: "id",
+    inlineConfig: {
+      title: "Add Category",
+      endpoint: apiRoutes.vehicle_categories.base,
+      createEndpoint: apiRoutes.vehicle_categories.base,
+      fields: [
+        { key: "name", label: "Category Name", type: "text" as const, required: true },
+      ],
+      schema: z.object({
+        name: z.string().min(1, "Category name is required"),
+      }),
+    },
+  },
+  {
+    key: "typeId",
+    label: "Type",
+    type: "asyncSelect" as const,
+    placeholder: "Select vehicle type",
+    required: true,
+    endpoint: apiRoutes.vehicle_types.base,
+    labelField: "name",
+    valueField: "id",
+    inlineConfig: {
+      title: "Add Vehicle Type",
+      endpoint: apiRoutes.vehicle_types.base,
+      createEndpoint: apiRoutes.vehicle_types.base,
+      fields: [
+        {
+          key: "name",
+          label: "Type Name",
+          type: "text" as const,
+          required: true,
+        },
+        {
+          key: "categoryId",
+          label: "Category",
+          type: "asyncSelect" as const,
+          required: true,
+          endpoint: apiRoutes.vehicle_categories.base,
+          labelField: "name",
+          valueField: "id",
+          inlineConfig: {
+            title: "Add Category",
+            endpoint: apiRoutes.vehicle_categories.base,
+            createEndpoint: apiRoutes.vehicle_categories.base,
+            fields: [
+              { key: "name", label: "Category Name", type: "text" as const, required: true },
+            ],
+            schema: z.object({
+              name: z.string().min(1, "Category name is required"),
+            }),
+          },
+        },
+      ],
+      schema: z.object({
+        name: z.string().min(1, "Type name is required"),
+        categoryId: z.string().min(1, "Category is required"),
+      }),
+    },
+  },
+  {
+    key: "licensePlate",
+    label: "License Plate",
+    type: "text" as const,
+    placeholder: "Unique license plate",
+    required: true,
+  },
+  {
+    key: "rcNumber",
+    label: "RC Number",
+    type: "text" as const,
+    placeholder: "Enter RC number",
+    required: true,
+  },
+  {
+    key: "chassisNumber",
+    label: "Chassis Number",
+    type: "text" as const,
+    placeholder: "Enter chassis number",
+    required: true,
+  },
+  {
+    key: "engineNumber",
+    label: "Engine Number",
+    type: "text" as const,
+    placeholder: "Enter engine number",
+    required: true,
+  },
+  {
+    key: "ownerId",
+    label: "Owner",
+    type: "asyncSelect" as const,
+    placeholder: "Select or add owner",
+    required: false,
+    endpoint: apiRoutes.owners.base,
+    labelField: "name",
+    valueField: "id",
+    inlineConfig: {
+      title: "Add Owner",
+      endpoint: apiRoutes.owners.base,
+      createEndpoint: apiRoutes.owners.base,
+      fields: [
+        { key: "name", label: "Owner Name", type: "text" as const, required: true },
+      ],
+      schema: z.object({
+        name: z.string().min(1, "Owner name is required"),
+      }),
+    },
+  },
+  {
+    key: "driverId",
+    label: "Driver",
+    type: "asyncSelect" as const,
+    placeholder: "Select or add driver",
+    required: false,
+    endpoint: apiRoutes.drivers.base,
+    labelField: "name",
+    valueField: "id",
+    inlineConfig: {
+      title: "Add Driver",
+      endpoint: apiRoutes.drivers.base,
+      createEndpoint: apiRoutes.drivers.base,
+      fields: [
+        { key: "name", label: "Driver Name", type: "text" as const, required: true },
+        { key: "phone", label: "Phone", type: "text" as const },
+        { key: "email", label: "Email", type: "text" as const },
+      ],
+      schema: z.object({
+        name: z.string().min(1, "Driver name is required"),
+        phone: z.string().optional(),
+        email: z.string().email("Invalid email").optional(),
+      }),
+    },
+  },
+  {
+    key: "locationId",
+    label: "Location",
+    type: "asyncSelect" as const,
+    placeholder: "Select or add location",
+    required: false,
+    endpoint: apiRoutes.locations.base,
+    labelField: "name",
+    valueField: "id",
+    inlineConfig: {
+      title: "Add Location",
+      endpoint: apiRoutes.locations.base,
+      createEndpoint: apiRoutes.locations.base,
+      fields: [
+        { key: "name", label: "Location Name", type: "text" as const, required: true },
+      ],
+      schema: z.object({
+        name: z.string().min(1, "Location name is required"),
+      }),
+    },
+  },
+  {
+    key: "notes",
+    label: "Notes",
+    type: "textarea" as const,
+    placeholder: "Additional notes (optional)",
+    required: false,
+  },
+];
+
+// =====================
+// 🔹 Table Columns
+// =====================
+export const vehicleColumns: ColumnDef<Vehicle>[] = [
+  {
+    id: "serial",
+    header: "#",
+    cell: ({ row }) => row.index + 1,
+    size: 40,
+  },
+  { accessorKey: "name", header: "Vehicle Name" },
+  { accessorKey: "licensePlate", header: "License Plate" },
+  { accessorKey: "typeName", header: "Type" },
+  { accessorKey: "categoryName", header: "Category" },
+  { accessorKey: "driverName", header: "Driver" },
+  { accessorKey: "ownerName", header: "Owner" },
+  { accessorKey: "locationName", header: "Location" },
+  {
+    accessorKey: "createdAt",
+    header: "Created",
+    cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+  },
+];
+
+// =====================
+// 🔹 CRUD Config
+// =====================
+export const vehicleCrudConfig = {
+  name: "Vehicle",
+  baseUrl: apiRoutes.vehicles.base,
+  fetchUrl: apiRoutes.vehicles.base,
+  queryKey: "vehicles",
+  schema: vehicleSchema,
+  fields: vehicleFields,
+  columns: vehicleColumns,
+  defaultPageSize: 10,
+};

@@ -18,6 +18,7 @@ export interface DataTableProps<T> {
   loading?: boolean;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  onView?: (row: T) => void;
   className?: string;
 }
 
