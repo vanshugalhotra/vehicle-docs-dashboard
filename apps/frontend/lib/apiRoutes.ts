@@ -34,4 +34,9 @@ export const apiRoutes = {
     list: `${API_URL}/vehicle-types`,
     detail: (id: string) => `${API_URL}/vehicle-types/${id}`,
   },
+  document_types: {
+    base: `${API_URL}/document-types`,
+    list: `${API_URL}/document-types`,
+    detail: (id: string) => `${API_URL}/document-types/${id}`,
+  },
 };

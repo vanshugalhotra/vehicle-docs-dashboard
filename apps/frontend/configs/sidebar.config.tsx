@@ -8,8 +8,6 @@ import {
   Users,
   Settings,
   Plus,
-  FilePlus,
-  FileStack,
   FolderSymlink,
   CalendarSync,
   Blinds,
@@ -59,18 +57,7 @@ export const sidebarConfig: SidebarItemConfig[] = [
   {
     label: "Documents",
     icon: <FileText size={24} />,
-    children: [
-      {
-        label: "Add Document",
-        path: "/documents/add",
-        icon: <FilePlus size={20} />,
-      },
-      {
-        label: "View Documents",
-        path: "/documents",
-        icon: <FileStack size={20} />,
-      },
-    ],
+    path: "/document-types"
   },
   {
     label: "Linkages",
