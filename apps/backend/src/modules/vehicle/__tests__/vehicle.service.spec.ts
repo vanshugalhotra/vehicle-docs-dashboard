@@ -1,14 +1,14 @@
-import { VehiclesService } from '../vehicles.service';
+import { VehicleService } from '../vehicles.service';
 import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
 import { CreateVehicleDto } from '../dto/create-vehicle.dto';
 import { UpdateVehicleDto } from '../dto/update-vehicle.dto';
-import { mapVehicleToResponse } from '../vehicles.mapper';
+import { mapVehicleToResponse } from '../vehicle.mapper';
 import { Vehicle } from '@prisma/client';
 
-jest.mock('../vehicles.mapper', () => ({
+jest.mock('../vehicle.mapper', () => ({
   mapVehicleToResponse: jest.fn((v: Partial<Vehicle>) => ({
     id: v.id,
     name: v.name,
@@ -16,8 +16,8 @@ jest.mock('../vehicles.mapper', () => ({
   })),
 }));
 
-describe('VehiclesService', () => {
-  let service: VehiclesService;
+describe('VehicleService', () => {
+  let service: VehicleService;
   let prisma: MockedPrisma;
   let logger: MockedLogger;
 
@@ -42,7 +42,7 @@ describe('VehiclesService', () => {
   const mockType = { id: 'type-1', name: 'Sedan', categoryId: 'cat-1' };
 
   beforeEach(async () => {
-    const setup = await createTestModule(VehiclesService);
+    const setup = await createTestModule(VehicleService);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;

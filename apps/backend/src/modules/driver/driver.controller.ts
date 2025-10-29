@@ -10,20 +10,20 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { OwnersService } from './owners.service';
-import { CreateOwnerDto } from './dto/create-owner.dto';
-import { UpdateOwnerDto } from './dto/update-owner.dto';
-import { OwnerResponse } from 'src/common/types';
+import { DriverService } from './driver.service';
+import { CreateDriverDto } from './dto/create-driver.dto';
+import { UpdateDriverDto } from './dto/update-driver.dto';
+import { DriverResponse } from 'src/common/types';
 import {
-  OwnerResponseDto,
-  PaginatedOwnerResponseDto,
-} from './dto/owner-response.dto';
+  DriverResponseDto,
+  PaginatedDriverResponseDto,
+} from './dto/driver-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
-@ApiTags('Owners')
-@Controller({ path: 'owners', version: '1' })
-export class OwnersController {
-  constructor(private readonly ownersService: OwnersService) {}
+@ApiTags('Drivers')
+@Controller({ path: 'drivers', version: '1' })
+export class DriverController {
+  constructor(private readonly driversService: DriverService) {}
 
   // ────────────────────────────────────────────────
   // CREATE
@@ -31,37 +31,37 @@ export class OwnersController {
   @Post()
   @ApiResponse({
     status: 201,
-    description: 'Owner created successfully',
-    type: OwnerResponseDto,
+    description: 'Driver created successfully',
+    type: DriverResponseDto,
   })
   @ApiResponse({
     status: 409,
-    description: 'Owner with same name already exists',
+    description: 'Driver with same phone or email already exists',
   })
-  async create(@Body() dto: CreateOwnerDto): Promise<OwnerResponse> {
-    return this.ownersService.create(dto);
+  async create(@Body() dto: CreateDriverDto): Promise<DriverResponse> {
+    return this.driversService.create(dto);
   }
 
-  /**
-   * GET /owners — list owners with pagination, search, sort, and filters.
-   */
+  // ────────────────────────────────────────────────
+  // READ ALL (with unified query control)
+  // ────────────────────────────────────────────────
   @Get()
   @ApiQuery({
     name: 'search',
     required: false,
     type: String,
-    description: 'Filter owners by name (case-insensitive)',
-    example: 'Ustaad',
+    description: 'Filter drivers by name, phone, or email (case-insensitive)',
+    example: 'John',
   })
   @ApiResponse({
     status: 200,
-    description: 'List of Owners retrieved successfully',
-    type: PaginatedOwnerResponseDto,
+    description: 'List of drivers retrieved successfully',
+    type: PaginatedDriverResponseDto,
   })
   async findAll(
     @Query() query: QueryOptionsDto,
-  ): Promise<PaginatedOwnerResponseDto> {
-    return this.ownersService.findAll(query);
+  ): Promise<PaginatedDriverResponseDto> {
+    return this.driversService.findAll(query);
   }
 
   // ────────────────────────────────────────────────
@@ -70,14 +70,14 @@ export class OwnersController {
   @Get(':id')
   @ApiResponse({
     status: 200,
-    description: 'Owner fetched successfully',
-    type: OwnerResponseDto,
+    description: 'Driver fetched successfully',
+    type: DriverResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Owner not found' })
+  @ApiResponse({ status: 404, description: 'Driver not found' })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<OwnerResponse> {
-    return this.ownersService.findOne(id);
+  ): Promise<DriverResponse> {
+    return this.driversService.findOne(id);
   }
 
   // ────────────────────────────────────────────────
@@ -86,16 +86,19 @@ export class OwnersController {
   @Patch(':id')
   @ApiResponse({
     status: 200,
-    description: 'Owner updated successfully',
-    type: OwnerResponseDto,
+    description: 'Driver updated successfully',
+    type: DriverResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Owner not found' })
-  @ApiResponse({ status: 409, description: 'Duplicate owner name' })
+  @ApiResponse({ status: 404, description: 'Driver not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Duplicate phone or email found',
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateOwnerDto,
-  ): Promise<OwnerResponse> {
-    return this.ownersService.update(id, dto);
+    @Body() dto: UpdateDriverDto,
+  ): Promise<DriverResponse> {
+    return this.driversService.update(id, dto);
   }
 
   // ────────────────────────────────────────────────
@@ -104,16 +107,16 @@ export class OwnersController {
   @Delete(':id')
   @ApiResponse({
     status: 200,
-    description: 'Owner deleted successfully',
+    description: 'Driver deleted successfully',
   })
-  @ApiResponse({ status: 404, description: 'Owner not found' })
+  @ApiResponse({ status: 404, description: 'Driver not found' })
   @ApiResponse({
     status: 409,
-    description: 'Cannot delete owner linked to vehicles',
+    description: 'Cannot delete driver linked to vehicles',
   })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ success: boolean }> {
-    return this.ownersService.remove(id);
+    return this.driversService.remove(id);
   }
 }

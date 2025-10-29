@@ -22,7 +22,7 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Document Types')
 @Controller({ path: 'document-types', version: '1' })
-export class DocumentTypesController {
+export class DocumentTypeController {
   constructor(private readonly documentTypesService: DocumentTypesService) {}
 
   // ────────────────────────────────────────────────

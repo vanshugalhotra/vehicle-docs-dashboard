@@ -1,4 +1,4 @@
-import { VehicleCategoryService } from '../vehicle-categories.service';
+import { VehicleCategoryService } from '../vehicle-category.service';
 import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';

@@ -1,16 +1,16 @@
-import { OwnersService } from '../owners.service';
+import { OwnerService } from '../owner.service';
 import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
 
-describe('OwnersService', () => {
-  let service: OwnersService;
+describe('OwnerService', () => {
+  let service: OwnerService;
   let prisma: MockedPrisma;
   let logger: MockedLogger;
 
   beforeEach(async () => {
-    const setup = await createTestModule(OwnersService);
+    const setup = await createTestModule(OwnerService);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;

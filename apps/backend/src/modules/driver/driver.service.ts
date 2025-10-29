@@ -16,7 +16,7 @@ import { PaginatedDriverResponseDto } from './dto/driver-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @Injectable()
-export class DriversService {
+export class DriverService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,

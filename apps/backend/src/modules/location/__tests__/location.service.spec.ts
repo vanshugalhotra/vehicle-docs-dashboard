@@ -1,16 +1,16 @@
-import { LocationsService } from '../locations.service';
+import { LocationService } from '../location.service';
 import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
 
-describe('LocationsService', () => {
-  let service: LocationsService;
+describe('LocationService', () => {
+  let service: LocationService;
   let prisma: MockedPrisma;
   let logger: MockedLogger;
 
   beforeEach(async () => {
-    const setup = await createTestModule(LocationsService);
+    const setup = await createTestModule(LocationService);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;

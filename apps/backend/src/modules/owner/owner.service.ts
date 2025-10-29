@@ -16,7 +16,7 @@ import { PaginatedOwnerResponseDto } from './dto/owner-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 
 @Injectable()
-export class OwnersService {
+export class OwnerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,

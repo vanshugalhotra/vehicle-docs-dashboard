@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
-import { mapVehicleToResponse } from './vehicles.mapper';
+import { mapVehicleToResponse } from './vehicle.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { VehicleResponse } from 'src/common/types';
 import { Prisma } from '@prisma/client';
@@ -16,7 +16,7 @@ import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @Injectable()
-export class VehiclesService {
+export class VehicleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,

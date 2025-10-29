@@ -16,7 +16,7 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedLocationResponseDto } from './dto/location-response';
 
 @Injectable()
-export class LocationsService {
+export class LocationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,

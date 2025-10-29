@@ -1,16 +1,16 @@
-import { DriversService } from '../drivers.service';
+import { DriverService } from '../driver.service';
 import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
 
-describe('DriversService', () => {
-  let service: DriversService;
+describe('DriverService', () => {
+  let service: DriverService;
   let prisma: MockedPrisma;
   let logger: MockedLogger;
 
   beforeEach(async () => {
-    const setup = await createTestModule(DriversService);
+    const setup = await createTestModule(DriverService);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;

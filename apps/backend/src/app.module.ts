@@ -8,9 +8,9 @@ import { VehiclesModule } from './modules/vehicle/vehicles.module';
 import { VehicleCategoriesModule } from './modules/vehicle-category/vehicle-categories.module';
 import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module';
 import { OwnersModule } from './modules/owner/owners.module';
-import { DriversModule } from './modules/driver/driver.module';
-import { LocationsModule } from './modules/location/location.module';
-import { DocumentTypesModule } from './modules/document-type/document-type.module';
+import { DriversModule } from './modules/driver/drivers.module';
+import { LocationsModule } from './modules/location/locations.module';
+import { DocumentTypesModule } from './modules/document-type/document-types.module';
 
 @Module({
   imports: [

@@ -10,7 +10,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
-import { VehicleCategoryService } from './vehicle-categories.service';
+import { VehicleCategoryService } from './vehicle-category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { VehicleCategoryResponse } from 'src/common/types';

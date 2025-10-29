@@ -10,7 +10,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { LocationsService } from './locations.service';
+import { LocationService } from './location.service';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { LocationResponse } from 'src/common/types';
@@ -22,8 +22,8 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Location')
 @Controller({ path: 'locations', version: '1' })
-export class LocationsController {
-  constructor(private readonly locationsService: LocationsService) {}
+export class LocationController {
+  constructor(private readonly locationsService: LocationService) {}
 
   @Post()
   @ApiResponse({

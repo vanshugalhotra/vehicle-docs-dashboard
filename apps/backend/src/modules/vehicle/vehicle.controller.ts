@@ -10,7 +10,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
-import { VehiclesService } from './vehicles.service';
+import { VehicleService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import {
@@ -22,8 +22,8 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicles')
 @Controller({ path: 'vehicles', version: '1' })
-export class VehiclesController {
-  constructor(private readonly vehiclesService: VehiclesService) {}
+export class VehicleController {
+  constructor(private readonly vehiclesService: VehicleService) {}
 
   // ────────────────────────────────────────────────
   // CREATE

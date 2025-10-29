@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleTypeDto } from './dto/create-type.dto';
 import { UpdateVehicleTypeDto } from './dto/update-type.dto';
 import { VehicleTypeResponse } from 'src/common/types';
-import { mapTypeToResponse } from './vehicle-types.mapper';
+import { mapTypeToResponse } from './vehicle-type.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
