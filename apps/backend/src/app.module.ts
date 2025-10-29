@@ -10,6 +10,7 @@ import { VehicleTypesModule } from './modules/vehicle-type/vehicle-types.module'
 import { OwnersModule } from './modules/owner/owners.module';
 import { DriversModule } from './modules/driver/driver.module';
 import { LocationsModule } from './modules/location/location.module';
+import { DocumentTypesModule } from './modules/document-type/document-type.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { LocationsModule } from './modules/location/location.module';
     OwnersModule,
     DriversModule,
     LocationsModule,
+    DocumentTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
