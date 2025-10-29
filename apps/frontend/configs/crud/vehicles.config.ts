@@ -2,6 +2,11 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { driverFields, driverSchema } from "./drivers.config";
+import { vehicleCategoryFields, vehicleCategorySchema } from "./vehicle-categories.config";
+import { vehicleTypeFields, vehicleTypeSchema } from "./vehicle-types.config";
+import { ownerFields, ownerSchema } from "./owners.config";
+import { locationFields, locationSchema } from "./locations.config";
 
 // =====================
 // 🔹 Schema
@@ -52,12 +57,8 @@ export const vehicleFields = [
       title: "Add Category",
       endpoint: apiRoutes.vehicle_categories.base,
       createEndpoint: apiRoutes.vehicle_categories.base,
-      fields: [
-        { key: "name", label: "Category Name", type: "text" as const, required: true },
-      ],
-      schema: z.object({
-        name: z.string().min(1, "Category name is required"),
-      }),
+      fields: vehicleCategoryFields,
+      schema: vehicleCategorySchema,
     },
   },
   {
@@ -73,38 +74,8 @@ export const vehicleFields = [
       title: "Add Vehicle Type",
       endpoint: apiRoutes.vehicle_types.base,
       createEndpoint: apiRoutes.vehicle_types.base,
-      fields: [
-        {
-          key: "name",
-          label: "Type Name",
-          type: "text" as const,
-          required: true,
-        },
-        {
-          key: "categoryId",
-          label: "Category",
-          type: "asyncSelect" as const,
-          required: true,
-          endpoint: apiRoutes.vehicle_categories.base,
-          labelField: "name",
-          valueField: "id",
-          inlineConfig: {
-            title: "Add Category",
-            endpoint: apiRoutes.vehicle_categories.base,
-            createEndpoint: apiRoutes.vehicle_categories.base,
-            fields: [
-              { key: "name", label: "Category Name", type: "text" as const, required: true },
-            ],
-            schema: z.object({
-              name: z.string().min(1, "Category name is required"),
-            }),
-          },
-        },
-      ],
-      schema: z.object({
-        name: z.string().min(1, "Type name is required"),
-        categoryId: z.string().min(1, "Category is required"),
-      }),
+      fields: vehicleTypeFields,
+      schema: vehicleTypeSchema,
     },
   },
   {
@@ -148,12 +119,8 @@ export const vehicleFields = [
       title: "Add Owner",
       endpoint: apiRoutes.owners.base,
       createEndpoint: apiRoutes.owners.base,
-      fields: [
-        { key: "name", label: "Owner Name", type: "text" as const, required: true },
-      ],
-      schema: z.object({
-        name: z.string().min(1, "Owner name is required"),
-      }),
+      fields: ownerFields,
+      schema: ownerSchema,
     },
   },
   {
@@ -169,16 +136,8 @@ export const vehicleFields = [
       title: "Add Driver",
       endpoint: apiRoutes.drivers.base,
       createEndpoint: apiRoutes.drivers.base,
-      fields: [
-        { key: "name", label: "Driver Name", type: "text" as const, required: true },
-        { key: "phone", label: "Phone", type: "text" as const },
-        { key: "email", label: "Email", type: "text" as const },
-      ],
-      schema: z.object({
-        name: z.string().min(1, "Driver name is required"),
-        phone: z.string().optional(),
-        email: z.string().email("Invalid email").optional(),
-      }),
+      fields: driverFields,
+      schema: driverSchema,
     },
   },
   {
@@ -194,12 +153,8 @@ export const vehicleFields = [
       title: "Add Location",
       endpoint: apiRoutes.locations.base,
       createEndpoint: apiRoutes.locations.base,
-      fields: [
-        { key: "name", label: "Location Name", type: "text" as const, required: true },
-      ],
-      schema: z.object({
-        name: z.string().min(1, "Location name is required"),
-      }),
+      fields: locationFields,
+      schema: locationSchema,
     },
   },
   {
