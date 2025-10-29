@@ -4,6 +4,9 @@ export class VehicleResponseDto {
   @ApiProperty({ example: 'b1f3a2c4-1234-5678-9abc-1234567890ab' })
   id: string;
 
+  @ApiProperty({ example: 'Car (SUV) - 8765' })
+  name: string;
+
   @ApiProperty({ example: 'PB04VS4597' })
   licensePlate: string;
 
@@ -48,6 +51,22 @@ export class VehicleResponseDto {
 
   @ApiProperty({ example: new Date() })
   updatedAt: Date | string;
+
+  // Add these fields that exist in your API response
+  @ApiProperty({ example: 'Car', required: false })
+  categoryName?: string | null;
+
+  @ApiProperty({ example: 'SUV', required: false })
+  typeName?: string | null;
+
+  @ApiProperty({ example: 'John Doe', required: false })
+  ownerName?: string | null;
+
+  @ApiProperty({ example: 'Mike Smith', required: false })
+  driverName?: string | null;
+
+  @ApiProperty({ example: 'Main Garage', required: false })
+  locationName?: string | null;
 }
 
 export class PaginatedVehicleResponseDto {
