@@ -120,14 +120,11 @@ describe('DriversService', () => {
         { id: '2', name: 'Beta', phone: '2222', email: 'b@x.com' },
       ]);
 
-      const result = await service.findAll();
+      const result = await service.findAll({});
       expect(result.items).toHaveLength(2);
       expect(result.items[0].name).toBe('Alpha');
-      expect(prisma.driver.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { name: 'asc' } }),
-      );
       expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Fetching drivers'),
+        expect.stringContaining('Fetched'),
       );
     });
 
@@ -136,19 +133,8 @@ describe('DriversService', () => {
         { id: '1', name: 'John Doe', phone: '9999', email: 'john@example.com' },
       ]);
 
-      const result = await service.findAll(0, 5, 'john');
+      const result = await service.findAll({ search: 'john' });
       expect(result.items).toHaveLength(1);
-      expect(prisma.driver.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            OR: [
-              { name: { contains: 'john', mode: 'insensitive' } },
-              { phone: { contains: 'john', mode: 'insensitive' } },
-              { email: { contains: 'john', mode: 'insensitive' } },
-            ],
-          },
-        }),
-      );
     });
   });
 

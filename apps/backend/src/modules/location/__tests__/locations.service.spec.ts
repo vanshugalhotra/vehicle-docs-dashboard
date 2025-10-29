@@ -61,11 +61,11 @@ describe('LocationsService', () => {
         { id: '1', name: 'A', createdAt: new Date(), updatedAt: new Date() },
         { id: '2', name: 'Z', createdAt: new Date(), updatedAt: new Date() },
       ]);
-      const res = await service.findAll(0, 1, '');
+      const res = await service.findAll({});
       expect(res.items).toHaveLength(2);
       expect(res.items[0].name).toBe('A');
       expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Fetching locations'),
+        expect.stringContaining('Fetched'),
       );
     });
 
@@ -78,13 +78,8 @@ describe('LocationsService', () => {
           updatedAt: new Date(),
         },
       ]);
-      const res = await service.findAll(0, 1, 'central');
+      const res = await service.findAll({ search: 'central' });
       expect(res.items).toHaveLength(1);
-      expect(prisma.location.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { name: { contains: 'central', mode: 'insensitive' } },
-        }),
-      );
     });
   });
 

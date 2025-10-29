@@ -11,6 +11,9 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 import { mapLocationToResponse } from './location.mapper';
 import { LocationResponse } from 'src/common/types';
 import { Prisma } from '@prisma/client';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { PaginatedLocationResponseDto } from './dto/location-response';
 
 @Injectable()
 export class LocationsService {
@@ -43,28 +46,28 @@ export class LocationsService {
     }
   }
 
-  async findAll(
-    skip?: number,
-    take?: number,
-    search?: string,
-  ): Promise<{ items: LocationResponse[]; total: number }> {
-    this.logger.info(
-      `Fetching locations with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
+  async findAll(query: QueryOptionsDto): Promise<PaginatedLocationResponseDto> {
+    this.logger.debug(
+      `Fetching locations with params: ${JSON.stringify(query, null, 2)}`,
     );
+
     try {
-      let where: Prisma.LocationWhereInput | undefined = undefined;
-      where = search
-        ? { name: { contains: search, mode: 'insensitive' } }
-        : undefined;
+      const queryArgs = buildQueryArgs<
+        LocationResponse,
+        Prisma.LocationWhereInput
+      >(
+        query,
+        ['name'], // Searchable fields
+      );
 
       const [locations, total] = await Promise.all([
         this.prisma.location.findMany({
-          where,
-          skip,
-          take,
-          orderBy: { name: 'asc' },
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          orderBy: queryArgs.orderBy,
         }),
-        this.prisma.location.count({ where }),
+        this.prisma.location.count({ where: queryArgs.where }),
       ]);
 
       this.logger.info(`Fetched ${locations.length} of ${total} locations`);

@@ -11,6 +11,9 @@ import { UpdateDriverDto } from './dto/update-driver.dto';
 import { mapDriverToResponse } from './driver.mapper';
 import { DriverResponse } from 'src/common/types';
 import { Prisma } from '@prisma/client';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { PaginatedDriverResponseDto } from './dto/driver-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @Injectable()
 export class DriversService {
@@ -69,35 +72,25 @@ export class DriversService {
     }
   }
 
-  async findAll(
-    skip?: number,
-    take?: number,
-    search?: string,
-  ): Promise<{ items: DriverResponse[]; total: number }> {
-    this.logger.info(
-      `Fetching drivers with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
+  async findAll(query: QueryOptionsDto): Promise<PaginatedDriverResponseDto> {
+    this.logger.debug(
+      `Fetching drivers with params: ${JSON.stringify(query, null, 2)}`,
     );
-    try {
-      let where: Prisma.DriverWhereInput | undefined = undefined;
 
-      if (search) {
-        where = {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { phone: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-          ],
-        };
-      }
+    try {
+      const queryArgs = buildQueryArgs<DriverResponse, Prisma.DriverWhereInput>(
+        query,
+        ['name', 'phone', 'email'], // Searchable fields
+      );
 
       const [drivers, total] = await Promise.all([
         this.prisma.driver.findMany({
-          where,
-          skip,
-          take,
-          orderBy: { name: 'asc' },
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          orderBy: queryArgs.orderBy,
         }),
-        this.prisma.driver.count({ where }),
+        this.prisma.driver.count({ where: queryArgs.where }),
       ]);
 
       this.logger.info(`Fetched ${drivers.length} of ${total} drivers`);

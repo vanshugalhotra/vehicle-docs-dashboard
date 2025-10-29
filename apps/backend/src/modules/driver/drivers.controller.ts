@@ -18,6 +18,7 @@ import {
   DriverResponseDto,
   PaginatedDriverResponseDto,
 } from './dto/driver-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Drivers')
 @Controller({ path: 'drivers', version: '1' })
@@ -42,16 +43,14 @@ export class DriversController {
   }
 
   // ────────────────────────────────────────────────
-  // READ ALL (search-enabled)
+  // READ ALL (with unified query control)
   // ────────────────────────────────────────────────
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
     type: String,
-    description: 'Filter drivers by partial match on name, phone, or email',
+    description: 'Filter drivers by name, phone, or email (case-insensitive)',
     example: 'John',
   })
   @ApiResponse({
@@ -60,11 +59,9 @@ export class DriversController {
     type: PaginatedDriverResponseDto,
   })
   async findAll(
-    @Query('search') search?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedDriverResponseDto> {
-    return this.driversService.findAll(skip, take, search);
+    return this.driversService.findAll(query);
   }
 
   // ────────────────────────────────────────────────

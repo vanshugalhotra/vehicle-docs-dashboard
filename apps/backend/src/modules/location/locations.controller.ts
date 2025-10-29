@@ -18,6 +18,7 @@ import {
   LocationResponseDto,
   PaginatedLocationResponseDto,
 } from './dto/location-response';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Location')
 @Controller({ path: 'locations', version: '1' })
@@ -38,17 +39,15 @@ export class LocationsController {
     return this.locationsService.create(dto);
   }
   // ────────────────────────────────────────────────
-  // READ ALL (search-enabled)
+  // READ ALL (with unified query control)
   // ────────────────────────────────────────────────
 
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
     type: String,
-    description: 'Filter locations by partial name match',
+    description: 'Filter locations by name (case-insensitive)',
     example: 'Warehouse',
   })
   @ApiResponse({
@@ -57,11 +56,9 @@ export class LocationsController {
     type: PaginatedLocationResponseDto,
   })
   async findAll(
-    @Query('search') search?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedLocationResponseDto> {
-    return this.locationsService.findAll(skip, take, search);
+    return this.locationsService.findAll(query);
   }
 
   @Get(':id')
