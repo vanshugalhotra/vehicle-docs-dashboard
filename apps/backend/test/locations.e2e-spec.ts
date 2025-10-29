@@ -151,6 +151,12 @@ describe('Location E2E (comprehensive + extended)', () => {
         .send({ name: 'North Dock' })
         .expect(409);
     });
+    it('should return 409 when updating to a duplicate name (trim)', async () => {
+      await request(server)
+        .patch(`/api/v1/locations/${createdId}`)
+        .send({ name: 'North Dock    ' })
+        .expect(409);
+    });
 
     it('should return 404 when updating non-existent location', async () => {
       await request(server)

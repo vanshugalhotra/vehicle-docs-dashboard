@@ -207,6 +207,12 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
         .send({ name: 'POLLUTION CERTIFICATE' })
         .expect(409);
     });
+    it('should reject duplicate update (case-insensitive and trimmed)', async () => {
+      await request(server)
+        .patch(`/api/v1/document-types/${documentTypeA.id}`)
+        .send({ name: 'POLLUTION CERTIFICATE      ' })
+        .expect(409);
+    });
 
     it('should reject empty name', async () => {
       await request(server)

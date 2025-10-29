@@ -217,6 +217,12 @@ describe('VehicleCategory E2E (comprehensive + extended)', () => {
         .send({ name: 'SUV' })
         .expect(409);
     });
+    it('should throw 409 on duplicate name (trim)', async () => {
+      await request(server)
+        .patch(`/api/v1/vehicle-categories/${categoryId}`)
+        .send({ name: 'SUV    ' })
+        .expect(409);
+    });
 
     it('should throw 404 on non-existent category', async () => {
       await request(server)

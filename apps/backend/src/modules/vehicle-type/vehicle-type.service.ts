@@ -132,7 +132,7 @@ export class VehicleTypeService {
       }
 
       const targetCategoryId = dto.categoryId ?? existingType.categoryId;
-      const targetName = dto.name ?? existingType.name;
+      const targetName = dto.name?.trim() ?? existingType.name;
 
       const duplicate = await this.prisma.vehicleType.findFirst({
         where: {

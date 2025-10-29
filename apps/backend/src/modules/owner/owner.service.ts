@@ -101,22 +101,22 @@ export class OwnerService {
         this.logger.warn(`Update failed, owner not found: ${id}`);
         throw new NotFoundException(`Owner with id ${id} not found`);
       }
-
-      if (dto.name && dto.name !== owner.name) {
+      const name = dto.name?.trim();
+      if (name && name !== owner.name) {
         const existing = await this.prisma.owner.findFirst({
-          where: { name: { equals: dto.name, mode: 'insensitive' } },
+          where: { name: { equals: name, mode: 'insensitive' } },
         });
         if (existing) {
-          this.logger.warn(`Update failed, duplicate owner name: ${dto.name}`);
+          this.logger.warn(`Update failed, duplicate owner name: ${name}`);
           throw new ConflictException(
-            `Owner with name "${dto.name}" already exists`,
+            `Owner with name "${name}" already exists`,
           );
         }
       }
 
       const updated = await this.prisma.owner.update({
         where: { id },
-        data: { name: dto.name ?? owner.name },
+        data: { name: name ?? owner.name },
       });
       this.logger.info(`Owner updated: ${updated.id}`);
       return mapOwnerToResponse(updated);

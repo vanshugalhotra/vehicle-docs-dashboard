@@ -103,24 +103,22 @@ export class LocationService {
         this.logger.warn(`Update failed, location not found: ${id}`);
         throw new NotFoundException(`Location with id ${id} not found`);
       }
-
-      if (dto.name && dto.name !== location.name) {
+      const name = dto.name?.trim();
+      if (name && name !== location.name) {
         const existing = await this.prisma.location.findFirst({
-          where: { name: { equals: dto.name, mode: 'insensitive' } },
+          where: { name: { equals: name, mode: 'insensitive' } },
         });
         if (existing) {
-          this.logger.warn(
-            `Update failed, duplicate location name: ${dto.name}`,
-          );
+          this.logger.warn(`Update failed, duplicate location name: ${name}`);
           throw new ConflictException(
-            `Location with name "${dto.name}" already exists`,
+            `Location with name "${name}" already exists`,
           );
         }
       }
 
       const updated = await this.prisma.location.update({
         where: { id },
-        data: { name: dto.name ?? location.name },
+        data: { name: name ?? location.name },
       });
       this.logger.info(`Location updated: ${updated.id}`);
       return mapLocationToResponse(updated);

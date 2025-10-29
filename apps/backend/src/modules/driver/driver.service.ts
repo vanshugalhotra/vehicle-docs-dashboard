@@ -126,28 +126,31 @@ export class DriverService {
         throw new NotFoundException(`Driver with id ${id} not found`);
       }
 
+      const phone = dto.phone?.trim();
+      const email = dto.email?.trim();
+
       // Phone uniqueness check if changed
-      if (dto.phone && dto.phone !== driver.phone) {
+      if (phone && phone !== driver.phone) {
         const existing = await this.prisma.driver.findFirst({
-          where: { phone: dto.phone },
+          where: { phone: phone },
         });
         if (existing) {
-          this.logger.warn(`Update failed, duplicate phone: ${dto.phone}`);
+          this.logger.warn(`Update failed, duplicate phone: ${phone}`);
           throw new ConflictException(
-            `Driver with phone "${dto.phone}" already exists`,
+            `Driver with phone "${phone}" already exists`,
           );
         }
       }
 
       // Email uniqueness check if changed and not null
-      if (dto.email && dto.email !== driver.email) {
+      if (email && email !== driver.email) {
         const existingEmail = await this.prisma.driver.findFirst({
-          where: { email: { equals: dto.email, mode: 'insensitive' } },
+          where: { email: { equals: email, mode: 'insensitive' } },
         });
         if (existingEmail) {
-          this.logger.warn(`Update failed, duplicate email: ${dto.email}`);
+          this.logger.warn(`Update failed, duplicate email: ${email}`);
           throw new ConflictException(
-            `Driver with email "${dto.email}" already exists`,
+            `Driver with email "${email}" already exists`,
           );
         }
       }
@@ -156,9 +159,8 @@ export class DriverService {
         where: { id },
         data: {
           name: dto.name ?? driver.name,
-          phone: dto.phone ?? driver.phone,
-          email:
-            dto.email !== undefined ? dto.email?.trim() || null : driver.email,
+          phone: phone ?? driver.phone,
+          email: email !== undefined ? email || null : driver.email,
         },
       });
 

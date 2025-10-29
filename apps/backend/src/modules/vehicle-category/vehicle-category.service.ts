@@ -116,23 +116,23 @@ export class VehicleCategoryService {
         throw new NotFoundException(`Vehicle category with id ${id} not found`);
       }
 
-      if (dto.name && dto.name !== category.name) {
+      const name = dto.name?.trim();
+
+      if (name && name !== category.name) {
         const existing = await this.prisma.vehicleCategory.findUnique({
-          where: { name: dto.name },
+          where: { name: name },
         });
         if (existing) {
-          this.logger.warn(
-            `Update failed, duplicate category name: ${dto.name}`,
-          );
+          this.logger.warn(`Update failed, duplicate category name: ${name}`);
           throw new ConflictException(
-            `Vehicle category with name "${dto.name}" already exists`,
+            `Vehicle category with name "${name}" already exists`,
           );
         }
       }
 
       const updated = await this.prisma.vehicleCategory.update({
         where: { id },
-        data: { name: dto.name ?? category.name },
+        data: { name: name ?? category.name },
       });
 
       this.logger.info(`Vehicle category updated: ${updated.id}`);

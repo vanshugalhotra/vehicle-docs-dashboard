@@ -175,6 +175,18 @@ describe('Owner E2E (comprehensive + extended)', () => {
         .send({ name: 'MARUTI SUZUKI' })
         .expect(409);
     });
+    it('should reject duplicate update (case-insensitive and trimmed)', async () => {
+      await request(server)
+        .patch(`/api/v1/owners/${ownerA.id}`)
+        .send({ name: 'MARUTI SUZUKI     ' })
+        .expect(409);
+    });
+    it('should reject duplicate update (case-insensitive)', async () => {
+      await request(server)
+        .patch(`/api/v1/owners/${ownerA.id}`)
+        .send({ name: 'MARUTI SUZUKI' })
+        .expect(409);
+    });
 
     it('should reject empty name', async () => {
       await request(server)

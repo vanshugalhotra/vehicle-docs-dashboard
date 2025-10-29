@@ -117,24 +117,24 @@ export class DocumentTypesService {
         this.logger.warn(`Update failed, document type not found: ${id}`);
         throw new NotFoundException(`Document type with id ${id} not found`);
       }
-
-      if (dto.name && dto.name !== documentType.name) {
+      const name = dto.name?.trim();
+      if (name && name !== documentType.name) {
         const existing = await this.prisma.documentType.findFirst({
-          where: { name: { equals: dto.name, mode: 'insensitive' } },
+          where: { name: { equals: name, mode: 'insensitive' } },
         });
         if (existing) {
           this.logger.warn(
-            `Update failed, duplicate document type name: ${dto.name}`,
+            `Update failed, duplicate document type name: ${name}`,
           );
           throw new ConflictException(
-            `Document type with name "${dto.name}" already exists`,
+            `Document type with name "${name}" already exists`,
           );
         }
       }
 
       const updated = await this.prisma.documentType.update({
         where: { id },
-        data: { name: dto.name ?? documentType.name },
+        data: { name: name ?? documentType.name },
       });
       this.logger.info(`Document type updated: ${updated.id}`);
       return mapDocumentTypeToResponse(updated);
