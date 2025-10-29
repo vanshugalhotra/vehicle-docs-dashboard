@@ -11,6 +11,9 @@ import { UpdateOwnerDto } from './dto/update-owner.dto';
 import { mapOwnerToResponse } from './owner.mapper';
 import { OwnerResponse } from 'src/common/types';
 import { Prisma } from '@prisma/client';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { PaginatedOwnerResponseDto } from './dto/owner-response.dto';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
 
 @Injectable()
 export class OwnersService {
@@ -41,28 +44,28 @@ export class OwnersService {
     }
   }
 
-  async findAll(
-    skip?: number,
-    take?: number,
-    search?: string,
-  ): Promise<{ items: OwnerResponse[]; total: number }> {
-    this.logger.info(
-      `Fetching owners with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
+  /**
+   * Fetch all owners with pagination, search, sorting, and filters.
+   */
+  async findAll(query: QueryOptionsDto): Promise<PaginatedOwnerResponseDto> {
+    this.logger.debug(
+      `Fetching owners with params: ${JSON.stringify(query, null, 2)}`,
     );
+
     try {
-      let where: Prisma.OwnerWhereInput | undefined = undefined;
-      where = search
-        ? { name: { contains: search, mode: 'insensitive' } }
-        : undefined;
+      const queryArgs = buildQueryArgs<OwnerResponse, Prisma.OwnerWhereInput>(
+        query,
+        ['name'],
+      );
 
       const [owners, total] = await Promise.all([
         this.prisma.owner.findMany({
-          where,
-          skip,
-          take,
-          orderBy: { name: 'asc' },
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          orderBy: queryArgs.orderBy,
         }),
-        this.prisma.owner.count({ where }),
+        this.prisma.owner.count({ where: queryArgs.where }),
       ]);
 
       this.logger.info(`Fetched ${owners.length} of ${total} owners`);

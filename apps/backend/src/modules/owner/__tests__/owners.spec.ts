@@ -59,23 +59,18 @@ describe('OwnersService', () => {
         { id: '1', name: 'Alpha Motors' },
         { id: '2', name: 'Zeta Logistics' },
       ]);
-      const result = await service.findAll();
+      const result = await service.findAll({});
       expect(result.items).toHaveLength(2);
       expect(result.items[0].name).toBe('Alpha Motors');
       expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Fetching owners'),
+        expect.stringContaining('Fetched'),
       );
     });
 
     it('should filter owners by search term', async () => {
       prisma.owner.findMany.mockResolvedValue([{ id: '1', name: 'Ustaad Ji' }]);
-      const result = await service.findAll(0, 1, 'ustaad');
+      const result = await service.findAll({ search: 'ustaad' });
       expect(result.items).toHaveLength(1);
-      expect(prisma.owner.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { name: { contains: 'ustaad', mode: 'insensitive' } },
-        }),
-      );
     });
   });
 

@@ -18,6 +18,7 @@ import {
   OwnerResponseDto,
   PaginatedOwnerResponseDto,
 } from './dto/owner-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Owners')
 @Controller({ path: 'owners', version: '1' })
@@ -41,17 +42,15 @@ export class OwnersController {
     return this.ownersService.create(dto);
   }
 
-  // ────────────────────────────────────────────────
-  // READ ALL (search-enabled)
-  // ────────────────────────────────────────────────
+  /**
+   * GET /owners — list owners with pagination, search, sort, and filters.
+   */
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
     required: false,
     type: String,
-    description: 'Filter owners by partial name match',
+    description: 'Filter owners by name (case-insensitive)',
     example: 'Ustaad',
   })
   @ApiResponse({
@@ -60,11 +59,9 @@ export class OwnersController {
     type: PaginatedOwnerResponseDto,
   })
   async findAll(
-    @Query('search') search?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedOwnerResponseDto> {
-    return this.ownersService.findAll(skip, take, search);
+    return this.ownersService.findAll(query);
   }
 
   // ────────────────────────────────────────────────
