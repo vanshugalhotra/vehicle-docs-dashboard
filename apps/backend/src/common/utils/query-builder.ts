@@ -6,7 +6,6 @@ import { QueryOptionsDto } from '../dto/query-options.dto';
  * - Search across multiple fields (`searchableFields`)
  * - Sorting (`sortBy`, `order`)
  * - Dynamic filters (`filters`)
- *
  */
 export function buildQueryArgs<
   T extends Record<string, any>,
@@ -25,7 +24,24 @@ export function buildQueryArgs<
   const sortBy: string = dto.sortBy || 'createdAt';
   const order: 'asc' | 'desc' = dto.order || 'desc';
   const search = dto.search?.trim();
-  const filters: Record<string, unknown> = dto.filters ?? {};
+
+  // Safely parse filters with error handling
+  let filters: Record<string, unknown> = {};
+  if (dto.filters) {
+    try {
+      const parsed: unknown =
+        typeof dto.filters === 'string' ? JSON.parse(dto.filters) : dto.filters;
+      if (parsed && typeof parsed === 'object') {
+        filters = parsed as Record<string, unknown>;
+      } else {
+        filters = {};
+      }
+    } catch (error) {
+      // Log error but don't fail the request - treat as no filters
+      console.warn('Invalid filters JSON:', dto.filters, error);
+      filters = {};
+    }
+  }
 
   const where: Record<string, unknown> = {};
 

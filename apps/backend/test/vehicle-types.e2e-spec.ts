@@ -149,7 +149,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
 
     it('should filter by categoryId', async () => {
       const res = await request(server)
-        .get(`/api/v1/vehicle-types?categoryId=${suvCategoryId}`)
+        .get(`/api/v1/vehicle-types?filters={"categoryId":"${suvCategoryId}"}`)
         .expect(200);
       const body = res.body as PaginatedTypeResponseDto;
       body.items.forEach((t: VehicleTypeResponse) =>

@@ -11,6 +11,9 @@ import { VehicleCategoryResponse } from 'src/common/types';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { PaginatedCategoryResponseDto } from './dto/category-response.dto';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
 
 @Injectable()
 export class VehicleCategoryService {
@@ -49,32 +52,26 @@ export class VehicleCategoryService {
     }
   }
 
-  async findAll(
-    skip?: number,
-    take?: number,
-    search?: string,
-    includeRelations = false,
-  ): Promise<{ items: VehicleCategoryResponse[]; total: number }> {
-    this.logger.info(
-      `Fetching vehicle categories with pagination: skip=${skip}, take=${take}${
-        search ? `, search: ${search}` : ''
-      }, includeRelations=${includeRelations}`,
+  async findAll(query: QueryOptionsDto): Promise<PaginatedCategoryResponseDto> {
+    this.logger.debug(
+      `Fetching vehicle categories with params: ${JSON.stringify(query, null, 2)}`,
     );
+
     try {
-      let where: Prisma.VehicleCategoryWhereInput | undefined = undefined;
-      where = search
-        ? { name: { contains: search, mode: 'insensitive' } }
-        : undefined;
+      const queryArgs = buildQueryArgs<
+        VehicleCategoryResponse,
+        Prisma.VehicleCategoryWhereInput
+      >(query, ['name']);
 
       const [categories, total] = await Promise.all([
         this.prisma.vehicleCategory.findMany({
-          where,
-          skip,
-          take,
-          include: includeRelations ? { types: true } : undefined,
-          orderBy: { updatedAt: 'desc' },
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          include: query.includeRelations ? { types: true } : undefined,
+          orderBy: queryArgs.orderBy,
         }),
-        this.prisma.vehicleCategory.count({ where }),
+        this.prisma.vehicleCategory.count({ where: queryArgs.where }),
       ]);
 
       this.logger.info(`Fetched ${categories.length} of ${total} categories`);

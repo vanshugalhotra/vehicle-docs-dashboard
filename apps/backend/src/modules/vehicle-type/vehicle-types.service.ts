@@ -11,6 +11,9 @@ import { mapTypeToResponse } from './vehicle-types.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
+import { PaginatedTypeResponseDto } from './dto/type-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
 
 @Injectable()
 export class VehicleTypeService {
@@ -65,31 +68,26 @@ export class VehicleTypeService {
     }
   }
 
-  async findAll(
-    skip?: number,
-    take?: number,
-    categoryId?: string,
-    search?: string,
-  ): Promise<{ items: VehicleTypeResponse[]; total: number }> {
-    this.logger.info(
-      `Fetching vehicle types with pagination: skip=${skip}, take=${take}${categoryId ? ` for category: ${categoryId}` : ''}${search ? ` with search: ${search}` : ''}`,
+  async findAll(query: QueryOptionsDto): Promise<PaginatedTypeResponseDto> {
+    this.logger.debug(
+      `Fetching vehicle types with params: ${JSON.stringify(query, null, 2)}`,
     );
+
     try {
-      let where: Prisma.VehicleTypeWhereInput | undefined = undefined;
-      where = {
-        categoryId: categoryId || undefined,
-        name: search ? { contains: search, mode: 'insensitive' } : undefined,
-      };
+      const queryArgs = buildQueryArgs<
+        VehicleTypeResponse,
+        Prisma.VehicleTypeWhereInput
+      >(query, ['name']);
 
       const [types, total] = await Promise.all([
         this.prisma.vehicleType.findMany({
-          where,
-          skip,
-          take,
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
           include: { category: true },
-          orderBy: { createdAt: 'desc' },
+          orderBy: queryArgs.orderBy,
         }),
-        this.prisma.vehicleType.count({ where }),
+        this.prisma.vehicleType.count({ where: queryArgs.where }),
       ]);
 
       this.logger.info(`Fetched ${types.length} of ${total} vehicle types`);
@@ -102,7 +100,6 @@ export class VehicleTypeService {
       handlePrismaError(error, 'Vehicle type');
     }
   }
-
   async findOne(id: string): Promise<VehicleTypeResponse> {
     this.logger.info(`Fetching vehicle type by id: ${id}`);
     try {

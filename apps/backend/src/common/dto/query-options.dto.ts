@@ -7,7 +7,7 @@ import {
   IsIn,
   Min,
   MaxLength,
-  IsObject,
+  IsBoolean,
 } from 'class-validator';
 
 /**
@@ -65,11 +65,22 @@ export class QueryOptionsDto {
 
   @ApiPropertyOptional({
     description:
-      'Key-value filters (e.g., {"categoryId": "cat-1", "typeId": "type-2"})',
-    type: Object,
-    example: { categoryId: 'cat-1', typeId: 'type-2' },
+      'Key-value filters as JSON string (e.g., {"categoryId": "cat-1"})',
+    type: String,
+    example: '{"categoryId": "cat-1", "typeId": "type-2"}',
   })
   @IsOptional()
-  @IsObject()
-  filters?: Record<string, any>;
+  @IsString()
+  @Type(() => Object)
+  filters?: string;
+
+  @ApiPropertyOptional({
+    description: 'Include related entities',
+    type: Boolean,
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  includeRelations?: boolean = false;
 }

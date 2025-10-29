@@ -9,7 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleCategoryService } from './vehicle-categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -18,7 +18,7 @@ import {
   CategoryResponseDto,
   PaginatedCategoryResponseDto,
 } from './dto/category-response.dto';
-import { boolean } from 'joi';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicle Categories')
 @Controller({ path: 'vehicle-categories', version: '1' })
@@ -45,36 +45,18 @@ export class VehicleCategoryController {
   }
 
   // ────────────────────────────────────────────────
-  // READ ALL (search-enabled for dropdown)
+  // READ ALL (with unified query control)
   // ────────────────────────────────────────────────
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
-  @ApiQuery({
-    name: 'includeRelations',
-    required: false,
-    type: boolean,
-    example: true,
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    type: String,
-    description: 'Filter categories by partial name match',
-    example: 'Truck',
-  })
   @ApiResponse({
     status: 200,
     description: 'List of vehicle categories retrieved successfully',
-    type: [PaginatedCategoryResponseDto],
+    type: PaginatedCategoryResponseDto,
   })
   async findAll(
-    @Query('search') search?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
-    @Query('includeRelations') includeRelations?: boolean,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedCategoryResponseDto> {
-    return this.categoryService.findAll(skip, take, search, includeRelations);
+    return this.categoryService.findAll(query);
   }
 
   // ────────────────────────────────────────────────

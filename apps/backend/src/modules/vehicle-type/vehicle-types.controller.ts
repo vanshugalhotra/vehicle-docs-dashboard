@@ -9,7 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleTypeService } from './vehicle-types.service';
 import { CreateVehicleTypeDto } from './dto/create-type.dto';
 import { UpdateVehicleTypeDto } from './dto/update-type.dto';
@@ -18,6 +18,7 @@ import {
   PaginatedTypeResponseDto,
   TypeResponseDto,
 } from './dto/type-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicle Types')
 @Controller({ path: 'vehicle-types', version: '1' })
@@ -42,30 +43,15 @@ export class VehicleTypeController {
   }
 
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
-  @ApiQuery({
-    name: 'categoryId',
-    required: false,
-    description: 'Filter by category',
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search by partial type name',
-  })
   @ApiResponse({
     status: 200,
     description: 'Vehicle types retrieved successfully',
-    type: [PaginatedTypeResponseDto],
+    type: PaginatedTypeResponseDto,
   })
   async findAll(
-    @Query('categoryId') categoryId?: string,
-    @Query('search') search?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedTypeResponseDto> {
-    return this.vehicleTypeService.findAll(skip, take, categoryId, search);
+    return this.vehicleTypeService.findAll(query);
   }
 
   @Get(':id')

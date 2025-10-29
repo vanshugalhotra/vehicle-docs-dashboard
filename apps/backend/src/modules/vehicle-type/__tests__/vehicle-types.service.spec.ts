@@ -52,7 +52,7 @@ describe('VehicleTypeService', () => {
       prisma.vehicleType.findMany.mockResolvedValue([
         { id: '1', name: 'Sedan' },
       ]);
-      const result = await service.findAll();
+      const result = await service.findAll({});
       expect(result.items).toHaveLength(1);
     });
   });
