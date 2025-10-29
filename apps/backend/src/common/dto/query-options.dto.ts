@@ -82,5 +82,5 @@ export class QueryOptionsDto {
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
-  includeRelations?: boolean = false;
+  includeRelations?: boolean = true;
 }

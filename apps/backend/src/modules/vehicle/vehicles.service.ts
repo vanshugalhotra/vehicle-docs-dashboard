@@ -12,6 +12,8 @@ import { VehicleResponse } from 'src/common/types';
 import { Prisma } from '@prisma/client';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { PaginatedVehicleResponseDto } from './dto/vehicle-response.dto';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @Injectable()
 export class VehiclesService {
@@ -105,59 +107,70 @@ export class VehiclesService {
   }
 
   /**
-   * Get paginated list of vehicles
+   * Retrieve a paginated, searchable, and filterable list of vehicles.
+   * Supports full-text search, relation includes, and dynamic filters.
    */
-  async findAll(
-    skip?: number,
-    take?: number,
-    search?: string,
-  ): Promise<PaginatedVehicleResponseDto> {
-    this.logger.info(
-      `Fetching vehicles with pagination: skip=${skip}, take=${take}${search ? `, search: ${search}` : ''}`,
-    );
-    try {
-      let where: Prisma.VehicleWhereInput | undefined = undefined;
+  async findAll(query: QueryOptionsDto): Promise<PaginatedVehicleResponseDto> {
+    const { skip, take, where, orderBy } =
+      buildQueryArgs<Prisma.VehicleWhereInput>(
+        query,
+        ['licensePlate', 'name', 'rcNumber', 'chassisNumber', 'engineNumber'], // handled automatically
+      );
 
-      if (search) {
-        where = {
+    const include = query.includeRelations
+      ? {
+          category: true,
+          type: true,
+          owner: true,
+          driver: true,
+          location: true,
+        }
+      : undefined;
+
+    const search = query.search?.trim();
+
+    this.logger.info(
+      `Fetching vehicles: skip=${skip}, take=${take}, search="${search ?? ''}", includeRelations=${query.includeRelations}`,
+    );
+
+    try {
+      // Extend where with relational searches only (avoid duplication)
+      const extendedWhere: Prisma.VehicleWhereInput = {
+        ...where,
+        ...(search && {
           OR: [
-            { licensePlate: { contains: search, mode: 'insensitive' } },
-            { name: { contains: search, mode: 'insensitive' } },
-            { rcNumber: { contains: search, mode: 'insensitive' } },
-            { chassisNumber: { contains: search, mode: 'insensitive' } },
-            { engineNumber: { contains: search, mode: 'insensitive' } },
+            ...(Array.isArray(where?.OR)
+              ? (where.OR as Prisma.VehicleWhereInput[])
+              : []), // preserve base OR from buildQueryArgs
             { category: { name: { contains: search, mode: 'insensitive' } } },
             { type: { name: { contains: search, mode: 'insensitive' } } },
             { owner: { name: { contains: search, mode: 'insensitive' } } },
             { driver: { name: { contains: search, mode: 'insensitive' } } },
           ],
-        };
-      }
+        }),
+      };
 
       const [vehicles, total] = await Promise.all([
         this.prisma.vehicle.findMany({
-          where,
+          where: extendedWhere,
+          include,
           skip,
           take,
-          include: {
-            category: true,
-            type: true,
-            owner: true,
-            driver: true,
-            location: true,
-          },
-          orderBy: { createdAt: 'desc' },
+          orderBy,
         }),
-        this.prisma.vehicle.count({ where }),
+        this.prisma.vehicle.count({ where: extendedWhere }),
       ]);
 
-      this.logger.info(`Fetched ${vehicles.length} of ${total} vehicles`);
+      this.logger.info(
+        `Fetched ${vehicles.length} of ${total} vehicles successfully.`,
+      );
 
       return {
         items: vehicles.map(mapVehicleToResponse),
         total,
       };
     } catch (error) {
+      this.logger.error('Error fetching vehicles', { error });
       handlePrismaError(error, 'Vehicle');
     }
   }

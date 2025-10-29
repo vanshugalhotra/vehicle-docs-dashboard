@@ -9,7 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -18,6 +18,7 @@ import {
   VehicleResponseDto,
 } from './dto/vehicle-response.dto';
 import { VehicleResponse } from 'src/common/types';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicles')
 @Controller({ path: 'vehicles', version: '1' })
@@ -41,25 +42,19 @@ export class VehiclesController {
     return this.vehiclesService.create(dto);
   }
 
-  // ────────────────────────────────────────────────
-  // READ ALL (with pagination)
-  // ────────────────────────────────────────────────
+  /**
+   * Retrieve paginated list of vehicles with optional search, sorting, and filters
+   */
   @Get()
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    type: String,
-    description: 'Filter vehicles',
-    example: 'John',
+  @ApiResponse({
+    status: 200,
+    description: 'List of vehicles retrieved successfully',
+    type: PaginatedVehicleResponseDto,
   })
   async findAll(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
-    @Query('search') search?: string,
+    @Query() query: QueryOptionsDto,
   ): Promise<PaginatedVehicleResponseDto> {
-    return this.vehiclesService.findAll(skip, take, search);
+    return this.vehiclesService.findAll(query);
   }
 
   // ────────────────────────────────────────────────

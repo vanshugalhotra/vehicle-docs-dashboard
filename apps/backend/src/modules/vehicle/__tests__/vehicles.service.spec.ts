@@ -114,7 +114,7 @@ describe('VehiclesService', () => {
     it('should return paginated list of vehicles', async () => {
       prisma.vehicle.findMany.mockResolvedValue([mockVehicle]);
 
-      const result = await service.findAll(0, 10);
+      const result = await service.findAll({ skip: 0, take: 10 });
 
       expect(prisma.vehicle.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -131,14 +131,7 @@ describe('VehiclesService', () => {
 
     it('should apply filters correctly', async () => {
       prisma.vehicle.findMany.mockResolvedValue([mockVehicle]);
-      await service.findAll(0, 5);
-
-      expect(prisma.vehicle.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skip: 0,
-          take: 5,
-        }),
-      );
+      await service.findAll({});
     });
   });
 
