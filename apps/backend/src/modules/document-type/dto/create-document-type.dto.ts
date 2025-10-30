@@ -6,6 +6,7 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateDocumentTypeDto {
   @ApiProperty({
@@ -22,5 +23,6 @@ export class CreateDocumentTypeDto {
   @MaxLength(50, {
     message: 'Document type name must be at most 50 characters.',
   })
+  @Trim()
   name: string;
 }

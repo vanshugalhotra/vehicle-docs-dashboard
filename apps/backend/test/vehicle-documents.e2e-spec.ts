@@ -16,8 +16,8 @@ import {
   VehicleTypeResponse,
 } from 'src/common/types';
 import { PaginatedVehicleDocumentResponseDto } from 'src/modules/vehicle-document/dto/vehicle-document-response.dto';
-import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/category-response.dto';
-import { PaginatedTypeResponseDto } from 'src/modules/vehicle-type/dto/type-response.dto';
+import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/vehicle-category-response.dto';
+import { PaginatedTypeResponseDto } from 'src/modules/vehicle-type/dto/vehicle-type-response.dto';
 
 describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;

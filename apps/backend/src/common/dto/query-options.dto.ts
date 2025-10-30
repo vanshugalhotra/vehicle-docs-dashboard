@@ -9,6 +9,7 @@ import {
   MaxLength,
   IsBoolean,
 } from 'class-validator';
+import { Trim } from '../decorators/trim.decorator';
 
 /**
  * Unified query options DTO for pagination, search, sorting, and filtering.
@@ -44,6 +45,7 @@ export class QueryOptionsDto {
   @IsOptional()
   @IsString()
   @MaxLength(200)
+  @Trim()
   search?: string;
 
   @ApiPropertyOptional({

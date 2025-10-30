@@ -9,7 +9,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import * as request from 'supertest';
 import { Express } from 'express';
 import { VehicleCategoryResponse } from 'src/common/types';
-import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/category-response.dto';
+import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/vehicle-category-response.dto';
 
 describe('VehicleCategory E2E (comprehensive + extended)', () => {
   let app: INestApplication;

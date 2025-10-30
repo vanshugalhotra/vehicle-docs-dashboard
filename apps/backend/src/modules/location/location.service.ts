@@ -23,7 +23,7 @@ export class LocationService {
   ) {}
 
   async create(dto: CreateLocationDto): Promise<LocationResponse> {
-    const name = dto.name.trim();
+    const name = dto.name;
     this.logger.info(`Creating location: ${name}`);
     try {
       const existing = await this.prisma.location.findFirst({
@@ -103,7 +103,7 @@ export class LocationService {
         this.logger.warn(`Update failed, location not found: ${id}`);
         throw new NotFoundException(`Location with id ${id} not found`);
       }
-      const name = dto.name?.trim();
+      const name = dto.name;
       if (name && name !== location.name) {
         const existing = await this.prisma.location.findFirst({
           where: { name: { equals: name, mode: 'insensitive' } },

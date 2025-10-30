@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleTypeService } from './vehicle-type.service';
-import { CreateVehicleTypeDto } from './dto/create-type.dto';
-import { UpdateVehicleTypeDto } from './dto/update-type.dto';
+import { CreateVehicleTypeDto } from './dto/create-vehicle-type.dto';
+import { UpdateVehicleTypeDto } from './dto/update-vehicle-type.dto';
 import { VehicleTypeResponse } from 'src/common/types';
 import {
   PaginatedTypeResponseDto,
   TypeResponseDto,
-} from './dto/type-response.dto';
+} from './dto/vehicle-type-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicle Types')

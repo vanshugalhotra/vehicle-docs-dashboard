@@ -23,9 +23,9 @@ export class DriverService {
   ) {}
 
   async create(dto: CreateDriverDto): Promise<DriverResponse> {
-    const name = dto.name.trim();
-    const phone = dto.phone.trim();
-    const email = dto.email?.trim();
+    const name = dto.name;
+    const phone = dto.phone;
+    const email = dto.email;
 
     this.logger.info(`Creating driver: ${name} (${phone})`);
     try {
@@ -126,8 +126,8 @@ export class DriverService {
         throw new NotFoundException(`Driver with id ${id} not found`);
       }
 
-      const phone = dto.phone?.trim();
-      const email = dto.email?.trim();
+      const phone = dto.phone;
+      const email = dto.email;
 
       // Phone uniqueness check if changed
       if (phone && phone !== driver.phone) {

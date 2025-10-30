@@ -31,7 +31,7 @@ export class VehicleDocumentService {
   async create(
     dto: CreateVehicleDocumentDto,
   ): Promise<VehicleDocumentResponseDto> {
-    const documentNo = dto.documentNo.trim().toUpperCase();
+    const documentNo = dto.documentNo.toUpperCase();
     this.logger.info(`Creating vehicle document: ${documentNo}`);
 
     const start = new Date(dto.startDate);
@@ -81,8 +81,8 @@ export class VehicleDocumentService {
           documentNo,
           startDate: start,
           expiryDate: expiry,
-          link: dto.link?.trim() ?? null,
-          notes: dto.notes?.trim() ?? null,
+          link: dto.link ?? null,
+          notes: dto.notes ?? null,
         },
         include: {
           vehicle: true,
@@ -117,7 +117,7 @@ export class VehicleDocumentService {
           'notes',
         ]);
 
-      const search = query.search?.trim();
+      const search = query.search;
       const existingOR = Array.isArray(
         (where as Prisma.VehicleDocumentWhereInput)?.OR,
       )
@@ -202,13 +202,12 @@ export class VehicleDocumentService {
 
       if (
         dto.documentNo &&
-        dto.documentNo.trim().toUpperCase() !==
-          existing.documentNo.toUpperCase()
+        dto.documentNo.toUpperCase() !== existing.documentNo.toUpperCase()
       ) {
         const found = await this.prisma.vehicleDocument.findFirst({
           where: {
             documentNo: {
-              equals: dto.documentNo.trim().toUpperCase(),
+              equals: dto.documentNo.toUpperCase(),
               mode: 'insensitive',
             },
           },
@@ -261,11 +260,11 @@ export class VehicleDocumentService {
       const updated = await this.prisma.vehicleDocument.update({
         where: { id },
         data: {
-          documentNo: dto.documentNo?.trim().toUpperCase() ?? undefined,
+          documentNo: dto.documentNo?.toUpperCase() ?? undefined,
           startDate: dto.startDate ? new Date(dto.startDate) : undefined,
           expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
-          link: dto.link?.trim() ?? undefined,
-          notes: dto.notes?.trim() ?? undefined,
+          link: dto.link ?? undefined,
+          notes: dto.notes ?? undefined,
           vehicleId: dto.vehicleId ?? undefined,
           documentTypeId: dto.documentTypeId ?? undefined,
         },

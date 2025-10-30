@@ -26,12 +26,12 @@ export class VehicleService {
    * Create a new vehicle
    */
   async create(dto: CreateVehicleDto): Promise<VehicleResponse> {
-    // Normalize input (trim + uppercase for consistency)
+    // Normalize input (uppercase for consistency)
     const normalized = {
-      licensePlate: dto.licensePlate?.trim().toUpperCase(),
-      rcNumber: dto.rcNumber?.trim().toUpperCase(),
-      chassisNumber: dto.chassisNumber?.trim().toUpperCase(),
-      engineNumber: dto.engineNumber?.trim().toUpperCase(),
+      licensePlate: dto.licensePlate.toUpperCase(),
+      rcNumber: dto.rcNumber.toUpperCase(),
+      chassisNumber: dto.chassisNumber.toUpperCase(),
+      engineNumber: dto.engineNumber.toUpperCase(),
     };
 
     const existing = await this.prisma.vehicle.findFirst({
@@ -93,7 +93,7 @@ export class VehicleService {
         rcNumber: normalized.rcNumber,
         chassisNumber: normalized.chassisNumber,
         engineNumber: normalized.engineNumber,
-        notes: dto.notes?.trim() ?? null,
+        notes: dto.notes ?? null,
         categoryId: dto.categoryId,
         typeId: dto.typeId,
         ownerId: dto.ownerId ?? null,
@@ -127,7 +127,7 @@ export class VehicleService {
         }
       : undefined;
 
-    const search = query.search?.trim();
+    const search = query.search;
 
     this.logger.info(
       `Fetching vehicles: skip=${skip}, take=${take}, search="${search ?? ''}", includeRelations=${query.includeRelations}`,
@@ -206,10 +206,10 @@ export class VehicleService {
 
     // Normalize input if provided
     const normalized = {
-      licensePlate: dto.licensePlate?.trim().toUpperCase(),
-      rcNumber: dto.rcNumber?.trim().toUpperCase(),
-      chassisNumber: dto.chassisNumber?.trim().toUpperCase(),
-      engineNumber: dto.engineNumber?.trim().toUpperCase(),
+      licensePlate: dto.licensePlate?.toUpperCase(),
+      rcNumber: dto.rcNumber?.toUpperCase(),
+      chassisNumber: dto.chassisNumber?.toUpperCase(),
+      engineNumber: dto.engineNumber?.toUpperCase(),
     };
 
     // Check for uniqueness conflicts if any of the fields are being updated

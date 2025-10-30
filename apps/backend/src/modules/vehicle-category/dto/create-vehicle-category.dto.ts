@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateCategoryDto {
   @ApiProperty({ description: 'Name of the vehicle category', example: 'Car' })
@@ -14,5 +15,6 @@ export class CreateCategoryDto {
     message:
       'Category name can only contain letters, numbers, spaces, and hyphens.',
   })
+  @Trim()
   name: string;
 }

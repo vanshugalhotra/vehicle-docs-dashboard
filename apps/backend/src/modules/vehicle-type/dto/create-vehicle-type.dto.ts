@@ -6,6 +6,7 @@ import {
   Matches,
   IsUUID,
 } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateVehicleTypeDto {
   @ApiProperty({ description: 'Name of the vehicle type', example: 'SUV' })
@@ -18,6 +19,7 @@ export class CreateVehicleTypeDto {
     message:
       'Vehicle type name can only contain letters, numbers, spaces, and hyphens.',
   })
+  @Trim()
   name: string;
 
   @ApiProperty({

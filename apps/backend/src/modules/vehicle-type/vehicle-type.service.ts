@@ -4,14 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateVehicleTypeDto } from './dto/create-type.dto';
-import { UpdateVehicleTypeDto } from './dto/update-type.dto';
+import { CreateVehicleTypeDto } from './dto/create-vehicle-type.dto';
+import { UpdateVehicleTypeDto } from './dto/update-vehicle-type.dto';
 import { VehicleTypeResponse } from 'src/common/types';
 import { mapTypeToResponse } from './vehicle-type.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
-import { PaginatedTypeResponseDto } from './dto/type-response.dto';
+import { PaginatedTypeResponseDto } from './dto/vehicle-type-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 
@@ -23,7 +23,7 @@ export class VehicleTypeService {
   ) {}
 
   async create(dto: CreateVehicleTypeDto): Promise<VehicleTypeResponse> {
-    const name = dto.name.trim();
+    const name = dto.name;
     this.logger.info(
       `Creating vehicle type "${name}" under category "${dto.categoryId}"`,
     );
@@ -132,7 +132,7 @@ export class VehicleTypeService {
       }
 
       const targetCategoryId = dto.categoryId ?? existingType.categoryId;
-      const targetName = dto.name?.trim() ?? existingType.name;
+      const targetName = dto.name ?? existingType.name;
 
       const duplicate = await this.prisma.vehicleType.findFirst({
         where: {

@@ -194,11 +194,11 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
         .send({ phone: '8888888888' }) // phone of driverB
         .expect(409);
     });
-    it('should reject due to invalid characters', async () => {
+    it('should reject due to duplicate after trim', async () => {
       await request(server)
         .patch(`/api/v1/drivers/${driverA.id}`)
         .send({ phone: '8888888888    ' })
-        .expect(400);
+        .expect(409);
     });
 
     it('should accept updates to existing email', async () => {

@@ -6,7 +6,7 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-
+import { Trim } from 'src/common/decorators/trim.decorator';
 export class CreateLocationDto {
   @ApiProperty({
     description: 'Unique name of the location',
@@ -20,5 +20,6 @@ export class CreateLocationDto {
   })
   @MinLength(2)
   @MaxLength(50, { message: 'Location name must be at most 50 characters.' })
+  @Trim()
   name: string;
 }

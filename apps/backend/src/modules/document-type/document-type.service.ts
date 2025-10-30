@@ -24,7 +24,7 @@ export class DocumentTypesService {
   ) {}
 
   async create(dto: CreateDocumentTypeDto): Promise<DocumentTypeResponse> {
-    const name = dto.name.trim();
+    const name = dto.name;
     this.logger.info(`Creating document type: ${name}`);
     try {
       const existing = await this.prisma.documentType.findFirst({
@@ -117,7 +117,7 @@ export class DocumentTypesService {
         this.logger.warn(`Update failed, document type not found: ${id}`);
         throw new NotFoundException(`Document type with id ${id} not found`);
       }
-      const name = dto.name?.trim();
+      const name = dto.name;
       if (name && name !== documentType.name) {
         const existing = await this.prisma.documentType.findFirst({
           where: { name: { equals: name, mode: 'insensitive' } },

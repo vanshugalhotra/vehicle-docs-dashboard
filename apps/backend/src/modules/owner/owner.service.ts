@@ -23,7 +23,7 @@ export class OwnerService {
   ) {}
 
   async create(dto: CreateOwnerDto): Promise<OwnerResponse> {
-    const name = dto.name.trim();
+    const name = dto.name;
     this.logger.info(`Creating owner: ${name}`);
     try {
       const existing = await this.prisma.owner.findFirst({
@@ -101,7 +101,7 @@ export class OwnerService {
         this.logger.warn(`Update failed, owner not found: ${id}`);
         throw new NotFoundException(`Owner with id ${id} not found`);
       }
-      const name = dto.name?.trim();
+      const name = dto.name;
       if (name && name !== owner.name) {
         const existing = await this.prisma.owner.findFirst({
           where: { name: { equals: name, mode: 'insensitive' } },

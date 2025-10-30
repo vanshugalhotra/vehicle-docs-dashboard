@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleCategoryService } from './vehicle-category.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CreateCategoryDto } from './dto/create-vehicle-category.dto';
+import { UpdateCategoryDto } from './dto/update-vehicle-category.dto';
 import { VehicleCategoryResponse } from 'src/common/types';
 import {
   CategoryResponseDto,
   PaginatedCategoryResponseDto,
-} from './dto/category-response.dto';
+} from './dto/vehicle-category-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Vehicle Categories')

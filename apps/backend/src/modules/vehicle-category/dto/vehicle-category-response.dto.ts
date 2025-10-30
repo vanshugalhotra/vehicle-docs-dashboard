@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeResponseDto } from 'src/modules/vehicle-type/dto/type-response.dto';
+import { TypeResponseDto } from 'src/modules/vehicle-type/dto/vehicle-type-response.dto';
 
 export class CategoryResponseDto {
   @ApiProperty()

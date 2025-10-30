@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUUID, IsOptional, MaxLength } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateVehicleDto {
   @ApiProperty({
@@ -22,6 +23,7 @@ export class CreateVehicleDto {
   })
   @IsString()
   @MaxLength(20)
+  @Trim()
   licensePlate: string;
 
   @ApiProperty({
@@ -30,6 +32,7 @@ export class CreateVehicleDto {
   })
   @IsString()
   @MaxLength(50)
+  @Trim()
   rcNumber: string;
 
   @ApiProperty({
@@ -38,6 +41,7 @@ export class CreateVehicleDto {
   })
   @IsString()
   @MaxLength(50)
+  @Trim()
   chassisNumber: string;
 
   @ApiProperty({
@@ -46,6 +50,7 @@ export class CreateVehicleDto {
   })
   @IsString()
   @MaxLength(50)
+  @Trim()
   engineNumber: string;
 
   @ApiProperty({
@@ -83,5 +88,6 @@ export class CreateVehicleDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
+  @Trim()
   notes?: string;
 }

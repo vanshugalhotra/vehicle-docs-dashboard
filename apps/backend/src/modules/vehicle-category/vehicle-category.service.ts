@@ -4,15 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CreateCategoryDto } from './dto/create-vehicle-category.dto';
+import { UpdateCategoryDto } from './dto/update-vehicle-category.dto';
 import { mapCategoryToResponse } from './vehicle-category.mapper';
 import { VehicleCategoryResponse } from 'src/common/types';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
-import { PaginatedCategoryResponseDto } from './dto/category-response.dto';
+import { PaginatedCategoryResponseDto } from './dto/vehicle-category-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class VehicleCategoryService {
   ) {}
 
   async create(dto: CreateCategoryDto): Promise<VehicleCategoryResponse> {
-    const name = dto.name.trim();
+    const name = dto.name;
     this.logger.info(`Creating vehicle category: ${name}`);
     try {
       const existing = await this.prisma.vehicleCategory.findFirst({
@@ -116,7 +116,7 @@ export class VehicleCategoryService {
         throw new NotFoundException(`Vehicle category with id ${id} not found`);
       }
 
-      const name = dto.name?.trim();
+      const name = dto.name;
 
       if (name && name !== category.name) {
         const existing = await this.prisma.vehicleCategory.findUnique({

@@ -8,6 +8,7 @@ import {
   Matches,
   IsUrl,
 } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateVehicleDocumentDto {
   @ApiProperty({
@@ -34,7 +35,8 @@ export class CreateVehicleDocumentDto {
     message:
       'documentNo can contain letters, numbers, spaces, slashes, dots, hyphens, and underscores',
   })
-  @MaxLength(50) // Reduced from 100 for better UX
+  @MaxLength(50)
+  @Trim()
   documentNo: string;
 
   @ApiProperty({
@@ -58,6 +60,7 @@ export class CreateVehicleDocumentDto {
   })
   @IsOptional()
   @IsUrl({}, { message: 'link must be a valid URL' })
+  @Trim()
   link?: string;
 
   @ApiProperty({
@@ -68,5 +71,6 @@ export class CreateVehicleDocumentDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
+  @Trim()
   notes?: string;
 }
