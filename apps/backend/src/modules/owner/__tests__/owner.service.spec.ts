@@ -57,9 +57,6 @@ describe('OwnerService', () => {
     });
 
     it('should throw ConflictException if owner already exists (case-insensitive)', async () => {
-      // ⚠️ FIX: The ConflictException is now thrown by the validation service.
-      // We no longer need the Prisma mock here if the service uses the validation service first.
-      // We mock the validation service to throw the expected error.
       mockOwnerValidationService.validateCreate.mockRejectedValueOnce(
         new ConflictException('Owner already exists'),
       );

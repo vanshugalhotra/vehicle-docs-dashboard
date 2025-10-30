@@ -1,15 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationService } from 'src/common/validation/base-validation.service';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { Owner } from '@prisma/client';
-import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class OwnerValidationService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly baseValidation: BaseValidationService,
-  ) {}
+  constructor(private readonly baseValidation: BaseValidationService) {}
 
   /**
    * Validate owner creation
@@ -28,12 +23,11 @@ export class OwnerValidationService {
    * Validate owner update (includes existence check + uniqueness if changing)
    */
   async validateUpdate(id: string, name?: string): Promise<Owner> {
-    // Use Prisma directly for type safety
-    const owner = await this.prisma.owner.findUnique({ where: { id } });
-
-    if (!owner) {
-      throw new NotFoundException(`Owner with id "${id}" not found`);
-    }
+    const owner = (await this.baseValidation.validateEntityExists(
+      'Owner',
+      id,
+      `Owner with id "${id}" not found`,
+    )) as Owner;
 
     // Validate uniqueness if name is changing
     if (name && name !== owner.name) {

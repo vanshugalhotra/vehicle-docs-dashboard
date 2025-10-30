@@ -14,12 +14,14 @@ import { Prisma } from '@prisma/client';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { PaginatedDriverResponseDto } from './dto/driver-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { DriverValidationService } from './validation/driver-validation.service';
 
 @Injectable()
 export class DriverService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly driverValidation: DriverValidationService,
   ) {}
 
   async create(dto: CreateDriverDto): Promise<DriverResponse> {
@@ -29,34 +31,7 @@ export class DriverService {
 
     this.logger.info(`Creating driver: ${name} (${phone})`);
     try {
-      // Check unique phone
-      const existing = await this.prisma.driver.findFirst({
-        where: { phone },
-      });
-      if (existing) {
-        this.logger.warn(
-          `Driver creation failed, phone already exists: ${phone}`,
-        );
-        throw new ConflictException(
-          `Driver with phone "${phone}" already exists`,
-        );
-      }
-
-      // Optional: check duplicate email if provided
-      if (email) {
-        const existingEmail = await this.prisma.driver.findFirst({
-          where: { email: { equals: email, mode: 'insensitive' } },
-        });
-        if (existingEmail) {
-          this.logger.warn(
-            `Driver creation failed, email already exists: ${email}`,
-          );
-          throw new ConflictException(
-            `Driver with email "${email}" already exists`,
-          );
-        }
-      }
-
+      await this.driverValidation.validateCreate(phone, email);
       const driver = await this.prisma.driver.create({
         data: {
           name,
@@ -120,47 +95,18 @@ export class DriverService {
   async update(id: string, dto: UpdateDriverDto): Promise<DriverResponse> {
     this.logger.info(`Updating driver: ${id}`);
     try {
-      const driver = await this.prisma.driver.findUnique({ where: { id } });
-      if (!driver) {
-        this.logger.warn(`Update failed, driver not found: ${id}`);
-        throw new NotFoundException(`Driver with id ${id} not found`);
-      }
-
-      const phone = dto.phone;
-      const email = dto.email;
-
-      // Phone uniqueness check if changed
-      if (phone && phone !== driver.phone) {
-        const existing = await this.prisma.driver.findFirst({
-          where: { phone: phone },
-        });
-        if (existing) {
-          this.logger.warn(`Update failed, duplicate phone: ${phone}`);
-          throw new ConflictException(
-            `Driver with phone "${phone}" already exists`,
-          );
-        }
-      }
-
-      // Email uniqueness check if changed and not null
-      if (email && email !== driver.email) {
-        const existingEmail = await this.prisma.driver.findFirst({
-          where: { email: { equals: email, mode: 'insensitive' } },
-        });
-        if (existingEmail) {
-          this.logger.warn(`Update failed, duplicate email: ${email}`);
-          throw new ConflictException(
-            `Driver with email "${email}" already exists`,
-          );
-        }
-      }
+      const driver = await this.driverValidation.validateUpdate(
+        id,
+        dto.phone,
+        dto.email,
+      );
 
       const updated = await this.prisma.driver.update({
         where: { id },
         data: {
           name: dto.name ?? driver.name,
-          phone: phone ?? driver.phone,
-          email: email !== undefined ? email || null : driver.email,
+          phone: dto.phone ?? driver.phone,
+          email: dto.email !== undefined ? dto.email || null : driver.email,
         },
       });
 
