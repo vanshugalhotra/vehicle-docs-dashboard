@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
@@ -17,12 +12,14 @@ import { mapVehicleDocumentToResponse } from './vehicle-document.mapper';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { Prisma } from '@prisma/client';
+import { VehicleDocumentValidationService } from './validation/vehicle-document-validation.service';
 
 @Injectable()
 export class VehicleDocumentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly validationService: VehicleDocumentValidationService,
   ) {}
 
   // -----------------------
@@ -36,43 +33,15 @@ export class VehicleDocumentService {
 
     const start = new Date(dto.startDate);
     const expiry = new Date(dto.expiryDate);
-    if (isNaN(start.getTime()) || isNaN(expiry.getTime())) {
-      throw new BadRequestException('Invalid startDate or expiryDate');
-    }
-    if (start >= expiry) {
-      throw new BadRequestException('startDate must be before expiryDate');
-    }
 
     try {
-      const vehicle = await this.prisma.vehicle.findUnique({
-        where: { id: dto.vehicleId },
-      });
-      if (!vehicle) {
-        throw new NotFoundException(
-          `Vehicle with id ${dto.vehicleId} not found`,
-        );
-      }
-
-      const docType = await this.prisma.documentType.findUnique({
-        where: { id: dto.documentTypeId },
-      });
-      if (!docType) {
-        throw new NotFoundException(
-          `DocumentType with id ${dto.documentTypeId} not found`,
-        );
-      }
-
-      // ✅ Case-insensitive check
-      const existing = await this.prisma.vehicleDocument.findFirst({
-        where: {
-          documentNo: { equals: documentNo, mode: 'insensitive' },
-        },
-      });
-      if (existing) {
-        throw new ConflictException(
-          `Document with number "${documentNo}" already exists`,
-        );
-      }
+      await this.validationService.validateCreate(
+        documentNo,
+        dto.vehicleId,
+        dto.documentTypeId,
+        start,
+        expiry,
+      );
 
       const created = await this.prisma.vehicleDocument.create({
         data: {
@@ -193,76 +162,21 @@ export class VehicleDocumentService {
   ): Promise<VehicleDocumentResponseDto> {
     this.logger.info(`Updating vehicle document: ${id}`);
     try {
-      const existing = await this.prisma.vehicleDocument.findUnique({
-        where: { id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`VehicleDocument with id ${id} not found`);
-      }
-
-      if (
-        dto.documentNo &&
-        dto.documentNo.toUpperCase() !== existing.documentNo.toUpperCase()
-      ) {
-        const found = await this.prisma.vehicleDocument.findFirst({
-          where: {
-            documentNo: {
-              equals: dto.documentNo.toUpperCase(),
-              mode: 'insensitive',
-            },
-          },
-        });
-        if (found) {
-          throw new ConflictException(
-            `Document with number "${dto.documentNo}" already exists`,
-          );
-        }
-      }
-
-      if (dto.vehicleId && dto.vehicleId !== existing.vehicleId) {
-        const vehicle = await this.prisma.vehicle.findUnique({
-          where: { id: dto.vehicleId },
-        });
-        if (!vehicle) {
-          throw new NotFoundException(
-            `Vehicle with id ${dto.vehicleId} not found`,
-          );
-        }
-      }
-
-      if (
-        dto.documentTypeId &&
-        dto.documentTypeId !== existing.documentTypeId
-      ) {
-        const docType = await this.prisma.documentType.findUnique({
-          where: { id: dto.documentTypeId },
-        });
-        if (!docType) {
-          throw new NotFoundException(
-            `DocumentType with id ${dto.documentTypeId} not found`,
-          );
-        }
-      }
-
-      const start = dto.startDate
-        ? new Date(dto.startDate)
-        : new Date(existing.startDate);
-      const expiry = dto.expiryDate
-        ? new Date(dto.expiryDate)
-        : new Date(existing.expiryDate);
-      if (isNaN(start.getTime()) || isNaN(expiry.getTime())) {
-        throw new BadRequestException('Invalid startDate or expiryDate');
-      }
-      if (start >= expiry) {
-        throw new BadRequestException('startDate must be before expiryDate');
-      }
+      const { start, expiry } = await this.validationService.validateUpdate(
+        id,
+        dto.documentNo,
+        dto.vehicleId,
+        dto.documentTypeId,
+        dto.startDate ? new Date(dto.startDate) : undefined,
+        dto.expiryDate ? new Date(dto.expiryDate) : undefined,
+      );
 
       const updated = await this.prisma.vehicleDocument.update({
         where: { id },
         data: {
           documentNo: dto.documentNo?.toUpperCase() ?? undefined,
-          startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-          expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
+          startDate: start,
+          expiryDate: expiry,
           link: dto.link ?? undefined,
           notes: dto.notes ?? undefined,
           vehicleId: dto.vehicleId ?? undefined,

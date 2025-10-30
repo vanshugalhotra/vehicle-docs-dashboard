@@ -6,7 +6,8 @@ import { MockedLogger } from '../../../../test/utils/mock-logger';
 import { CreateVehicleDocumentDto } from '../dto/create-vehicle-document.dto';
 import { UpdateVehicleDocumentDto } from '../dto/update-vehicle-document.dto';
 import { mapVehicleDocumentToResponse } from '../vehicle-document.mapper';
-import { VehicleDocument } from '@prisma/client';
+import { VehicleDocument, Vehicle, DocumentType } from '@prisma/client';
+import { VehicleDocumentValidationService } from '../validation/vehicle-document-validation.service';
 
 jest.mock('../vehicle-document.mapper', () => ({
   mapVehicleDocumentToResponse: jest.fn((doc: Partial<VehicleDocument>) => ({
@@ -21,40 +22,78 @@ jest.mock('../vehicle-document.mapper', () => ({
   })),
 }));
 
+const mockVehicle = { id: 'veh-1', name: 'Car - PB04' } as Vehicle;
+const mockDocType = { id: 'doctype-1', name: 'Insurance' } as DocumentType;
+
+const mockVehicleDoc: VehicleDocument = {
+  id: 'doc-1',
+  vehicleId: 'veh-1',
+  documentTypeId: 'doctype-1',
+  documentNo: 'DL-ABC-2025',
+  startDate: new Date('2025-10-01'),
+  expiryDate: new Date('2026-10-01'),
+  notes: 'Test note',
+  link: 'https://example.com/doc1.pdf',
+  createdById: 'user-1',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+const mockVehicleDocumentValidationService = {
+  // validateCreate returns { vehicle, documentType }
+  validateCreate: jest.fn().mockResolvedValue({
+    vehicle: mockVehicle,
+    documentType: mockDocType,
+  }),
+
+  // validateUpdate returns { vehicleDocument, vehicle?, documentType?, start?, expiry? }
+  validateUpdate: jest.fn().mockImplementation(() => ({
+    vehicleDocument: mockVehicleDoc,
+    vehicle: mockVehicle,
+    documentType: mockDocType,
+    start: mockVehicleDoc.startDate,
+    expiry: mockVehicleDoc.expiryDate,
+  })),
+};
+
 describe('VehicleDocumentService', () => {
   let service: VehicleDocumentService;
   let prisma: MockedPrisma;
   let logger: MockedLogger;
 
-  const mockVehicleDoc = {
-    id: 'doc-1',
-    vehicleId: 'veh-1',
-    documentTypeId: 'doctype-1',
-    documentNo: 'DL-ABC-2025',
-    startDate: new Date('2025-10-01'),
-    expiryDate: new Date('2026-10-01'),
-    notes: 'Test note',
-    link: 'https://example.com/doc1.pdf',
-    createdById: 'user-1',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const mockVehicle = { id: 'veh-1', name: 'Car - PB04' };
-  const mockDocType = { id: 'doctype-1', name: 'Insurance' };
-
   beforeEach(async () => {
-    const setup = await createTestModule(VehicleDocumentService);
+    jest.clearAllMocks();
+
+    // Resetting default mock implementation for consistency
+    mockVehicleDocumentValidationService.validateCreate.mockResolvedValue({
+      vehicle: mockVehicle,
+      documentType: mockDocType,
+    });
+    mockVehicleDocumentValidationService.validateUpdate.mockImplementation(
+      () => ({
+        vehicleDocument: mockVehicleDoc,
+        vehicle: mockVehicle,
+        documentType: mockDocType,
+        start: mockVehicleDoc.startDate,
+        expiry: mockVehicleDoc.expiryDate,
+      }),
+    );
+
+    const setup = await createTestModule(VehicleDocumentService, [
+      {
+        provide: VehicleDocumentValidationService,
+        useValue: mockVehicleDocumentValidationService,
+      },
+    ]);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;
   });
 
-  afterEach(() => jest.clearAllMocks());
-
-  // ----------------------------------------------------------------
+  afterEach(() => jest.clearAllMocks()); // ----------------------------------------------------------------
   // CREATE
   // ----------------------------------------------------------------
+
   describe('create', () => {
     const dto: CreateVehicleDocumentDto = {
       vehicleId: 'veh-1',
@@ -67,20 +106,20 @@ describe('VehicleDocumentService', () => {
     };
 
     it('should create a vehicle document successfully', async () => {
-      prisma.vehicleDocument.findFirst.mockResolvedValue(null);
-      prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
-      prisma.documentType.findUnique.mockResolvedValue(mockDocType);
+      // ⚠️ FIX: Remove all Prisma validation mocks
       prisma.vehicleDocument.create.mockResolvedValue(mockVehicleDoc);
 
       const result = await service.create(dto);
 
-      expect(prisma.vehicleDocument.findFirst).toHaveBeenCalledTimes(1);
-      expect(prisma.vehicle.findUnique).toHaveBeenCalledWith({
-        where: { id: 'veh-1' },
-      });
-      expect(prisma.documentType.findUnique).toHaveBeenCalledWith({
-        where: { id: 'doctype-1' },
-      });
+      expect(
+        mockVehicleDocumentValidationService.validateCreate,
+      ).toHaveBeenCalledWith(
+        dto.documentNo,
+        dto.vehicleId,
+        dto.documentTypeId,
+        dto.startDate,
+        dto.expiryDate,
+      );
       expect(mapVehicleDocumentToResponse).toHaveBeenCalledWith(mockVehicleDoc);
       expect(result.documentNo).toBe('DL-ABC-2025');
       expect(logger.info).toHaveBeenCalledWith(
@@ -89,33 +128,43 @@ describe('VehicleDocumentService', () => {
     });
 
     it('should throw ConflictException if documentNo already exists', async () => {
-      // Mock ALL required checks - vehicle and docType must exist first
-      prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
-      prisma.documentType.findUnique.mockResolvedValue(mockDocType);
-      prisma.vehicleDocument.findFirst.mockResolvedValue(mockVehicleDoc);
-
+      // ⚠️ FIX: Mock the validation service to throw ConflictException
+      mockVehicleDocumentValidationService.validateCreate.mockRejectedValueOnce(
+        new ConflictException(
+          'Document with number "DL-ABC-2025" already exists',
+        ),
+      ); // Remove Prisma findFirst mock
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
+      expect(
+        mockVehicleDocumentValidationService.validateCreate,
+      ).toHaveBeenCalled();
     });
-    it('should throw NotFoundException if vehicle does not exist', async () => {
-      prisma.vehicleDocument.findFirst.mockResolvedValue(null);
-      prisma.vehicle.findUnique.mockResolvedValue(null);
-      prisma.documentType.findUnique.mockResolvedValue(mockDocType);
 
+    it('should throw NotFoundException if vehicle does not exist', async () => {
+      // ⚠️ FIX: Mock the validation service to throw NotFoundException
+      mockVehicleDocumentValidationService.validateCreate.mockRejectedValueOnce(
+        new NotFoundException('Vehicle with id veh-1 not found'),
+      ); // Remove Prisma vehicle.findUnique mock
       await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      expect(
+        mockVehicleDocumentValidationService.validateCreate,
+      ).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if document type does not exist', async () => {
-      prisma.vehicleDocument.findFirst.mockResolvedValue(null);
-      prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
-      prisma.documentType.findUnique.mockResolvedValue(null);
-
+      // ⚠️ FIX: Mock the validation service to throw NotFoundException
+      mockVehicleDocumentValidationService.validateCreate.mockRejectedValueOnce(
+        new NotFoundException('DocumentType with id doctype-1 not found'),
+      ); // Remove Prisma documentType.findUnique mock
       await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      expect(
+        mockVehicleDocumentValidationService.validateCreate,
+      ).toHaveBeenCalled();
     });
-  });
-
-  // ----------------------------------------------------------------
+  }); // ----------------------------------------------------------------
   // FIND ALL
   // ----------------------------------------------------------------
+
   describe('findAll', () => {
     it('should return paginated list of documents', async () => {
       prisma.vehicleDocument.findMany.mockResolvedValue([mockVehicleDoc]);
@@ -142,11 +191,10 @@ describe('VehicleDocumentService', () => {
       expect(result.items).toEqual([]);
       expect(result.total).toBe(0);
     });
-  });
-
-  // ----------------------------------------------------------------
+  }); // ----------------------------------------------------------------
   // FIND ONE
   // ----------------------------------------------------------------
+
   describe('findOne', () => {
     it('should return document if found', async () => {
       prisma.vehicleDocument.findUnique.mockResolvedValue(mockVehicleDoc);
@@ -162,11 +210,10 @@ describe('VehicleDocumentService', () => {
         NotFoundException,
       );
     });
-  });
-
-  // ----------------------------------------------------------------
+  }); // ----------------------------------------------------------------
   // UPDATE
   // ----------------------------------------------------------------
+
   describe('update', () => {
     const dto: UpdateVehicleDocumentDto = {
       notes: 'Updated note',
@@ -174,10 +221,19 @@ describe('VehicleDocumentService', () => {
     };
 
     it('should update document successfully', async () => {
-      prisma.vehicleDocument.findUnique.mockResolvedValue(mockVehicleDoc);
-      prisma.vehicleDocument.findFirst.mockResolvedValue(null);
-      prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
-      prisma.documentType.findUnique.mockResolvedValue(mockDocType);
+      // ⚠️ FIX: The validation mock handles all existence/uniqueness checks.
+      // Configure it to return the entities needed for the update.
+      mockVehicleDocumentValidationService.validateUpdate.mockResolvedValueOnce(
+        {
+          vehicleDocument: mockVehicleDoc,
+          vehicle: mockVehicle,
+          documentType: mockDocType,
+          start: mockVehicleDoc.startDate,
+          expiry: dto.expiryDate, // Use the updated expiry date
+        },
+      );
+      // Remove all Prisma validation mocks (findUnique/findFirst/etc)
+
       prisma.vehicleDocument.update.mockResolvedValue({
         ...mockVehicleDoc,
         notes: 'Updated note',
@@ -185,6 +241,16 @@ describe('VehicleDocumentService', () => {
 
       const result = await service.update('doc-1', dto);
 
+      expect(
+        mockVehicleDocumentValidationService.validateUpdate,
+      ).toHaveBeenCalledWith(
+        'doc-1',
+        undefined, // documentNo not provided in DTO
+        undefined, // vehicleId not provided in DTO
+        undefined, // documentTypeId not provided in DTO
+        undefined, // startDate not provided in DTO
+        dto.expiryDate,
+      );
       expect(prisma.vehicleDocument.update).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'doc-1' } }),
       );
@@ -195,25 +261,34 @@ describe('VehicleDocumentService', () => {
     });
 
     it('should throw NotFoundException if not found', async () => {
-      prisma.vehicleDocument.findUnique.mockResolvedValue(null);
+      // ⚠️ FIX: Mock the validation service to throw NotFoundException
+      mockVehicleDocumentValidationService.validateUpdate.mockRejectedValueOnce(
+        new NotFoundException('VehicleDocument with id missing not found'),
+      ); // Remove prisma.vehicleDocument.findUnique mock
       await expect(service.update('missing', dto)).rejects.toThrow(
         NotFoundException,
       );
+      expect(
+        mockVehicleDocumentValidationService.validateUpdate,
+      ).toHaveBeenCalled();
     });
 
     it('should throw ConflictException if duplicate documentNo', async () => {
-      prisma.vehicleDocument.findUnique.mockResolvedValue(mockVehicleDoc);
-      prisma.vehicleDocument.findFirst.mockResolvedValue({ id: 'doc-2' });
-
+      // ⚠️ FIX: Mock the validation service to throw ConflictException
+      mockVehicleDocumentValidationService.validateUpdate.mockRejectedValueOnce(
+        new ConflictException('Document with number "DL-XYZ" already exists'),
+      ); // Remove prisma.vehicleDocument.findUnique/findFirst mocks
       await expect(
         service.update('doc-1', { documentNo: 'DL-XYZ' }),
       ).rejects.toThrow(ConflictException);
+      expect(
+        mockVehicleDocumentValidationService.validateUpdate,
+      ).toHaveBeenCalled();
     });
-  });
-
-  // ----------------------------------------------------------------
+  }); // ----------------------------------------------------------------
   // REMOVE
   // ----------------------------------------------------------------
+
   describe('remove', () => {
     it('should delete document successfully', async () => {
       prisma.vehicleDocument.findUnique.mockResolvedValue(mockVehicleDoc);
