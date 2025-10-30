@@ -7,7 +7,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import clsx from "clsx";
-import { componentTokens } from "@/styles/design-system";
+import { componentTokens } from "@/styles/design-system/componentTokens";
 import { AppText } from "../../ui/AppText";
 import { DataTableActions } from "./DataTableActions";
 import { DataTableEmptyState } from "./DataTableEmptyState";
@@ -28,6 +28,7 @@ export const DataTable = <T extends object>({
   loading = false,
   onEdit,
   onDelete,
+  onView,
   className,
 }: DataTableProps<T>) => {
   const table = useReactTable({
@@ -38,10 +39,15 @@ export const DataTable = <T extends object>({
 
   return (
     <div className={clsx("relative", className, componentTokens.table.content)}>
-      <div className="border border-border-subtle rounded-lg bg-surface overflow-hidden thin-scrollbar">
+      <div
+        className={clsx(
+          "border border-border-subtle rounded-lg bg-surface overflow-hidden thin-scrollbar",
+          componentTokens.card.base
+        )}
+      >
         <div className="overflow-x-auto thin-scrollbar">
           <table className="w-full min-w-full">
-            <thead className="bg-linear-to-r from-surface-muted to-surface-muted/80 sticky top-0 z-10">
+            <thead className="bg-surface-subtle sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
@@ -51,11 +57,10 @@ export const DataTable = <T extends object>({
                     <th
                       key={header.id}
                       className={clsx(
-                        "text-left px-3 py-2.5",
+                        "text-left px-4 py-3",
                         "font-semibold text-text-secondary",
-                        "border-r border-border-subtle/50 last:border-r-0",
-                        "transition-colors duration-200",
-                        "group-hover:from-primary/5 group-hover:to-primary/10"
+                        "border-r border-border-subtle last:border-r-0",
+                        "transition-colors duration-200"
                       )}
                       style={{
                         width: header.getSize(),
@@ -70,13 +75,13 @@ export const DataTable = <T extends object>({
                   ))}
                   {(onEdit || onDelete) && (
                     <th
-                      className="px-3 py-2.5 text-center border-r border-border-subtle/50 last:border-r-0"
+                      className="px-4 py-3 text-center border-r border-border-subtle last:border-r-0"
                       style={{ width: 120, minWidth: 120 }}
                     >
                       <AppText
                         size="label"
                         variant="secondary"
-                        className="font-semibold"
+                        className={componentTokens.text.sizes.label}
                       >
                         Actions
                       </AppText>
@@ -95,7 +100,11 @@ export const DataTable = <T extends object>({
                   >
                     <div className="flex flex-col items-center gap-3">
                       <div className="animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent"></div>
-                      <AppText size="label" variant="muted">
+                      <AppText
+                        size="label"
+                        variant="muted"
+                        className={componentTokens.text.muted}
+                      >
                         Loading your data...
                       </AppText>
                     </div>
@@ -126,10 +135,10 @@ export const DataTable = <T extends object>({
                       <td
                         key={cell.id}
                         className={clsx(
-                          "px-3 py-2",
-                          "border-r border-border-subtle/30 last:border-r-0",
+                          "px-4 py-3",
+                          "border-r border-border-subtle last:border-r-0",
                           "transition-all duration-200",
-                          componentTokens.text.primary,
+                          componentTokens.text.bodySecondary,
                           "group-hover:text-text-primary"
                         )}
                       >
@@ -141,12 +150,12 @@ export const DataTable = <T extends object>({
                     ))}
 
                     {(onEdit || onDelete) && (
-                      <td className="px-3 py-2 border-r border-border-subtle/30 last:border-r-0">
+                      <td className="px-4 py-3 border-r border-border-subtle last:border-r-0">
                         <DataTableActions
                           item={row.original}
                           onEdit={onEdit}
                           onDelete={onDelete}
-                          onView={() => {}}
+                          onView={onView}
                         />
                       </td>
                     )}
