@@ -26,6 +26,15 @@ export const mockPrisma = () => ({
     delete: jest.fn(),
     count: jest.fn(),
   },
+  vehicleDocument: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
   owner: {
     findFirst: jest.fn(),
     create: jest.fn(),

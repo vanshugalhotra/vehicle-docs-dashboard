@@ -11,6 +11,7 @@ import { OwnersModule } from './modules/owner/owners.module';
 import { DriversModule } from './modules/driver/drivers.module';
 import { LocationsModule } from './modules/location/locations.module';
 import { DocumentTypesModule } from './modules/document-type/document-types.module';
+import { VehicleDocumentsModule } from './modules/vehicle-document/vehicle-documents.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DocumentTypesModule } from './modules/document-type/document-types.modu
     DriversModule,
     LocationsModule,
     DocumentTypesModule,
+    VehicleDocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
