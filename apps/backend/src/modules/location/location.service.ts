@@ -14,35 +14,31 @@ import { Prisma } from '@prisma/client';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedLocationResponseDto } from './dto/location-response';
+import { LocationValidationService } from './validation/location-validation.service';
 
 @Injectable()
 export class LocationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly validationService: LocationValidationService,
   ) {}
 
   async create(dto: CreateLocationDto): Promise<LocationResponse> {
     const name = dto.name;
     this.logger.info(`Creating location: ${name}`);
     try {
-      const existing = await this.prisma.location.findFirst({
-        where: { name: { equals: name, mode: 'insensitive' } },
-      });
-      if (existing) {
-        this.logger.warn(`Location creation failed, already exists: ${name}`);
-        throw new ConflictException(
-          `Location with name "${name}" already exists`,
-        );
-      }
-
+      await this.validationService.validateCreate(name);
       const location = await this.prisma.location.create({
         data: { name },
       });
       this.logger.info(`Location created: ${location.id}`);
       return mapLocationToResponse(location);
     } catch (error) {
-      handlePrismaError(error, 'Location');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -77,7 +73,10 @@ export class LocationService {
         total,
       };
     } catch (error) {
-      handlePrismaError(error, 'Location');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -91,39 +90,31 @@ export class LocationService {
       }
       return mapLocationToResponse(location);
     } catch (error) {
-      handlePrismaError(error, 'Location');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
   async update(id: string, dto: UpdateLocationDto): Promise<LocationResponse> {
     this.logger.info(`Updating location: ${id}`);
     try {
-      const location = await this.prisma.location.findUnique({ where: { id } });
-      if (!location) {
-        this.logger.warn(`Update failed, location not found: ${id}`);
-        throw new NotFoundException(`Location with id ${id} not found`);
-      }
-      const name = dto.name;
-      if (name && name !== location.name) {
-        const existing = await this.prisma.location.findFirst({
-          where: { name: { equals: name, mode: 'insensitive' } },
-        });
-        if (existing) {
-          this.logger.warn(`Update failed, duplicate location name: ${name}`);
-          throw new ConflictException(
-            `Location with name "${name}" already exists`,
-          );
-        }
-      }
-
+      const location = await this.validationService.validateUpdate(
+        id,
+        dto.name,
+      );
       const updated = await this.prisma.location.update({
         where: { id },
-        data: { name: name ?? location.name },
+        data: { name: dto.name ?? location.name },
       });
       this.logger.info(`Location updated: ${updated.id}`);
       return mapLocationToResponse(updated);
     } catch (error) {
-      handlePrismaError(error, 'Location');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -152,7 +143,10 @@ export class LocationService {
       this.logger.info(`Location deleted: ${id}`);
       return { success: true };
     } catch (error) {
-      handlePrismaError(error, 'Location');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 }
