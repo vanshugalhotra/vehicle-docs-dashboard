@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { VehiclesService } from './vehicles.service';
-import { VehiclesController } from './vehicles.controller';
+import { VehicleService } from './vehicle.service';
+import { VehicleController } from './vehicle.controller';
+import { VehicleValidationService } from './validation/vehicle-validation.service';
 
 @Module({
-  controllers: [VehiclesController],
-  providers: [VehiclesService],
+  controllers: [VehicleController],
+  providers: [VehicleService, VehicleValidationService],
 })
 export class VehiclesModule {}

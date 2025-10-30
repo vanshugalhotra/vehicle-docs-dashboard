@@ -14,6 +14,7 @@ import { VehicleTypeResponse } from 'src/common/types';
 import { OwnerResponse } from 'src/common/types';
 import { DriverResponse } from 'src/common/types';
 import { LocationResponse } from 'src/common/types';
+import { PaginatedVehicleResponseDto } from 'src/modules/vehicle/dto/vehicle-response.dto';
 
 describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -239,10 +240,10 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   describe('List and fetch vehicles', () => {
     it('GET /vehicles returns array and includes created vehicles', async () => {
       const res = await request(server).get('/api/v1/vehicles').expect(200);
-      const arr = res.body as VehicleResponse[];
-      expect(Array.isArray(arr)).toBe(true);
-      expect(arr.some((v) => v.id === vehicleA.id)).toBe(true);
-      expect(arr.some((v) => v.id === vehicleB.id)).toBe(true);
+      const arr = res.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(arr.items)).toBe(true);
+      expect(arr.items.some((v) => v.id === vehicleA.id)).toBe(true);
+      expect(arr.items.some((v) => v.id === vehicleB.id)).toBe(true);
     });
 
     it('GET /vehicles/:id should return the vehicle (200)', async () => {
@@ -280,18 +281,134 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
       // default listing
       const all = await request(server).get('/api/v1/vehicles').expect(200);
-      expect(Array.isArray(all.body)).toBe(true);
+      const allBody = all.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(allBody.items)).toBe(true);
 
       // try skip/take if supported (controller likely maps query to skip/take)
       const paged = await request(server)
         .get('/api/v1/vehicles?skip=0&take=3')
         .expect(200);
-      const body = paged.body as VehicleResponse[];
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBeLessThanOrEqual(3);
+      const body = paged.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(body.items.length).toBeLessThanOrEqual(3);
     });
   });
 
+  // -----------------------------
+  // ADVANCED QUERY TESTS
+  // -----------------------------
+  describe('Vehicle query options', () => {
+    let searchVehicle: VehicleResponse; // Change to VehicleResponseDto
+    let ScategoryId: string;
+    let StypeId: string;
+    let SlocationId: string;
+
+    beforeAll(async () => {
+      // Create supporting entities
+      const cat = await request(server)
+        .post('/api/v1/vehicle-categories')
+        .send({ name: `SearchCat-${Date.now()}` })
+        .expect(201);
+      const catBody = cat.body as VehicleCategoryResponse;
+      ScategoryId = catBody.id; // Add type assertion
+
+      const type = await request(server)
+        .post('/api/v1/vehicle-types')
+        .send({ name: `SearchType-${Date.now()}`, categoryId: ScategoryId })
+        .expect(201);
+      const typeBody = type.body as VehicleTypeResponse;
+      StypeId = typeBody.id; // Add type assertion
+
+      const loc = await request(server)
+        .post('/api/v1/locations')
+        .send({ name: `SearchLoc-${Date.now()}` })
+        .expect(201);
+      const locBody = loc.body as LocationResponse;
+      SlocationId = locBody.id; // Add type assertion
+
+      // Create a test vehicle to search/filter/sort
+      const res = await request(server)
+        .post('/api/v1/vehicles')
+        .send({
+          licensePlate: `SRCH-${Math.floor(Math.random() * 10000)}`,
+          rcNumber: `rc-search-${Date.now()}`,
+          chassisNumber: `ch-search-${Date.now()}`,
+          engineNumber: `en-search-${Date.now()}`,
+          categoryId: ScategoryId,
+          typeId: StypeId,
+          locationId: SlocationId,
+        })
+        .expect(201);
+      searchVehicle = res.body as VehicleResponse; // Add type assertion
+    });
+
+    it('should support full-text search via ?search=', async () => {
+      const res = await request(server)
+        .get(
+          `/api/v1/vehicles?search=${encodeURIComponent(searchVehicle.name)}`,
+        )
+        .expect(200);
+      const body = res.body as PaginatedVehicleResponseDto;
+      expect(body.items.some((v) => v.id === searchVehicle.id)).toBe(true);
+    });
+
+    it('should support filtering by categoryId, typeId, and locationId', async () => {
+      // Use filters parameter instead of direct query params
+      const filters = {
+        categoryId: ScategoryId,
+        typeId: ScategoryId,
+        locationId: SlocationId,
+      };
+
+      const res = await request(server)
+        .get(
+          `/api/v1/vehicles?filters=${encodeURIComponent(JSON.stringify(filters))}`,
+        )
+        .expect(200);
+      const body = res.body as PaginatedVehicleResponseDto;
+
+      expect(
+        body.items.every(
+          (v) =>
+            v.categoryId === ScategoryId &&
+            v.typeId === StypeId &&
+            v.locationId === SlocationId,
+        ),
+      ).toBe(true);
+    });
+
+    it('should support sorting by createdAt asc/desc', async () => {
+      const asc = await request(server)
+        .get('/api/v1/vehicles?sortBy=createdAt&order=asc&take=3')
+        .expect(200);
+      const desc = await request(server)
+        .get('/api/v1/vehicles?sortBy=createdAt&order=desc&take=3')
+        .expect(200);
+
+      const ascBody = asc.body as PaginatedVehicleResponseDto;
+      const descBody = desc.body as PaginatedVehicleResponseDto;
+      if (ascBody.items.length > 1 && descBody.items.length > 1) {
+        const firstAsc = new Date(ascBody.items[0].createdAt).getTime();
+        const firstDesc = new Date(descBody.items[0].createdAt).getTime();
+        expect(firstAsc).toBeLessThanOrEqual(firstDesc);
+      }
+    });
+
+    it('should allow combining search + filter + pagination', async () => {
+      const filters = { categoryId: ScategoryId };
+
+      const res = await request(server)
+        .get(
+          `/api/v1/vehicles?search=${encodeURIComponent(
+            'Searchable',
+          )}&filters=${encodeURIComponent(JSON.stringify(filters))}&skip=0&take=2`,
+        )
+        .expect(200);
+      const body = res.body as PaginatedVehicleResponseDto;
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(body.items.length).toBeLessThanOrEqual(2);
+    });
+  });
   // -----------------------------
   // UPDATE - regenerate name when licensePlate/category/type changes + uniqueness conflicts
   // -----------------------------
@@ -331,7 +448,13 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
         .expect(404);
     });
 
-    it('should reject update with invalid FK (404)', async () => {
+    it('should reject update with invalid FK (409)', async () => {
+      await request(server)
+        .patch(`/api/v1/vehicles/${vehicleB.id}`)
+        .send({ categoryId: categoryIdA, typeId: typeIdB })
+        .expect(409);
+    });
+    it('should reject update with invalid category(404)', async () => {
       await request(server)
         .patch(`/api/v1/vehicles/${vehicleB.id}`)
         .send({ categoryId: '047529c1-5f9e-43e0-9929-d9e56e7d32e6' })

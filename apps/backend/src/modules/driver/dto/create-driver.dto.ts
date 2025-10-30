@@ -8,6 +8,7 @@ import {
   MaxLength,
   IsOptional,
 } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateDriverDto {
   @ApiProperty({
@@ -22,6 +23,7 @@ export class CreateDriverDto {
     message:
       'Driver name can only contain letters, spaces, apostrophes, and hyphens.',
   })
+  @Trim()
   name: string;
 
   @ApiProperty({
@@ -34,6 +36,7 @@ export class CreateDriverDto {
     message:
       'Phone number must contain only digits and be 10 to 15 characters long.',
   })
+  @Trim()
   phone: string;
 
   @ApiPropertyOptional({
@@ -43,5 +46,6 @@ export class CreateDriverDto {
   @IsOptional()
   @IsEmail({}, { message: 'Invalid email format.' })
   @IsString()
+  @Trim()
   email?: string;
 }

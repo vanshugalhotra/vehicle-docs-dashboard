@@ -1,0 +1,119 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+  Query,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { OwnerService } from './owner.service';
+import { CreateOwnerDto } from './dto/create-owner.dto';
+import { UpdateOwnerDto } from './dto/update-owner.dto';
+import { OwnerResponse } from 'src/common/types';
+import {
+  OwnerResponseDto,
+  PaginatedOwnerResponseDto,
+} from './dto/owner-response.dto';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+
+@ApiTags('Owners')
+@Controller({ path: 'owners', version: '1' })
+export class OwnerController {
+  constructor(private readonly ownersService: OwnerService) {}
+
+  // ────────────────────────────────────────────────
+  // CREATE
+  // ────────────────────────────────────────────────
+  @Post()
+  @ApiResponse({
+    status: 201,
+    description: 'Owner created successfully',
+    type: OwnerResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Owner with same name already exists',
+  })
+  async create(@Body() dto: CreateOwnerDto): Promise<OwnerResponse> {
+    return this.ownersService.create(dto);
+  }
+
+  /**
+   * GET /owners — list owners with pagination, search, sort, and filters.
+   */
+  @Get()
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Filter owners by name (case-insensitive)',
+    example: 'Ustaad',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of Owners retrieved successfully',
+    type: PaginatedOwnerResponseDto,
+  })
+  async findAll(
+    @Query() query: QueryOptionsDto,
+  ): Promise<PaginatedOwnerResponseDto> {
+    return this.ownersService.findAll(query);
+  }
+
+  // ────────────────────────────────────────────────
+  // READ ONE
+  // ────────────────────────────────────────────────
+  @Get(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'Owner fetched successfully',
+    type: OwnerResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Owner not found' })
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<OwnerResponse> {
+    return this.ownersService.findOne(id);
+  }
+
+  // ────────────────────────────────────────────────
+  // UPDATE
+  // ────────────────────────────────────────────────
+  @Patch(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'Owner updated successfully',
+    type: OwnerResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Owner not found' })
+  @ApiResponse({ status: 409, description: 'Duplicate owner name' })
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateOwnerDto,
+  ): Promise<OwnerResponse> {
+    return this.ownersService.update(id, dto);
+  }
+
+  // ────────────────────────────────────────────────
+  // DELETE
+  // ────────────────────────────────────────────────
+  @Delete(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'Owner deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Owner not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete owner linked to vehicles',
+  })
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ success: boolean }> {
+    return this.ownersService.remove(id);
+  }
+}

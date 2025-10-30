@@ -30,6 +30,7 @@ export const AppButton: FC<AppButtonProps> = ({
   startIcon,
   endIcon,
   children,
+  className,
   ...props
 }) => {
   const isDisabled = disabled || loading;
@@ -38,11 +39,12 @@ export const AppButton: FC<AppButtonProps> = ({
     <button
       disabled={isDisabled}
       className={clsx(
-        "inline-flex items-center justify-center font-medium gap-2 select-none rounded-md transition-all duration-150",
+        "inline-flex items-center justify-center font-medium gap-2 select-none rounded-md transition-all duration-200 cursor-pointer",
         componentTokens.button[variant],
         sizeClasses[size],
         isDisabled && componentTokens.button.disabled,
-        loading && "cursor-wait"
+        loading && "cursor-wait",
+        className
       )}
       {...props}
     >

@@ -23,7 +23,7 @@ export const Topbar: FC<TopbarProps> = ({
   title,
   actions,
   children,
-  showShadow = true,
+  showShadow = false,
 }) => {
   return (
     <header

@@ -23,17 +23,25 @@ export class DriverResponseDto {
     description: 'Email of the driver (if available)',
     example: 'ravi.sharma@example.com',
   })
-  email?: string;
+  email?: string | null;
 
   @ApiProperty({
     description: 'Record creation timestamp',
     example: '2025-10-14T09:45:22.123Z',
   })
-  createdAt: Date;
+  createdAt: string | Date;
 
   @ApiProperty({
     description: 'Record last update timestamp',
     example: '2025-10-14T09:45:22.123Z',
   })
-  updatedAt: Date;
+  updatedAt: string | Date;
+}
+
+export class PaginatedDriverResponseDto {
+  @ApiProperty({ type: [DriverResponseDto] })
+  items: DriverResponseDto[];
+
+  @ApiProperty({ example: 150 })
+  total: number;
 }

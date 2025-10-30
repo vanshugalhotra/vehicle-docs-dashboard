@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FormEmbeddedPanel } from "./FormEmbeddedPanel";
-import { EntityField } from "./FormModal";
+import { EntityField } from "./EntityFieldTypes";
 
 const fields: EntityField[] = [
   { key: "name", label: "Name", type: "text", required: true },
@@ -35,7 +35,11 @@ type Story = StoryObj<typeof FormEmbeddedPanel>;
 export const Default: Story = {};
 
 export const SplitLayout: Story = {
-  args: { layout: "split" },
+  args: {
+    layout: {
+      gridColumns: 2,
+    },
+  },
 };
 
 export const EditMode: Story = {

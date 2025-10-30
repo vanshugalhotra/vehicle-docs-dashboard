@@ -1,54 +1,106 @@
 "use client";
 
-import React, { FC, ReactNode } from "react";
-import clsx from "clsx";
-import { componentTokens } from "@/styles/design-system";
-import { AppButton } from "@/components/ui/AppButton";
+import React, { useState, useEffect } from "react";
 import { AppText } from "@/components/ui/AppText";
+import { AppButton } from "@/components/ui/AppButton";
+import { AppBadge } from "@/components/ui/AppBadge";
+import { AppInput } from "@/components/ui/AppInput";
+import { componentTokens } from "@/styles/design-system/componentTokens";
+import { Search } from "lucide-react";
 
 interface HeaderBarProps {
   title: string;
-  onAdd?: () => void;
-  showAddButton?: boolean;
-  filters?: ReactNode;
-  className?: string;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  addLabel?: string;
+  isEditing?: boolean;
+  onCancelEdit?: () => void;
+  children?: React.ReactNode;
+  rightActions?: React.ReactNode;
+  /** Debounce delay in ms (default 400) */
+  debounceMs?: number;
 }
 
-export const HeaderBar: FC<HeaderBarProps> = ({
+/**
+ * Reusable CRUD page header bar with title, add button, search input,
+ * edit mode indicator, and slots for extra controls.
+ */
+export const HeaderBar: React.FC<HeaderBarProps> = ({
   title,
-  onAdd,
-  showAddButton = true,
-  filters,
-  className,
+  search = "",
+  onSearchChange,
+  isEditing = false,
+  onCancelEdit,
+  children,
+  rightActions,
+  debounceMs = 400,
 }) => {
+  // Local search state for smooth typing
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // Sync external -> local
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  // Debounce + notify parent
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (onSearchChange && localSearch !== search) {
+        onSearchChange(localSearch);
+      }
+    }, debounceMs);
+    return () => clearTimeout(handler);
+  }, [localSearch, debounceMs, onSearchChange, search]);
+
   return (
-    <div
-      className={clsx(
-        componentTokens.layout.section, // Reusable section padding/gap
-        "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
-        className
-      )}
-    >
-      <div className={componentTokens.layout.pageHeader}>
-        <AppText size="heading1" className="font-bold">
+    <div className={componentTokens.layout.pageHeader}>
+      {/* Left Section — Title & Edit Badge */}
+      <div className="flex items-center gap-4">
+        <AppText size="heading2" variant="primary">
           {title}
         </AppText>
 
-        {filters && <div className={componentTokens.layout.pageHeaderActions}>{filters}</div>}
+        {isEditing && (
+          <AppBadge variant="info">
+            <AppText size="caption" variant="secondary">
+              Editing Mode
+            </AppText>
+          </AppBadge>
+        )}
+
+        {/* Optional Custom Controls (left side) */}
+        {children}
       </div>
 
-      {showAddButton && onAdd && (
-        <AppButton
-          variant="primary"
-          onClick={onAdd}
-          size="md"
-          className="shrink-0"
-        >
-          Add {title}
-        </AppButton>
-      )}
+      {/* Right Section — Actions */}
+      <div className="flex items-center gap-3">
+        {/* Optional Search Input */}
+        {onSearchChange && (
+          <AppInput
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder={`Search ${title.toLowerCase()}...`}
+            className="w-lg max-w-lg"
+            prefixIcon={<Search size={18} />}
+          />
+        )}
+
+        {/* Cancel Edit Button */}
+        {isEditing && onCancelEdit && (
+          <AppButton
+            onClick={onCancelEdit}
+            size="sm"
+            variant="secondary"
+            className="px-6"
+          >
+            Cancel Edit
+          </AppButton>
+        )}
+
+        {/* Right-side Actions */}
+        {rightActions}
+      </div>
     </div>
   );
 };
-
-export default HeaderBar;

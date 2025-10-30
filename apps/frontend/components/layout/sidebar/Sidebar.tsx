@@ -2,10 +2,10 @@
 
 import React from "react";
 import clsx from "clsx";
-import { useSidebar } from "./useSidebar";
+import { useSidebar } from "@/hooks/useSidebar";
 import { componentTokens } from "@/styles/design-system";
 import { SidebarNavItem } from "./SidebarNavItem";
-import { sidebarConfig } from "./sidebarConfig";
+import { sidebarConfig } from "@/configs/sidebar.config";
 import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
 import { AppText } from "@/components/ui/AppText";
 
@@ -25,7 +25,7 @@ export const Sidebar: React.FC = () => {
       <div className={componentTokens.sidebar.header}>
         {!isCollapsed && brandItem && (
           <span className={componentTokens.sidebar.brand}>
-            <AppText size="heading2">{brandItem.label}</AppText>
+            <AppText size="heading1">{brandItem.label}</AppText>
           </span>
         )}
         <button

@@ -6,6 +6,7 @@ export const mockPrisma = () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   vehicleType: {
     findUnique: jest.fn(),
@@ -14,8 +15,18 @@ export const mockPrisma = () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   vehicle: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  vehicleDocument: {
     findUnique: jest.fn(),
     findFirst: jest.fn(),
     findMany: jest.fn(),
@@ -31,6 +42,7 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   driver: {
     findFirst: jest.fn(),
@@ -39,6 +51,7 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   location: {
     findFirst: jest.fn(),
@@ -47,6 +60,16 @@ export const mockPrisma = () => ({
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
+  },
+  documentType: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
   },
 });
 

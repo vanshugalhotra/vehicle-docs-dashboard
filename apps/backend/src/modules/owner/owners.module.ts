@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { OwnersController } from './owners.controller';
-import { OwnersService } from './owners.service';
+import { OwnerController } from './owner.controller';
+import { OwnerService } from './owner.service';
+import { OwnerValidationService } from './validation/owner-validation.service';
 
 @Module({
-  controllers: [OwnersController],
-  providers: [OwnersService],
-  exports: [OwnersService],
+  controllers: [OwnerController],
+  providers: [OwnerService, OwnerValidationService],
+  exports: [OwnerService],
 })
 export class OwnersModule {}

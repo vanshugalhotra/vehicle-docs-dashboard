@@ -2,11 +2,13 @@
 
 import React from "react";
 import { Controller, Control, FieldErrors, FieldValues } from "react-hook-form";
-import { EntityField } from "./FormModal";
+import { EntityField } from "./EntityFieldTypes";
 import { AppInput } from "../../ui/AppInput";
 import { AppTextArea } from "../../ui/AppTextArea";
 import { AppSelect } from "../../ui/AppSelect";
 import { AppDatePicker } from "../../ui/AppDatePicker";
+import { AppText } from "../../ui/AppText";
+import { InlineDropdownCreate } from "@/components/crud/InlineDropdownCreate/InlineDropdownCreate";
 
 export interface FormFieldRendererProps {
   field: EntityField;
@@ -19,6 +21,16 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
   control,
   errors,
 }) => {
+  const errorMessage = errors[field.key]?.message as string;
+  const isRequired = field.required;
+
+  const renderLabel = () => (
+    <AppText as="label" size="label" variant="secondary" className="mb-1 block">
+      {field.label}
+      {isRequired && <span className="text-danger ml-1">*</span>}
+    </AppText>
+  );
+
   switch (field.type) {
     case "text":
     case "number":
@@ -27,14 +39,19 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => (
-            <AppInput
-              {...f}
-              value={f.value ?? ""}
-              type={field.type}
-              label={field.label}
-              placeholder={field.placeholder}
-              error={errors[field.key]?.message as string}
-            />
+            <div>
+              {renderLabel()}
+              <AppInput
+                {...f}
+                value={f.value ?? ""}
+                type={field.type}
+                placeholder={field.placeholder}
+                error={errorMessage}
+                className="w-full"
+                aria-invalid={!!errorMessage}
+                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+              />
+            </div>
           )}
         />
       );
@@ -45,13 +62,24 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => (
-            <AppTextArea
-              {...f}
-              value={f.value ?? ""}
-              label={field.label}
-              placeholder={field.placeholder}
-              error={errors[field.key]?.message as string}
-            />
+            <div>
+              {renderLabel()}
+              <AppTextArea
+                {...f}
+                value={f.value ?? ""}
+                label=""
+                placeholder={field.placeholder}
+                error={errorMessage}
+                className="w-full"
+                aria-invalid={!!errorMessage}
+                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+              />
+              {errorMessage && (
+                <AppText size="caption" variant="error" className="mt-1">
+                  {errorMessage}
+                </AppText>
+              )}
+            </div>
           )}
         />
       );
@@ -62,19 +90,57 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => {
-            const selectedOption = field.options?.find(
-              (o) => o.value === f.value
-            );
+            const selectedOption = field.options?.find((o) => o.value === f.value);
+            const placeholderOption = { label: field.placeholder || "Select...", value: "" };
+            const displayOptions = field.placeholder
+              ? [placeholderOption, ...(field.options ?? [])]
+              : field.options ?? [];
+
             return (
-              <AppSelect
-                options={field.options ?? []}
-                value={selectedOption}
-                onChange={(opt) => f.onChange(opt.value)}
-                label={field.label}
-                error={errors[field.key]?.message as string}
-              />
+              <div>
+                {renderLabel()}
+                <AppSelect
+                  options={displayOptions}
+                  value={selectedOption || placeholderOption}
+                  onChange={(opt) => f.onChange(opt.value === "" ? undefined : opt.value)}
+                  label=""
+                  error={errorMessage}
+                  aria-invalid={!!errorMessage}
+                  aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+                />
+                {errorMessage && (
+                  <AppText size="caption" variant="error" className="mt-1">
+                    {errorMessage}
+                  </AppText>
+                )}
+              </div>
             );
           }}
+        />
+      );
+
+    case "asyncSelect":
+      return (
+        <Controller
+          name={field.key}
+          control={control}
+          render={({ field: f }) => (
+            <div>
+              {renderLabel()}
+              <InlineDropdownCreate
+                config={field.inlineConfig!}
+                value={f.value}
+                onChange={f.onChange}
+                placeholder={field.placeholder}
+                error={errorMessage}
+              />
+              {errorMessage && (
+                <AppText size="caption" variant="error" className="mt-1">
+                  {errorMessage}
+                </AppText>
+              )}
+            </div>
+          )}
         />
       );
 
@@ -84,12 +150,23 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => (
-            <AppDatePicker
-              value={f.value ?? null}
-              onChange={f.onChange}
-              label={field.label}
-              error={errors[field.key]?.message as string}
-            />
+            <div>
+              {renderLabel()}
+              <AppDatePicker
+                value={f.value ?? null}
+                onChange={f.onChange}
+                label=""
+                placeholder={field.placeholder}
+                error={errorMessage}
+                aria-invalid={!!errorMessage}
+                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+              />
+              {errorMessage && (
+                <AppText size="caption" variant="error" className="mt-1">
+                  {errorMessage}
+                </AppText>
+              )}
+            </div>
           )}
         />
       );

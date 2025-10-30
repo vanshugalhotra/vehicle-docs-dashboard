@@ -4,6 +4,9 @@ export class VehicleResponseDto {
   @ApiProperty({ example: 'b1f3a2c4-1234-5678-9abc-1234567890ab' })
   id: string;
 
+  @ApiProperty({ example: 'Car (SUV) - 8765' })
+  name: string;
+
   @ApiProperty({ example: 'PB04VS4597' })
   licensePlate: string;
 
@@ -17,7 +20,7 @@ export class VehicleResponseDto {
   engineNumber: string;
 
   @ApiProperty({ example: 'Internal use only', required: false })
-  notes?: string;
+  notes?: string | null;
 
   @ApiProperty({ example: 'b1f3a2c4-1234-5678-9abc-1234567890ab' })
   categoryId: string;
@@ -29,23 +32,47 @@ export class VehicleResponseDto {
     example: 'd3e5f6g7-3456-789a-bcde-34567890abcd',
     required: false,
   })
-  ownerId?: string;
+  ownerId?: string | null;
 
   @ApiProperty({
     example: 'e4f6g7h8-4567-89ab-cdef-4567890abcde',
     required: false,
   })
-  driverId?: string;
+  driverId?: string | null;
 
   @ApiProperty({
     example: 'f5g7h8i9-5678-9abc-def0-567890abcdef',
     required: false,
   })
-  locationId?: string;
+  locationId?: string | null;
 
   @ApiProperty({ example: new Date() })
-  createdAt: Date;
+  createdAt: Date | string;
 
   @ApiProperty({ example: new Date() })
-  updatedAt: Date;
+  updatedAt: Date | string;
+
+  // Add these fields that exist in your API response
+  @ApiProperty({ example: 'Car', required: false })
+  categoryName?: string | null;
+
+  @ApiProperty({ example: 'SUV', required: false })
+  typeName?: string | null;
+
+  @ApiProperty({ example: 'John Doe', required: false })
+  ownerName?: string | null;
+
+  @ApiProperty({ example: 'Mike Smith', required: false })
+  driverName?: string | null;
+
+  @ApiProperty({ example: 'Main Garage', required: false })
+  locationName?: string | null;
+}
+
+export class PaginatedVehicleResponseDto {
+  @ApiProperty({ type: [VehicleResponseDto] })
+  items: VehicleResponseDto[];
+
+  @ApiProperty({ example: 150 })
+  total: number;
 }

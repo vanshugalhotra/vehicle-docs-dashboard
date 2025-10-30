@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { SidebarProvider } from "./SidebarProvider";
+import { SidebarProvider } from "@/lib/providers/SidebarProvider";
 import { Sidebar } from "./Sidebar";
-import { sidebarConfig } from "./sidebarConfig";
+import { sidebarConfig } from "@/configs/sidebar.config";
 import { Car, FileText } from "lucide-react";
 
 const meta: Meta<typeof Sidebar> = {

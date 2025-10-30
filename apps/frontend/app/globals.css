@@ -5,67 +5,67 @@
   /* ============================================ */
   /* SEMANTIC COLOR TOKENS */
   /* ============================================ */
-  
+
   /* Backgrounds & Surfaces */
-  --color-background: #F9FAFB;
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F9FAFB;
-  --color-surface-subtle: #F3F4F6;
+  --color-background: #f4f7fa;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f9fafb;
+  --color-surface-subtle: #f3f4f6;
 
   /* Text Colors */
   --color-text-primary: #111827;
-  --color-text-secondary: #4B5563;
-  --color-text-tertiary: #9CA3AF;
-  --color-text-inverse: #FFFFFF;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
 
   /* Borders */
-  --color-border: #E5E7EB;
+  --color-border: #e5e7eb;
   --color-border-subtle: #e3e7ef;
-  --color-border-hover: #D1D5DB;
-  --color-border-focus: #2563EB;
+  --color-border-hover: #d1d5db;
+  --color-border-focus: #2563eb;
 
   /* Primary */
-  --color-primary: #04a9f5;;
+  --color-primary: #04a9f5;
   --color-primary-hover: #0288d1;
-  --color-primary-light: #EFF6FF;
-  --color-primary-light-hover: #DBEAFE;
+  --color-primary-light: #eff6ff;
+  --color-primary-light-hover: #dbeafe;
 
   /* Secondary */
-  --color-secondary: #F3F4F6;
-  --color-secondary-hover: #E5E7EB;
+  --color-secondary: #f3f4f6;
+  --color-secondary-hover: #e5e7eb;
   --color-secondary-text: #374151;
 
   /* Success */
-  --color-success: #16A34A;
-  --color-success-hover: #15803D;
-  --color-success-light: #F0FDF4;
-  --color-success-light-hover: #DCFCE7;
-  --color-success-text: #15803D;
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-light: #f0fdf4;
+  --color-success-light-hover: #dcfce7;
+  --color-success-text: #15803d;
 
   /* Warning */
-  --color-warning: #D97706;
-  --color-warning-hover: #B45309;
-  --color-warning-light: #FFFBEB;
-  --color-warning-light-hover: #FEF3C7;
-  --color-warning-text: #B45309;
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-light: #fffbeb;
+  --color-warning-light-hover: #fef3c7;
+  --color-warning-text: #b45309;
 
   /* Danger */
-  --color-danger: #DC2626;
-  --color-danger-hover: #B91C1C;
-  --color-danger-light: #FEF2F2;
-  --color-danger-light-hover: #FEE2E2;
-  --color-danger-text: #B91C1C;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-light: #fef2f2;
+  --color-danger-light-hover: #fee2e2;
+  --color-danger-text: #b91c1c;
 
   /* Info */
-  --color-info: #0284C7;
-  --color-info-hover: #0369A1;
-  --color-info-light: #F0F9FF;
-  --color-info-light-hover: #E0F2FE;
-  --color-info-text: #0369A1;
+  --color-info: #0284c7;
+  --color-info-hover: #0369a1;
+  --color-info-light: #dcedf8;
+  --color-info-light-hover: #e0f2fe;
+  --color-info-text: #0369a1;
 
   /* Special States */
-  --color-disabled: #F3F4F6;
-  --color-disabled-text: #9CA3AF;
+  --color-disabled: #f3f4f6;
+  --color-disabled-text: #9ca3af;
   --color-sidebar-hover: #39465f;
   --color-overlay: rgba(0, 0, 0, 0.5);
 }
@@ -75,7 +75,7 @@
   /* TAILWIND THEME EXTENSION */
   /* Map CSS variables to Tailwind utility classes */
   /* ============================================ */
-  
+
   /* Backgrounds & Surfaces */
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
@@ -149,4 +149,25 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-sans, Arial, sans-serif);
   font-weight: 400;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
 }

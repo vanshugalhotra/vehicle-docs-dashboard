@@ -1,0 +1,152 @@
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { LoggerService } from 'src/common/logger/logger.service';
+import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { CreateLocationDto } from './dto/create-location.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
+import { mapLocationToResponse } from './location.mapper';
+import { LocationResponse } from 'src/common/types';
+import { Prisma } from '@prisma/client';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { PaginatedLocationResponseDto } from './dto/location-response';
+import { LocationValidationService } from './validation/location-validation.service';
+
+@Injectable()
+export class LocationService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
+    private readonly validationService: LocationValidationService,
+  ) {}
+
+  async create(dto: CreateLocationDto): Promise<LocationResponse> {
+    const name = dto.name;
+    this.logger.info(`Creating location: ${name}`);
+    try {
+      await this.validationService.validateCreate(name);
+      const location = await this.prisma.location.create({
+        data: { name },
+      });
+      this.logger.info(`Location created: ${location.id}`);
+      return mapLocationToResponse(location);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
+  }
+
+  async findAll(query: QueryOptionsDto): Promise<PaginatedLocationResponseDto> {
+    this.logger.debug(
+      `Fetching locations with params: ${JSON.stringify(query, null, 2)}`,
+    );
+
+    try {
+      const queryArgs = buildQueryArgs<
+        LocationResponse,
+        Prisma.LocationWhereInput
+      >(
+        query,
+        ['name'], // Searchable fields
+      );
+
+      const [locations, total] = await Promise.all([
+        this.prisma.location.findMany({
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          orderBy: queryArgs.orderBy,
+        }),
+        this.prisma.location.count({ where: queryArgs.where }),
+      ]);
+
+      this.logger.info(`Fetched ${locations.length} of ${total} locations`);
+
+      return {
+        items: locations.map(mapLocationToResponse),
+        total,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
+  }
+
+  async findOne(id: string): Promise<LocationResponse> {
+    this.logger.info(`Fetching location by id: ${id}`);
+    try {
+      const location = await this.prisma.location.findUnique({ where: { id } });
+      if (!location) {
+        this.logger.warn(`Location not found: ${id}`);
+        throw new NotFoundException(`Location with id ${id} not found`);
+      }
+      return mapLocationToResponse(location);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
+  }
+
+  async update(id: string, dto: UpdateLocationDto): Promise<LocationResponse> {
+    this.logger.info(`Updating location: ${id}`);
+    try {
+      const location = await this.validationService.validateUpdate(
+        id,
+        dto.name,
+      );
+      const updated = await this.prisma.location.update({
+        where: { id },
+        data: { name: dto.name ?? location.name },
+      });
+      this.logger.info(`Location updated: ${updated.id}`);
+      return mapLocationToResponse(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
+  }
+
+  async remove(id: string): Promise<{ success: boolean }> {
+    this.logger.info(`Deleting location: ${id}`);
+    try {
+      const location = await this.prisma.location.findUnique({ where: { id } });
+      if (!location) {
+        this.logger.warn(`Delete failed, location not found: ${id}`);
+        throw new NotFoundException(`Location with id ${id} not found`);
+      }
+
+      const linkedVehicles = await this.prisma.vehicle.count({
+        where: { locationId: id },
+      });
+      if (linkedVehicles > 0) {
+        this.logger.warn(
+          `Delete failed, location has ${linkedVehicles} assigned vehicle(s): ${id}`,
+        );
+        throw new ConflictException(
+          `Cannot delete location "${location.name}" because ${linkedVehicles} vehicle(s) are assigned`,
+        );
+      }
+
+      await this.prisma.location.delete({ where: { id } });
+      this.logger.info(`Location deleted: ${id}`);
+      return { success: true };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Location');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
+  }
+}

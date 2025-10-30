@@ -6,6 +6,7 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
+import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateOwnerDto {
   @ApiProperty({
@@ -22,5 +23,6 @@ export class CreateOwnerDto {
   @MaxLength(50, {
     message: 'Owner name must be at most 50 characters.',
   })
+  @Trim()
   name: string;
 }
