@@ -3,6 +3,30 @@ import { createTestModule } from '../../../../test/utils/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
+import { DocumentTypeValidationService } from '../validation/document-type-validation.service';
+import { DocumentType } from '@prisma/client';
+
+const mockDocumentType: DocumentType = {
+  id: 'doc1',
+  name: 'Insurance Certificate',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+const mockDocumentTypeValidationService = {
+  // 1. validateCreate: returns void/null, but we mock resolved value
+  validateCreate: jest.fn().mockResolvedValue(null),
+
+  // 2. validateUpdate: returns DocumentType. Mock the implementation to pass by default.
+  validateUpdate: jest.fn().mockImplementation(
+    (id: string, name?: string) =>
+      ({
+        ...mockDocumentType,
+        id,
+        name: name ?? mockDocumentType.name,
+      }) as DocumentType,
+  ),
+};
 
 describe('DocumentTypesService', () => {
   let service: DocumentTypesService;
@@ -10,7 +34,25 @@ describe('DocumentTypesService', () => {
   let logger: MockedLogger;
 
   beforeEach(async () => {
-    const setup = await createTestModule(DocumentTypesService);
+    // Reset mocks
+    jest.clearAllMocks();
+    mockDocumentTypeValidationService.validateCreate.mockResolvedValue(null);
+    mockDocumentTypeValidationService.validateUpdate.mockImplementation(
+      (id: string, name?: string) =>
+        ({
+          ...mockDocumentType,
+          id,
+          name: name ?? mockDocumentType.name,
+        }) as DocumentType,
+    );
+
+    // Setup module with the validation service mock
+    const setup = await createTestModule(DocumentTypesService, [
+      {
+        provide: DocumentTypeValidationService,
+        useValue: mockDocumentTypeValidationService,
+      },
+    ]);
     service = setup.service;
     prisma = setup.mocks.prisma;
     logger = setup.mocks.logger;
@@ -23,15 +65,14 @@ describe('DocumentTypesService', () => {
   // ────────────────────────────────────────────────
   describe('create', () => {
     it('should create document type successfully', async () => {
-      prisma.documentType.findFirst.mockResolvedValue(null);
-      prisma.documentType.create.mockResolvedValue({
-        id: 'doc1',
-        name: 'Insurance Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // ⚠️ FIX: Remove Prisma findFirst mock, as validation service handles uniqueness
+      prisma.documentType.create.mockResolvedValue(mockDocumentType);
 
       const result = await service.create({ name: 'Insurance Certificate' });
+
+      expect(
+        mockDocumentTypeValidationService.validateCreate,
+      ).toHaveBeenCalledWith('Insurance Certificate');
       expect(result.name).toBe('Insurance Certificate');
       expect(prisma.documentType.create).toHaveBeenCalledWith({
         data: { name: 'Insurance Certificate' },
@@ -42,18 +83,19 @@ describe('DocumentTypesService', () => {
     });
 
     it('should throw ConflictException if document type already exists (case-insensitive)', async () => {
-      prisma.documentType.findFirst.mockResolvedValue({
-        id: 'doc1',
-        name: 'insurance certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // ⚠️ FIX: Mock the validation service to throw the exception
+      mockDocumentTypeValidationService.validateCreate.mockRejectedValueOnce(
+        new ConflictException(
+          'Document type with name "Insurance Certificate" already exists',
+        ),
+      );
+      // Remove Prisma findFirst mock
+
       await expect(
         service.create({ name: 'Insurance Certificate' }),
       ).rejects.toThrow(ConflictException);
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('already exists'),
-      );
+
+      // Removed the logger.warn check because the warning is now expected to come from the validation service, not the service layer.
     });
   });
 
@@ -68,13 +110,13 @@ describe('DocumentTypesService', () => {
           name: 'Insurance Certificate',
           createdAt: new Date(),
           updatedAt: new Date(),
-        },
+        } as DocumentType,
         {
           id: '2',
           name: 'Pollution Certificate',
           createdAt: new Date(),
           updatedAt: new Date(),
-        },
+        } as DocumentType,
       ]);
       const result = await service.findAll({});
       expect(result.items).toHaveLength(2);
@@ -91,7 +133,7 @@ describe('DocumentTypesService', () => {
           name: 'Insurance Certificate',
           createdAt: new Date(),
           updatedAt: new Date(),
-        },
+        } as DocumentType,
       ]);
       const result = await service.findAll({ search: 'insurance' });
       expect(result.items).toHaveLength(1);
@@ -103,14 +145,9 @@ describe('DocumentTypesService', () => {
   // ────────────────────────────────────────────────
   describe('findOne', () => {
     it('should return document type by id', async () => {
-      prisma.documentType.findUnique.mockResolvedValue({
-        id: '1',
-        name: 'Insurance Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      prisma.documentType.findUnique.mockResolvedValue(mockDocumentType);
       const result = await service.findOne('1');
-      expect(result.name).toBe('Insurance Certificate');
+      expect(result.name).toBe(mockDocumentType.name);
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('Fetching document type by id'),
       );
@@ -130,57 +167,45 @@ describe('DocumentTypesService', () => {
   // ────────────────────────────────────────────────
   describe('update', () => {
     it('should update document type name successfully', async () => {
-      prisma.documentType.findUnique.mockResolvedValueOnce({
-        id: '1',
-        name: 'Old Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      prisma.documentType.findFirst.mockResolvedValueOnce(null);
+      const newName = 'Updated Certificate';
+
       prisma.documentType.update.mockResolvedValue({
-        id: '1',
-        name: 'Updated Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        ...mockDocumentType,
+        name: newName,
       });
 
-      const result = await service.update('1', { name: 'Updated Certificate' });
-      expect(result.name).toBe('Updated Certificate');
+      const result = await service.update('1', { name: newName });
+
+      expect(
+        mockDocumentTypeValidationService.validateUpdate,
+      ).toHaveBeenCalledWith('1', newName);
+      expect(result.name).toBe(newName);
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('Updating document type'),
       );
     });
 
     it('should throw NotFoundException if document type not found', async () => {
-      prisma.documentType.findUnique.mockResolvedValueOnce(null);
+      mockDocumentTypeValidationService.validateUpdate.mockRejectedValueOnce(
+        new NotFoundException('Document type with id "x" not found'),
+      );
+      // Remove prisma.documentType.findUnique mock
+
       await expect(service.update('x', { name: 'New Name' })).rejects.toThrow(
         NotFoundException,
-      );
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('not found'),
       );
     });
 
     it('should throw ConflictException if new name already exists', async () => {
-      prisma.documentType.findUnique.mockResolvedValueOnce({
-        id: '1',
-        name: 'Old Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      prisma.documentType.findFirst.mockResolvedValueOnce({
-        id: '2',
-        name: 'New Certificate',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      mockDocumentTypeValidationService.validateUpdate.mockRejectedValueOnce(
+        new ConflictException(
+          'Document type with name "New Certificate" already exists',
+        ),
+      );
 
       await expect(
         service.update('1', { name: 'New Certificate' }),
       ).rejects.toThrow(ConflictException);
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('duplicate document type name'),
-      );
     });
   });
 
@@ -188,6 +213,7 @@ describe('DocumentTypesService', () => {
   // REMOVE
   // ────────────────────────────────────────────────
   describe('remove', () => {
+    // NOTE: This test block remains untouched as it does not use the new validation service pattern
     it('should throw NotFoundException if document type not found', async () => {
       prisma.documentType.findUnique.mockResolvedValue(null);
       await expect(service.remove('abc')).rejects.toThrow(NotFoundException);

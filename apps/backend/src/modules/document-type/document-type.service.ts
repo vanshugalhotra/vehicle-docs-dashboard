@@ -1,6 +1,5 @@
 import {
   Injectable,
-  ConflictException,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -15,29 +14,21 @@ import { Prisma } from '@prisma/client';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedDocumentTypeResponseDto } from './dto/document-type-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { DocumentTypeValidationService } from './validation/document-type-validation.service';
 
 @Injectable()
 export class DocumentTypesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly validationService: DocumentTypeValidationService,
   ) {}
 
   async create(dto: CreateDocumentTypeDto): Promise<DocumentTypeResponse> {
     const name = dto.name;
     this.logger.info(`Creating document type: ${name}`);
     try {
-      const existing = await this.prisma.documentType.findFirst({
-        where: { name: { equals: name, mode: 'insensitive' } },
-      });
-      if (existing) {
-        this.logger.warn(
-          `Document type creation failed, already exists: ${name}`,
-        );
-        throw new ConflictException(
-          `Document type with name "${name}" already exists`,
-        );
-      }
+      await this.validationService.validateCreate(name);
 
       const documentType = await this.prisma.documentType.create({
         data: { name: name },
@@ -45,7 +36,10 @@ export class DocumentTypesService {
       this.logger.info(`Document type created: ${documentType.id}`);
       return mapDocumentTypeToResponse(documentType);
     } catch (error) {
-      handlePrismaError(error, 'DocumentType');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'DocumentType');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -84,7 +78,10 @@ export class DocumentTypesService {
         total,
       };
     } catch (error) {
-      handlePrismaError(error, 'DocumentType');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'DocumentType');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -100,7 +97,10 @@ export class DocumentTypesService {
       }
       return mapDocumentTypeToResponse(documentType);
     } catch (error) {
-      handlePrismaError(error, 'DocumentType');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'DocumentType');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -110,36 +110,22 @@ export class DocumentTypesService {
   ): Promise<DocumentTypeResponse> {
     this.logger.info(`Updating document type: ${id}`);
     try {
-      const documentType = await this.prisma.documentType.findUnique({
-        where: { id },
-      });
-      if (!documentType) {
-        this.logger.warn(`Update failed, document type not found: ${id}`);
-        throw new NotFoundException(`Document type with id ${id} not found`);
-      }
-      const name = dto.name;
-      if (name && name !== documentType.name) {
-        const existing = await this.prisma.documentType.findFirst({
-          where: { name: { equals: name, mode: 'insensitive' } },
-        });
-        if (existing) {
-          this.logger.warn(
-            `Update failed, duplicate document type name: ${name}`,
-          );
-          throw new ConflictException(
-            `Document type with name "${name}" already exists`,
-          );
-        }
-      }
+      const documentType = await this.validationService.validateUpdate(
+        id,
+        dto.name,
+      );
 
       const updated = await this.prisma.documentType.update({
         where: { id },
-        data: { name: name ?? documentType.name },
+        data: { name: dto.name ?? documentType.name },
       });
       this.logger.info(`Document type updated: ${updated.id}`);
       return mapDocumentTypeToResponse(updated);
     } catch (error) {
-      handlePrismaError(error, 'DocumentType');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'DocumentType');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -171,7 +157,10 @@ export class DocumentTypesService {
       this.logger.info(`Document type deleted: ${id}`);
       return { success: true };
     } catch (error) {
-      handlePrismaError(error, 'DocumentType');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'DocumentType');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 }

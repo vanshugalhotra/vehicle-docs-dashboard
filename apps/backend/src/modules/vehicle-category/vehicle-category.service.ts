@@ -14,33 +14,21 @@ import { Prisma } from '@prisma/client';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedCategoryResponseDto } from './dto/vehicle-category-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { VehicleCategoryValidationService } from './validation/vehicle-category-validation.service';
 
 @Injectable()
 export class VehicleCategoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly validationService: VehicleCategoryValidationService,
   ) {}
 
   async create(dto: CreateCategoryDto): Promise<VehicleCategoryResponse> {
     const name = dto.name;
     this.logger.info(`Creating vehicle category: ${name}`);
     try {
-      const existing = await this.prisma.vehicleCategory.findFirst({
-        where: {
-          name: {
-            equals: name,
-            mode: 'insensitive',
-          },
-        },
-      });
-      if (existing) {
-        this.logger.warn(`Category creation failed, already exists: ${name}`);
-        throw new ConflictException(
-          `Vehicle category with name "${name}" already exists`,
-        );
-      }
-
+      await this.validationService.validateCreate(name);
       const category = await this.prisma.vehicleCategory.create({
         data: { name: name },
       });
@@ -48,7 +36,10 @@ export class VehicleCategoryService {
       this.logger.info(`Vehicle category created: ${category.id}`);
       return mapCategoryToResponse(category);
     } catch (error) {
-      handlePrismaError(error, 'Vehicle category');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'VehicleCategory');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -81,7 +72,10 @@ export class VehicleCategoryService {
         total,
       };
     } catch (error) {
-      handlePrismaError(error, 'Vehicle category');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'VehicleCategory');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -98,7 +92,10 @@ export class VehicleCategoryService {
       }
       return mapCategoryToResponse(category);
     } catch (error) {
-      handlePrismaError(error, 'Vehicle category');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'VehicleCategory');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -108,27 +105,8 @@ export class VehicleCategoryService {
   ): Promise<VehicleCategoryResponse> {
     this.logger.info(`Updating vehicle category: ${id}`);
     try {
-      const category = await this.prisma.vehicleCategory.findUnique({
-        where: { id },
-      });
-      if (!category) {
-        this.logger.warn(`Update failed, category not found: ${id}`);
-        throw new NotFoundException(`Vehicle category with id ${id} not found`);
-      }
-
       const name = dto.name;
-
-      if (name && name !== category.name) {
-        const existing = await this.prisma.vehicleCategory.findUnique({
-          where: { name: name },
-        });
-        if (existing) {
-          this.logger.warn(`Update failed, duplicate category name: ${name}`);
-          throw new ConflictException(
-            `Vehicle category with name "${name}" already exists`,
-          );
-        }
-      }
+      const category = await this.validationService.validateUpdate(id, name);
 
       const updated = await this.prisma.vehicleCategory.update({
         where: { id },
@@ -171,7 +149,10 @@ export class VehicleCategoryService {
       this.logger.info(`Vehicle category deleted: ${id}`);
       return { success: true };
     } catch (error) {
-      handlePrismaError(error, 'Vehicle category');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'VehicleCategory');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 }
