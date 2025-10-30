@@ -30,10 +30,11 @@ export class CreateVehicleDocumentDto {
     example: 'DOC-INS-1234567890',
   })
   @IsString()
-  @MaxLength(100)
-  @Matches(/^[a-zA-Z0-9-]+$/, {
-    message: 'documentNo must be alphanumeric (letters, numbers, hyphens only)',
+  @Matches(/^[a-zA-Z0-9\s/._-]+$/, {
+    message:
+      'documentNo can contain letters, numbers, spaces, slashes, dots, hyphens, and underscores',
   })
+  @MaxLength(50) // Reduced from 100 for better UX
   documentNo: string;
 
   @ApiProperty({

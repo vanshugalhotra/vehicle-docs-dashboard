@@ -5,3 +5,4 @@ export * from './owner.types';
 export * from './driver.types';
 export * from './location.types';
 export * from './document-type.types';
+export * from './vehicle-document.types';
