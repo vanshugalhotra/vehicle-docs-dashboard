@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -14,96 +10,73 @@ import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { PaginatedVehicleResponseDto } from './dto/vehicle-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { VehicleValidationService } from './validation/vehicle-validation.service';
 
 @Injectable()
 export class VehicleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly vehicleValidation: VehicleValidationService,
   ) {}
 
   /**
    * Create a new vehicle
    */
   async create(dto: CreateVehicleDto): Promise<VehicleResponse> {
-    // Normalize input (uppercase for consistency)
-    const normalized = {
-      licensePlate: dto.licensePlate.toUpperCase(),
-      rcNumber: dto.rcNumber.toUpperCase(),
-      chassisNumber: dto.chassisNumber.toUpperCase(),
-      engineNumber: dto.engineNumber.toUpperCase(),
-    };
+    try {
+      // Normalize input (uppercase for consistency)
+      const normalized = {
+        licensePlate: dto.licensePlate.toUpperCase(),
+        rcNumber: dto.rcNumber.toUpperCase(),
+        chassisNumber: dto.chassisNumber.toUpperCase(),
+        engineNumber: dto.engineNumber.toUpperCase(),
+      };
 
-    const existing = await this.prisma.vehicle.findFirst({
-      where: {
-        OR: [
-          {
-            licensePlate: {
-              equals: normalized.licensePlate,
-              mode: 'insensitive',
-            },
-          },
-          { rcNumber: { equals: normalized.rcNumber, mode: 'insensitive' } },
-          {
-            chassisNumber: {
-              equals: normalized.chassisNumber,
-              mode: 'insensitive',
-            },
-          },
-          {
-            engineNumber: {
-              equals: normalized.engineNumber,
-              mode: 'insensitive',
-            },
-          },
-        ],
-      },
-    });
-    if (existing) {
-      this.logger.warn('Vehicle with same identifiers already exists');
-      throw new ConflictException(
-        'Vehicle with same identifiers already exists',
+      await this.vehicleValidation.validateCreate(
+        normalized.licensePlate,
+        normalized.rcNumber,
+        normalized.chassisNumber,
+        normalized.engineNumber,
+        dto.categoryId,
+        dto.typeId,
       );
+
+      // Fetch category and type names for generating the vehicle name
+      const category = await this.prisma.vehicleCategory.findUnique({
+        where: { id: dto.categoryId },
+      });
+      const type = await this.prisma.vehicleType.findUnique({
+        where: { id: dto.typeId },
+      });
+
+      // Generate name: "Category (Type) - LicensePlate"
+      const vehicleName = `${category!.name} (${type!.name}) - ${normalized.licensePlate}`;
+
+      const vehicle = await this.prisma.vehicle.create({
+        data: {
+          name: vehicleName,
+          licensePlate: normalized.licensePlate,
+          rcNumber: normalized.rcNumber,
+          chassisNumber: normalized.chassisNumber,
+          engineNumber: normalized.engineNumber,
+          notes: dto.notes ?? null,
+          categoryId: dto.categoryId,
+          typeId: dto.typeId,
+          ownerId: dto.ownerId ?? null,
+          driverId: dto.driverId ?? null,
+          locationId: dto.locationId ?? null,
+        },
+      });
+
+      this.logger.info(`Created vehicle ${vehicle.id} - ${vehicle.name}`);
+      return mapVehicleToResponse(vehicle);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Vehicle');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
-
-    // Fetch category and type names for generating the vehicle name
-    const category = await this.prisma.vehicleCategory.findUnique({
-      where: { id: dto.categoryId },
-    });
-    const type = await this.prisma.vehicleType.findUnique({
-      where: { id: dto.typeId },
-    });
-
-    if (!category) throw new NotFoundException(`Category not found`);
-    if (!type) throw new NotFoundException(`Type not found`);
-
-    if (type.categoryId !== dto.categoryId) {
-      throw new ConflictException(
-        `Vehicle type "${type.name}" does not belong to category "${category.name}"`,
-      );
-    }
-
-    // Generate name: "Category (Type) - LicensePlate"
-    const vehicleName = `${category.name} (${type.name}) - ${normalized.licensePlate}`;
-
-    const vehicle = await this.prisma.vehicle.create({
-      data: {
-        name: vehicleName,
-        licensePlate: normalized.licensePlate,
-        rcNumber: normalized.rcNumber,
-        chassisNumber: normalized.chassisNumber,
-        engineNumber: normalized.engineNumber,
-        notes: dto.notes ?? null,
-        categoryId: dto.categoryId,
-        typeId: dto.typeId,
-        ownerId: dto.ownerId ?? null,
-        driverId: dto.driverId ?? null,
-        locationId: dto.locationId ?? null,
-      },
-    });
-
-    this.logger.info(`Created vehicle ${vehicle.id} - ${vehicle.name}`);
-    return mapVehicleToResponse(vehicle);
   }
 
   /**
@@ -170,8 +143,10 @@ export class VehicleService {
         total,
       };
     } catch (error) {
-      this.logger.error('Error fetching vehicles', { error });
-      handlePrismaError(error, 'Vehicle');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Vehicle');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -179,142 +154,121 @@ export class VehicleService {
    * Get a single vehicle by ID
    */
   async findOne(id: string): Promise<VehicleResponse> {
-    const vehicle = await this.prisma.vehicle.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        type: true,
-        owner: true,
-        driver: true,
-        location: true,
-        documents: true,
-      },
-    });
+    try {
+      const vehicle = await this.prisma.vehicle.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          type: true,
+          owner: true,
+          driver: true,
+          location: true,
+          documents: true,
+        },
+      });
 
-    if (!vehicle)
-      throw new NotFoundException(`Vehicle with id ${id} not found`);
-    return mapVehicleToResponse(vehicle);
+      if (!vehicle)
+        throw new NotFoundException(`Vehicle with id ${id} not found`);
+      return mapVehicleToResponse(vehicle);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Vehicle');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
   }
 
   /**
    * Update a vehicle
    */
   async update(id: string, dto: UpdateVehicleDto): Promise<VehicleResponse> {
-    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
-    if (!vehicle)
-      throw new NotFoundException(`Vehicle with id ${id} not found`);
+    try {
+      // Normalize input if provided
+      const normalized = {
+        licensePlate: dto.licensePlate?.toUpperCase(),
+        rcNumber: dto.rcNumber?.toUpperCase(),
+        chassisNumber: dto.chassisNumber?.toUpperCase(),
+        engineNumber: dto.engineNumber?.toUpperCase(),
+      };
 
-    // Normalize input if provided
-    const normalized = {
-      licensePlate: dto.licensePlate?.toUpperCase(),
-      rcNumber: dto.rcNumber?.toUpperCase(),
-      chassisNumber: dto.chassisNumber?.toUpperCase(),
-      engineNumber: dto.engineNumber?.toUpperCase(),
-    };
-
-    // Check for uniqueness conflicts if any of the fields are being updated
-    if (
-      dto.licensePlate ||
-      dto.rcNumber ||
-      dto.chassisNumber ||
-      dto.engineNumber
-    ) {
-      const conflict = await this.prisma.vehicle.findFirst({
-        where: {
-          AND: { id: { not: id } },
-          OR: [
-            { licensePlate: normalized.licensePlate },
-            { rcNumber: normalized.rcNumber },
-            { chassisNumber: normalized.chassisNumber },
-            { engineNumber: normalized.engineNumber },
-          ],
-        },
-      });
-      if (conflict)
-        throw new ConflictException(
-          'Another vehicle with same identifiers exists',
+      // Use validation service
+      const { vehicle, category, type } =
+        await this.vehicleValidation.validateUpdate(
+          id,
+          normalized.licensePlate,
+          normalized.rcNumber,
+          normalized.chassisNumber,
+          normalized.engineNumber,
+          dto.categoryId,
+          dto.typeId,
         );
-    }
 
-    // Validate category-type relationship if either is being updated
-    if (dto.categoryId || dto.typeId) {
-      const categoryId = dto.categoryId ?? vehicle.categoryId;
-      const typeId = dto.typeId ?? vehicle.typeId;
+      // If categoryId, typeId, or licensePlate is updated, regenerate name
+      const updatedData: Partial<UpdateVehicleDto & { name?: string }> = {
+        ...dto,
+      };
 
-      const type = await this.prisma.vehicleType.findUnique({
-        where: { id: typeId },
-        include: { category: true },
-      });
+      // Add normalized fields if provided
+      if (normalized.licensePlate)
+        updatedData.licensePlate = normalized.licensePlate;
+      if (normalized.rcNumber) updatedData.rcNumber = normalized.rcNumber;
+      if (normalized.chassisNumber)
+        updatedData.chassisNumber = normalized.chassisNumber;
+      if (normalized.engineNumber)
+        updatedData.engineNumber = normalized.engineNumber;
 
-      if (!type) throw new NotFoundException('Type not found');
+      // Regenerate name if category, type, or license plate changed (business logic)
+      if (dto.categoryId || dto.typeId || dto.licensePlate) {
+        const finalLicensePlate =
+          normalized.licensePlate ?? vehicle.licensePlate;
 
-      // Check if the type belongs to the category
-      if (type.categoryId !== categoryId) {
-        const category = await this.prisma.vehicleCategory.findUnique({
-          where: { id: categoryId },
-        });
-        throw new ConflictException(
-          `Vehicle type "${type.name}" does not belong to category "${category?.name}"`,
-        );
+        // Use already fetched category/type or fetch if not available
+        const finalCategory =
+          category ||
+          (await this.prisma.vehicleCategory.findUnique({
+            where: { id: dto.categoryId ?? vehicle.categoryId },
+          }));
+        const finalType =
+          type ||
+          (await this.prisma.vehicleType.findUnique({
+            where: { id: dto.typeId ?? vehicle.typeId },
+          }));
+
+        updatedData.name = `${finalCategory!.name} (${finalType!.name}) - ${finalLicensePlate}`;
       }
+      const updated = await this.prisma.vehicle.update({
+        where: { id },
+        data: updatedData,
+      });
+
+      this.logger.info(`Updated vehicle ${updated.id} - ${updated.name}`);
+
+      return mapVehicleToResponse(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Vehicle');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
-
-    // If categoryId, typeId, or licensePlate is updated, regenerate name
-    const updatedData: Partial<UpdateVehicleDto & { name?: string }> = {
-      ...dto,
-    };
-
-    if (dto.categoryId || dto.typeId || dto.licensePlate) {
-      const category = dto.categoryId
-        ? await this.prisma.vehicleCategory.findUnique({
-            where: { id: dto.categoryId },
-          })
-        : await this.prisma.vehicleCategory.findUnique({
-            where: { id: vehicle.categoryId },
-          });
-      const type = dto.typeId
-        ? await this.prisma.vehicleType.findUnique({
-            where: { id: dto.typeId },
-          })
-        : await this.prisma.vehicleType.findUnique({
-            where: { id: vehicle.typeId },
-          });
-
-      if (!category) throw new NotFoundException('Category not found');
-      if (!type) throw new NotFoundException('Type not found');
-
-      const license = normalized.licensePlate ?? vehicle.licensePlate;
-      updatedData.name = `${category.name} (${type.name}) - ${license}`;
-    }
-
-    if (normalized.licensePlate)
-      updatedData.licensePlate = normalized.licensePlate;
-    if (normalized.rcNumber) updatedData.rcNumber = normalized.rcNumber;
-    if (normalized.chassisNumber)
-      updatedData.chassisNumber = normalized.chassisNumber;
-    if (normalized.engineNumber)
-      updatedData.engineNumber = normalized.engineNumber;
-
-    const updated = await this.prisma.vehicle.update({
-      where: { id },
-      data: updatedData,
-    });
-
-    this.logger.info(`Updated vehicle ${updated.id} - ${updated.name}`);
-
-    return mapVehicleToResponse(updated);
   }
 
   /**
    * Delete a vehicle
    */
   async remove(id: string): Promise<{ success: boolean }> {
-    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
-    if (!vehicle)
-      throw new NotFoundException(`Vehicle with id ${id} not found`);
+    try {
+      const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+      if (!vehicle)
+        throw new NotFoundException(`Vehicle with id ${id} not found`);
 
-    await this.prisma.vehicle.delete({ where: { id } });
-    this.logger.info(`Deleted vehicle ${vehicle.id} - ${vehicle.name}`);
-    return { success: true };
+      await this.prisma.vehicle.delete({ where: { id } });
+      this.logger.info(`Deleted vehicle ${vehicle.id} - ${vehicle.name}`);
+      return { success: true };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Vehicle');
+      }
+      throw error; // Re-throw NestJS exceptions
+    }
   }
 }

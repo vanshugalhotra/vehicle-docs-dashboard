@@ -451,8 +451,14 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     it('should reject update with invalid FK (409)', async () => {
       await request(server)
         .patch(`/api/v1/vehicles/${vehicleB.id}`)
-        .send({ categoryId: '047529c1-5f9e-43e0-9929-d9e56e7d32e6' })
+        .send({ categoryId: categoryIdA, typeId: typeIdB })
         .expect(409);
+    });
+    it('should reject update with invalid category(404)', async () => {
+      await request(server)
+        .patch(`/api/v1/vehicles/${vehicleB.id}`)
+        .send({ categoryId: '047529c1-5f9e-43e0-9929-d9e56e7d32e6' })
+        .expect(404);
     });
 
     it('changing category/type name externally should NOT retroactively change vehicle name (expected current behaviour)', async () => {
