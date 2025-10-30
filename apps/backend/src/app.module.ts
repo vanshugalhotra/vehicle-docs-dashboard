@@ -12,12 +12,14 @@ import { DriversModule } from './modules/driver/drivers.module';
 import { LocationsModule } from './modules/location/locations.module';
 import { DocumentTypesModule } from './modules/document-type/document-types.module';
 import { VehicleDocumentsModule } from './modules/vehicle-document/vehicle-documents.module';
+import { ValidationModule } from './common/validation/validation.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     LoggerModule,
+    ValidationModule,
     VehiclesModule,
     VehicleCategoriesModule,
     VehicleTypesModule,

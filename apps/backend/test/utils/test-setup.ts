@@ -3,6 +3,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { LoggerService } from '../../src/common/logger/logger.service';
 import { mockPrisma, MockedPrisma } from './mock-prisma';
 import { mockLogger, MockedLogger } from './mock-logger';
+import { Provider } from '@nestjs/common';
 
 export interface MockContext {
   prisma: MockedPrisma;
@@ -11,6 +12,7 @@ export interface MockContext {
 
 export async function createTestModule<T>(
   provider: new (...args: any[]) => T,
+  specificProviders: Provider[] = [],
 ): Promise<{ module: TestingModule; service: T; mocks: MockContext }> {
   const prisma = mockPrisma();
   const logger = mockLogger();
@@ -20,6 +22,7 @@ export async function createTestModule<T>(
       provider,
       { provide: PrismaService, useValue: prisma },
       { provide: LoggerService, useValue: logger },
+      ...specificProviders,
     ],
   }).compile();
 

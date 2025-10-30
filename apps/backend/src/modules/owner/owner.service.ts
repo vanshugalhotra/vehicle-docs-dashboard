@@ -14,25 +14,21 @@ import { Prisma } from '@prisma/client';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedOwnerResponseDto } from './dto/owner-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { OwnerValidationService } from './validation/owner-validation.service';
 
 @Injectable()
 export class OwnerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly ownerValidation: OwnerValidationService,
   ) {}
 
   async create(dto: CreateOwnerDto): Promise<OwnerResponse> {
     const name = dto.name;
     this.logger.info(`Creating owner: ${name}`);
     try {
-      const existing = await this.prisma.owner.findFirst({
-        where: { name: { equals: name, mode: 'insensitive' } },
-      });
-      if (existing) {
-        this.logger.warn(`Owner creation failed, already exists: ${name}`);
-        throw new ConflictException(`Owner with name "${name}" already exists`);
-      }
+      await this.ownerValidation.validateCreate(name);
 
       const owner = await this.prisma.owner.create({
         data: { name: name },
@@ -40,7 +36,10 @@ export class OwnerService {
       this.logger.info(`Owner created: ${owner.id}`);
       return mapOwnerToResponse(owner);
     } catch (error) {
-      handlePrismaError(error, 'Owner');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Owner');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -75,7 +74,10 @@ export class OwnerService {
         total,
       };
     } catch (error) {
-      handlePrismaError(error, 'Owner');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Owner');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -89,39 +91,29 @@ export class OwnerService {
       }
       return mapOwnerToResponse(owner);
     } catch (error) {
-      handlePrismaError(error, 'Owner');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Owner');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
   async update(id: string, dto: UpdateOwnerDto): Promise<OwnerResponse> {
     this.logger.info(`Updating owner: ${id}`);
     try {
-      const owner = await this.prisma.owner.findUnique({ where: { id } });
-      if (!owner) {
-        this.logger.warn(`Update failed, owner not found: ${id}`);
-        throw new NotFoundException(`Owner with id ${id} not found`);
-      }
-      const name = dto.name;
-      if (name && name !== owner.name) {
-        const existing = await this.prisma.owner.findFirst({
-          where: { name: { equals: name, mode: 'insensitive' } },
-        });
-        if (existing) {
-          this.logger.warn(`Update failed, duplicate owner name: ${name}`);
-          throw new ConflictException(
-            `Owner with name "${name}" already exists`,
-          );
-        }
-      }
+      const owner = await this.ownerValidation.validateUpdate(id, dto.name);
 
       const updated = await this.prisma.owner.update({
         where: { id },
-        data: { name: name ?? owner.name },
+        data: { name: dto.name ?? owner.name },
       });
       this.logger.info(`Owner updated: ${updated.id}`);
       return mapOwnerToResponse(updated);
     } catch (error) {
-      handlePrismaError(error, 'Owner');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Owner');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -151,7 +143,10 @@ export class OwnerService {
       this.logger.info(`Owner deleted: ${id}`);
       return { success: true };
     } catch (error) {
-      handlePrismaError(error, 'Owner');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Owner');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 }
