@@ -7,7 +7,6 @@ import { QueryOptionsDto } from '../dto/query-options.dto';
  * - Sorting (`sortBy`, `order`)
  * - Dynamic filters (`filters`)
  * - Range operators (`gte`, `lte`, `gt`, `lt`, `not`)
- * - Boolean normalization
  */
 export function buildQueryArgs<
   T extends Record<string, any>,
@@ -50,12 +49,28 @@ export function buildQueryArgs<
     }));
   }
 
-  // --- Helper to normalize booleans ---
+  // --- Helper to normalize values ---
   const normalizeValue = (val: unknown): unknown => {
     if (typeof val === 'string') {
       const lower = val.trim().toLowerCase();
+
+      // Boolean normalization
       if (lower === 'true') return true;
       if (lower === 'false') return false;
+
+      // Date string detection and conversion
+      if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        // Convert "YYYY-MM-DD" to ISO DateTime with timezone
+        return new Date(val + 'T00:00:00.000Z').toISOString();
+      }
+
+      // ISO DateTime string validation
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+        const date = new Date(val);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
     }
     return val;
   };
@@ -81,8 +96,14 @@ export function buildQueryArgs<
       const validOps = ['gte', 'lte', 'gt', 'lt', 'not', 'equals', 'in'];
       const keys = Object.keys(value);
       const isOperatorObject = keys.every((k) => validOps.includes(k));
+
       if (isOperatorObject) {
-        where[key] = value;
+        // Normalize date values in range objects too
+        const normalizedRange: Record<string, unknown> = {};
+        for (const [opKey, opValue] of Object.entries(value)) {
+          normalizedRange[opKey] = normalizeValue(opValue);
+        }
+        where[key] = normalizedRange;
         continue;
       }
     }
@@ -105,5 +126,43 @@ export function buildQueryArgs<
     take,
     where: finalWhere,
     orderBy: { [sortBy]: order },
+  };
+}
+
+/**
+ * Helper function to convert date strings to DateTime for Prisma
+ * This can be used independently if needed
+ */
+export function normalizeDateForPrisma(dateString: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    // Convert "YYYY-MM-DD" to ISO DateTime
+    return new Date(dateString + 'T00:00:00.000Z').toISOString();
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateString)) {
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  throw new Error(
+    `Invalid date format: ${dateString}. Expected YYYY-MM-DD or ISO DateTime.`,
+  );
+}
+
+/**
+ * Helper to create date range filters for Prisma
+ */
+export function createDateRangeFilter(
+  startDate: string,
+  endDate: string,
+  field: string = 'createdAt',
+): Record<string, { gte: string; lte: string }> {
+  return {
+    [field]: {
+      gte: normalizeDateForPrisma(startDate),
+      lte: normalizeDateForPrisma(endDate + 'T23:59:59.999Z'), // End of day
+    },
   };
 }
