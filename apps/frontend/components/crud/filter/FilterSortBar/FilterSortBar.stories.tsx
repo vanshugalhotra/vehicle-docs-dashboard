@@ -11,11 +11,16 @@ const meta: Meta<typeof FilterSortBar> = {
     docs: {
       description: {
         component:
-          "Combined filter and sort bar with expandable filter panel and sort controls.",
+          "Combined filter and sort bar with panel and compact modes.",
       },
     },
   },
   argTypes: {
+    mode: {
+      control: { type: "select" },
+      options: ["panel", "compact"],
+      description: "Layout mode - panel (card) or compact (inline)",
+    },
     autoApply: {
       control: { type: "boolean" },
       description: "Whether to automatically apply filter changes",
@@ -39,6 +44,7 @@ const mockFiltersConfig: FilterConfig[] = [
     label: "Search",
     type: "text",
     placeholder: "Search items...",
+    ui: { compact: true },
   },
   {
     key: "category",
@@ -51,6 +57,7 @@ const mockFiltersConfig: FilterConfig[] = [
       { label: "Books", value: "books" },
       { label: "Home & Garden", value: "home" },
     ],
+    ui: { compact: true },
   },
   {
     key: "status",
@@ -62,13 +69,7 @@ const mockFiltersConfig: FilterConfig[] = [
       { label: "Inactive", value: "inactive" },
       { label: "Pending", value: "pending" },
     ],
-  },
-  {
-    key: "priceRange",
-    label: "Price Range",
-    type: "numberRange",
-    placeholder: "Enter price range...",
-  },
+  }
 ];
 
 const advancedFiltersConfig: FilterConfig[] = [
@@ -81,7 +82,13 @@ const advancedFiltersConfig: FilterConfig[] = [
 ];
 
 export const Default: Story = {
-  render: () => {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    autoApply: true,
+    mode: "panel",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {},
@@ -91,11 +98,9 @@ export const Default: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={mockFiltersConfig}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={setState}
-            autoApply={true}
           />
 
           <div className="p-4 bg-gray-100 rounded-lg">
@@ -109,8 +114,96 @@ export const Default: Story = {
   },
 };
 
+export const CompactMode: Story = {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    autoApply: true,
+    mode: "compact",
+  },
+  render: (args) => {
+    const Wrapper = () => {
+      const [state, setState] = useState<FilterSortState>({
+        filters: {},
+        sort: { field: "name", order: "asc" },
+      });
+
+      return (
+        <div className="space-y-4">
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold mb-4">Inline Compact Mode</h3>
+            <FilterSortBar
+              {...args}
+              initialState={state}
+              onChange={setState}
+            />
+          </div>
+
+          <div className="p-4 bg-gray-100 rounded-lg">
+            <h3 className="font-semibold mb-2">Current State:</h3>
+            <pre className="text-sm">{JSON.stringify(state, null, 2)}</pre>
+          </div>
+        </div>
+      );
+    };
+    return <Wrapper />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Compact inline mode for toolbar integration.",
+      },
+    },
+  },
+};
+
+export const PanelMode: Story = {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    autoApply: true,
+    mode: "panel",
+  },
+  render: (args) => {
+    const Wrapper = () => {
+      const [state, setState] = useState<FilterSortState>({
+        filters: {},
+        sort: { field: "name", order: "asc" },
+      });
+
+      return (
+        <div className="space-y-4">
+          <FilterSortBar
+            {...args}
+            initialState={state}
+            onChange={setState}
+          />
+
+          <div className="p-4 bg-gray-100 rounded-lg">
+            <h3 className="font-semibold mb-2">Current State:</h3>
+            <pre className="text-sm">{JSON.stringify(state, null, 2)}</pre>
+          </div>
+        </div>
+      );
+    };
+    return <Wrapper />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Card panel mode with full filter display.",
+      },
+    },
+  },
+};
+
 export const WithInitialState: Story = {
-  render: () => {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    mode: "panel",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {
@@ -123,8 +216,7 @@ export const WithInitialState: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={mockFiltersConfig}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={setState}
           />
@@ -148,7 +240,12 @@ export const WithInitialState: Story = {
 };
 
 export const WithAdvancedFilters: Story = {
-  render: () => {
+  args: {
+    filtersConfig: advancedFiltersConfig,
+    sortOptions: mockSortOptions,
+    mode: "panel",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {},
@@ -158,8 +255,7 @@ export const WithAdvancedFilters: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={advancedFiltersConfig}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={setState}
           />
@@ -183,7 +279,13 @@ export const WithAdvancedFilters: Story = {
 };
 
 export const ManualApplyMode: Story = {
-  render: () => {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    mode: "panel",
+    autoApply: false,
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {},
@@ -193,7 +295,6 @@ export const ManualApplyMode: Story = {
 
       const handleChange = (newState: FilterSortState) => {
         setState(newState);
-        // In manual mode, we don't apply immediately
       };
 
       const handleApply = () => {
@@ -203,11 +304,9 @@ export const ManualApplyMode: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={mockFiltersConfig}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={handleChange}
-            autoApply={false}
           />
 
           <div className="flex gap-2">
@@ -247,7 +346,12 @@ export const ManualApplyMode: Story = {
 };
 
 export const NoFilters: Story = {
-  render: () => {
+  args: {
+    filtersConfig: [],
+    sortOptions: mockSortOptions,
+    mode: "panel",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {},
@@ -257,8 +361,7 @@ export const NoFilters: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={[]}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={setState}
           />
@@ -281,8 +384,13 @@ export const NoFilters: Story = {
   },
 };
 
-export const ComplexFiltersExpanded: Story = {
-  render: () => {
+export const ComplexFilters: Story = {
+  args: {
+    filtersConfig: advancedFiltersConfig,
+    sortOptions: mockSortOptions,
+    mode: "panel",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
         filters: {
@@ -296,8 +404,7 @@ export const ComplexFiltersExpanded: Story = {
       return (
         <div className="space-y-4">
           <FilterSortBar
-            filtersConfig={advancedFiltersConfig}
-            sortOptions={mockSortOptions}
+            {...args}
             initialState={state}
             onChange={setState}
           />
@@ -315,41 +422,38 @@ export const ComplexFiltersExpanded: Story = {
     docs: {
       description: {
         story:
-          "Shows the filter panel expanded by default with complex filter combinations.",
+          "Shows complex filter combinations with range filters.",
       },
     },
   },
 };
 
-export const WithDependentFilters: Story = {
-  render: () => {
+export const CompactWithLimitedFilters: Story = {
+  args: {
+    filtersConfig: mockFiltersConfig,
+    sortOptions: mockSortOptions,
+    mode: "compact",
+  },
+  render: (args) => {
     const Wrapper = () => {
       const [state, setState] = useState<FilterSortState>({
-        filters: {},
-        sort: { field: "name", order: "asc" },
-      });
-
-      const dependentFiltersConfig: FilterConfig[] = [
-        {
-          key: "category",
-          label: "Category",
-          type: "select",
-          placeholder: "Select category...",
-          options: [
-            { label: "Electronics", value: "electronics" },
-            { label: "Clothing", value: "clothing" },
-          ],
+        filters: {
+          search: "phone",
+          category: "electronics",
         },
-      ];
+        sort: { field: "createdAt", order: "desc" },
+      });
 
       return (
         <div className="space-y-4">
-          <FilterSortBar
-            filtersConfig={dependentFiltersConfig}
-            sortOptions={mockSortOptions}
-            initialState={state}
-            onChange={setState}
-          />
+          <div className="p-4 border rounded-lg bg-white">
+            <h3 className="font-semibold mb-4">Toolbar Integration</h3>
+            <FilterSortBar
+              {...args}
+              initialState={state}
+              onChange={setState}
+            />
+          </div>
 
           <div className="p-4 bg-gray-100 rounded-lg">
             <h3 className="font-semibold mb-2">Current State:</h3>
@@ -363,50 +467,64 @@ export const WithDependentFilters: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          "Demonstrates dependent filters where subcategory depends on category selection.",
+        story: "Compact mode showing only marked compact filters (search and category).",
       },
     },
   },
 };
 
-export const LoadingState: Story = {
+export const ModeComparison: Story = {
   render: () => {
     const Wrapper = () => {
-      const [state, setState] = useState<FilterSortState>({
-        filters: {},
+      const [panelState, setPanelState] = useState<FilterSortState>({
+        filters: { category: "electronics" },
         sort: { field: "name", order: "asc" },
       });
-      const [isLoading, setIsLoading] = useState(false);
 
-      const handleChange = (newState: FilterSortState) => {
-        setState(newState);
-        // Simulate loading when filters change
-        setIsLoading(true);
-        setTimeout(() => setIsLoading(false), 1000);
-      };
+      const [compactState, setCompactState] = useState<FilterSortState>({
+        filters: { category: "electronics" },
+        sort: { field: "name", order: "asc" },
+      });
 
       return (
-        <div className="space-y-4">
-          <FilterSortBar
-            filtersConfig={mockFiltersConfig}
-            sortOptions={mockSortOptions}
-            initialState={state}
-            onChange={handleChange}
-          />
-
-          <div className="p-4 bg-gray-100 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold">Current State:</h3>
-              {isLoading && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-              )}
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-3">Panel Mode (Card Layout)</h3>
+            <FilterSortBar
+              filtersConfig={mockFiltersConfig}
+              sortOptions={mockSortOptions}
+              initialState={panelState}
+              onChange={setPanelState}
+              mode="panel"
+            />
+            <div className="mt-2 p-3 bg-blue-50 rounded">
+              <pre className="text-xs">{JSON.stringify(panelState, null, 2)}</pre>
             </div>
-            <pre className="text-sm">{JSON.stringify(state, null, 2)}</pre>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-3">Compact Mode (Inline)</h3>
+            <FilterSortBar
+              filtersConfig={mockFiltersConfig}
+              sortOptions={mockSortOptions}
+              initialState={compactState}
+              onChange={setCompactState}
+              mode="compact"
+            />
+            <div className="mt-2 p-3 bg-green-50 rounded">
+              <pre className="text-xs">{JSON.stringify(compactState, null, 2)}</pre>
+            </div>
           </div>
         </div>
       );
     };
     return <Wrapper />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Side-by-side comparison of panel vs compact modes.",
+      },
+    },
   },
 };

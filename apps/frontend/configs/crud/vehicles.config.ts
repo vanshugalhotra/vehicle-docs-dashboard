@@ -3,7 +3,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { driverFields, driverSchema } from "./drivers.config";
-import { vehicleCategoryFields, vehicleCategorySchema } from "./vehicle-categories.config";
+import {
+  vehicleCategoryFields,
+  vehicleCategorySchema,
+} from "./vehicle-categories.config";
 import { vehicleTypeFields, vehicleTypeSchema } from "./vehicle-types.config";
 import { ownerFields, ownerSchema } from "./owners.config";
 import { locationFields, locationSchema } from "./locations.config";
@@ -12,7 +15,8 @@ import { locationFields, locationSchema } from "./locations.config";
 // 🔹 Schema
 // =====================
 const optionalString = () =>
-  z.union([z.string(), z.literal(""), z.null()])
+  z
+    .union([z.string(), z.literal(""), z.null()])
     .optional()
     .transform((val) => (val === "" || val === null ? undefined : val));
 
@@ -169,9 +173,9 @@ export const vehicleFields = [
 export const vehicleLayout = {
   gridColumns: 3,
   fieldSpans: {
-    notes: 3
-  }
-}
+    notes: 3,
+  },
+};
 
 // =====================
 // 🔹 Table Columns

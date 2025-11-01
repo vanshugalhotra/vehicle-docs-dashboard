@@ -19,7 +19,6 @@ const meta: Meta<typeof FilterPanel> = {
   component: FilterPanel,
   tags: ["autodocs"],
   argTypes: {
-    compact: { control: "boolean" },
     isLoading: { control: "boolean" },
     debounceMs: { control: "number" },
   },
@@ -124,19 +123,9 @@ const InteractiveFilterPanel: React.FC<
     setLog((prev) => [...prev, `Filters: ${JSON.stringify(newFilters)}`]);
   };
 
-  const handleReset = () => {
-    setFilters({});
-    setLog((prev) => [...prev, "Filters reset"]);
-  };
-
   return (
     <div className="space-y-4">
-      <FilterPanel
-        {...args}
-        filters={filters}
-        onChange={handleChange}
-        onReset={handleReset}
-      />
+      <FilterPanel {...args} filters={filters} onChange={handleChange} />
       <div className="text-sm text-gray-600">
         <p>
           <strong>Current filters:</strong> {JSON.stringify(filters)}
@@ -177,8 +166,6 @@ const ManyFiltersPanel: React.FC = () => {
         fields={manyFields}
         filters={filters}
         onChange={handleChange}
-        onReset={() => setFilters({})}
-        compact={false}
       />
       <div className="text-sm text-gray-600">
         <p>
@@ -198,36 +185,24 @@ const ManyFiltersPanel: React.FC = () => {
 };
 
 export const TextFilters: Story = {
-  render: () => <InteractiveFilterPanel fields={textFields} compact={false} />,
+  render: () => <InteractiveFilterPanel fields={textFields} />,
 };
 
 export const SelectFilters: Story = {
-  render: () => (
-    <InteractiveFilterPanel fields={selectFields} compact={false} />
-  ),
+  render: () => <InteractiveFilterPanel fields={selectFields} />,
 };
 
 export const DateRangeFilters: Story = {
-  render: () => (
-    <InteractiveFilterPanel fields={dateRangeFields} compact={false} />
-  ),
+  render: () => <InteractiveFilterPanel fields={dateRangeFields} />,
 };
 
 export const MixedFilters: Story = {
-  render: () => <InteractiveFilterPanel fields={mixedFields} compact={false} />,
-};
-
-export const CompactMode: Story = {
-  render: () => <InteractiveFilterPanel fields={mixedFields} compact={true} />,
+  render: () => <InteractiveFilterPanel fields={mixedFields} />,
 };
 
 export const WithCustomDebounce: Story = {
   render: () => (
-    <InteractiveFilterPanel
-      fields={textFields}
-      compact={false}
-      debounceMs={1000}
-    />
+    <InteractiveFilterPanel fields={textFields} debounceMs={1000} />
   ),
 };
 

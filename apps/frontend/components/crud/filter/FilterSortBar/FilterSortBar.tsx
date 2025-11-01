@@ -1,176 +1,173 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
-import clsx from "clsx";
+import React, { useCallback, useMemo } from "react";
+import { ArrowUpDown, X } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
-import { AppSelect } from "@/components/ui/AppSelect";
-import { AppCard } from "@/components/ui/AppCard";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { AppSelect, Option } from "@/components/ui/AppSelect";
+import { FilterPanel } from "../FilterPanel/FilterPanel";
 import { componentTokens } from "@/styles/design-system/componentTokens";
 import type {
   FilterSortBarProps,
+  FilterSortState,
   FiltersObject,
-  SortState,
 } from "@/lib/types/filter.types";
-import { FilterPanel } from "@/components/crud/filter/FilterPanel/FilterPanel";
 
 export const FilterSortBar: React.FC<FilterSortBarProps> = ({
   filtersConfig,
   sortOptions,
   initialState,
+  mode = "panel",
   autoApply = true,
   onChange,
 }) => {
-  /** ------------------------------
-   *  STATE
-   *  ------------------------------ */
-  const [filters, setFilters] = useState<FiltersObject>(
-    initialState?.filters ?? {}
+  const [state, setState] = React.useState<FilterSortState>(
+    initialState ?? { filters: {}, sort: { field: "", order: "asc" } }
   );
 
-  // Fixed: Properly handle initial sort state
-  const [sort, setSort] = useState<SortState>(() => {
-    // Use initial state if provided
-    if (initialState?.sort) {
-      return initialState.sort;
-    }
+  const isCompact = mode === "compact";
 
-    // Find default sort option and convert to SortState
-    const defaultSortOption = sortOptions.find((s) => s.default);
-    if (defaultSortOption) {
-      return {
-        field: defaultSortOption.field,
-        order: "asc",
-      };
-    }
-
-    // Fallback to first option or empty
-    return {
-      field: sortOptions[0]?.field ?? "",
-      order: "asc",
-    };
-  });
-
-  const [expanded, setExpanded] = useState(false);
-
-  /** ------------------------------
-   *  HANDLERS
-   *  ------------------------------ */
   const handleFiltersChange = useCallback(
-    (next: FiltersObject) => {
-      setFilters(next);
-      if (autoApply && onChange) onChange({ filters: next, sort });
+    (filters: FiltersObject) => {
+      const nextState: FilterSortState = { ...state, filters };
+      setState(nextState);
+      if (autoApply) onChange?.(nextState);
     },
-    [autoApply, onChange, sort]
+    [autoApply, state, onChange]
   );
 
-  const handleResetFilters = useCallback(() => {
-    setFilters({});
-    onChange?.({ filters: {}, sort });
-  }, [onChange, sort]);
-
-  const handleSortFieldChange = useCallback(
-    (val: string) => {
-      const next: SortState = { ...sort, field: val };
-      setSort(next);
-      onChange?.({ filters, sort: next });
+  const handleSortField = useCallback(
+    (opt: Option) => {
+      const nextState: FilterSortState = {
+        ...state,
+        sort: { ...state.sort, field: opt.value as string },
+      };
+      setState(nextState);
+      if (autoApply) onChange?.(nextState);
     },
-    [sort, filters, onChange]
+    [autoApply, state, onChange]
   );
 
-  const handleSortOrderToggle = useCallback(() => {
-    const next: SortState = {
-      ...sort,
-      order: sort.order === "asc" ? "desc" : "asc",
+  const toggleSortOrder = useCallback(() => {
+    const nextOrder = state.sort.order === "asc" ? "desc" : "asc";
+    const nextState: FilterSortState = {
+      ...state,
+      sort: { ...state.sort, order: nextOrder },
     };
-    setSort(next);
-    onChange?.({ filters, sort: next });
-  }, [sort, filters, onChange]);
+    setState(nextState);
+    if (autoApply) onChange?.(nextState);
+  }, [autoApply, state, onChange]);
 
-  const toggleExpand = useCallback(() => {
-    setExpanded((p) => !p);
-  }, []);
+  const handleReset = useCallback(() => {
+    const resetState: FilterSortState = {
+      filters: {},
+      sort: { field: "", order: "asc" },
+    };
+    setState(resetState);
+    onChange?.(resetState);
+  }, [onChange]);
 
-  /** ------------------------------
-   *  MEMOIZED VALUES
-   *  ------------------------------ */
-  const sortFieldOptions = useMemo(
-    () =>
-      sortOptions.map((s) => ({
-        label: s.label,
-        value: s.field,
-      })),
-    [sortOptions]
+  const selectedSortOption = useMemo(
+    () => sortOptions.find((opt) => opt.field === state.sort.field) ?? null,
+    [state.sort.field, sortOptions]
   );
 
-  /** ------------------------------
-   *  RENDER
-   *  ------------------------------ */
+  const compactFilters = useMemo(() => {
+    if (isCompact) {
+      const visible = filtersConfig.filter((f) => f.ui?.compact);
+      return visible.length ? visible : filtersConfig.slice(0, 2);
+    }
+    return filtersConfig;
+  }, [isCompact, filtersConfig]);
+
   return (
-    <AppCard className={componentTokens.card.base}>
-      {/* Top Bar: Sort + Actions */}
-      <div className={clsx(componentTokens.layout.pageHeader, "flex-wrap")}>
-        <div className="flex items-center gap-2 flex-wrap">
-          <AppSelect
-            label="Sort by"
-            value={sortFieldOptions.find((o) => o.value === sort.field)}
-            onChange={(opt) => handleSortFieldChange(opt?.value ?? "")}
-            options={sortFieldOptions}
-            className="min-w-[140px] w-full sm:w-auto"
-          />
-
-          <AppButton
-            variant="outline"
-            size="sm"
-            onClick={handleSortOrderToggle}
-            className="flex items-center gap-1"
-          >
-            {sort.order === "asc" ? (
-              <>
-                <ChevronUp className="w-4 h-4" /> Asc
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4" /> Desc
-              </>
-            )}
-          </AppButton>
-
-          <AppButton
-            variant="ghost"
-            size="sm"
-            onClick={handleResetFilters}
-            className="flex items-center gap-1 text-text-tertiary"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset
-          </AppButton>
-        </div>
-
-        {filtersConfig.length > 0 && (
-          <AppButton
-            variant="secondary"
-            size="sm"
-            onClick={toggleExpand}
-            className="ml-auto shrink-0"
-          >
-            {expanded ? "Hide Filters" : "Show Filters"}
-          </AppButton>
-        )}
-      </div>
-
-      {/* Filters Panel */}
-      {expanded && (
-        <div className="border-t border-border-subtle pt-4">
-          <FilterPanel
-            filters={filters}
-            onChange={handleFiltersChange}
-            onReset={handleResetFilters}
-            fields={filtersConfig}
-            compact
-          />
-        </div>
+    <div
+      className={`
+        ${
+          isCompact
+            ? "flex flex-wrap items-center gap-2"
+            : "flex flex-col gap-3 p-3 md:p-4 rounded-lg border border-border-subtle bg-surface"
+        }
+        ${!isCompact ? componentTokens.card.base : ""}
+      `}
+    >
+      {/* Filters */}
+      {compactFilters.length > 0 && (
+        <FilterPanel
+          filters={state.filters}
+          onChange={handleFiltersChange}
+          fields={compactFilters}
+          dense={isCompact}
+        />
       )}
-    </AppCard>
+
+      {/* Sort + Actions */}
+      <div
+        className={`flex flex-wrap items-center gap-2 ${
+          isCompact ? "justify-end flex-1" : "justify-between mt-2"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <AppSelect
+            placeholder="Sort by..."
+            options={sortOptions.map((opt) => ({
+              label: opt.label,
+              value: opt.field,
+            }))}
+            value={
+              selectedSortOption
+                ? {
+                    label: selectedSortOption.label,
+                    value: selectedSortOption.field,
+                  }
+                : undefined
+            }
+            onChange={handleSortField}
+            className={isCompact ? "min-w-[140px]" : "min-w-[180px]"}
+          />
+
+          {state.sort.field && (
+            <AppButton
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={toggleSortOrder}
+              aria-label="Toggle sort order"
+              title={`Sort ${
+                state.sort.order === "asc" ? "ascending" : "descending"
+              }`}
+            >
+              <ArrowUpDown
+                className={`h-4 w-4 transition-transform ${
+                  state.sort.order === "desc" ? "rotate-180" : ""
+                }`}
+              />
+            </AppButton>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {!autoApply && (
+            <AppButton
+              type="button"
+              size="sm"
+              variant="primary"
+              onClick={() => onChange?.(state)}
+            >
+              Apply
+            </AppButton>
+          )}
+          <AppButton
+            type="button"
+            size={isCompact ? "sm" : "md"}
+            variant="ghost"
+            onClick={handleReset}
+            title="Reset filters"
+          >
+            <X className={`${isCompact ? "h-4 w-4" : "h-4 w-4 mr-1"}`} />
+            {!isCompact && "Reset"}
+          </AppButton>
+        </div>
+      </div>
+    </div>
   );
 };

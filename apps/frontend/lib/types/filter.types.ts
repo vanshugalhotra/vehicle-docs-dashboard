@@ -11,10 +11,7 @@ export type FilterControlType =
   | "text"
   | "select"
   | "async-select"
-  | "multi-select"
-  | "boolean"
-  | "dateRange"
-  | "numberRange";
+  | "dateRange";
 
 /** FilterConfig defines how each filter behaves and renders */
 export interface FilterConfig {
@@ -59,10 +56,6 @@ export interface FilterConfig {
   };
   /** Transform function for async select data */
   transform?: (data: unknown[]) => Option[];
-  /** Allow adding new options */
-  allowAdd?: boolean;
-  /** Callback when add button is clicked */
-  onAddClick?: () => void;
 }
 
 /** Sorting options for a CRUD entity */
@@ -103,5 +96,6 @@ export interface FilterSortBarProps {
   sortOptions: SortOption[];
   initialState?: FilterSortState;
   autoApply?: boolean;
+  mode?: "panel" | "compact";
   onChange?: (state: FilterSortState) => void;
 }

@@ -5,22 +5,20 @@ import { FiltersObject, FilterConfig } from "@/lib/types/filter.types";
 import { FilterTextInput } from "./FilterTextInput/FilterTextInput";
 import { FilterSelect } from "./FilterSelect/FilterSelect";
 import { FilterAsyncSelect } from "./FilterAsyncSelect/FilterAsyncSelect";
-import { FilterNumberRange } from "./FilterNumberRange/FilterNumberRange";
 import { FilterDateRange } from "./FilterDateRange/FilterDateRange";
 
 /**
  * FilterRenderer
  * - Decides which filter component to render based on config.type
- * - Provides normalized value and handlers
- * - Keeps external FilterPanel clean and declarative
+ * - Uses layout hints (ui.compact, ui.width, ui.columnSpan)
  */
-
 interface FilterRendererProps {
   config: FilterConfig;
   filters: FiltersObject;
   onChange: (key: string, value: unknown) => void;
   debounceMs?: number;
   dependencyValue?: string;
+  dense?: boolean;
 }
 
 export const FilterRenderer: React.FC<FilterRendererProps> = ({
@@ -29,64 +27,68 @@ export const FilterRenderer: React.FC<FilterRendererProps> = ({
   onChange,
   debounceMs = 400,
   dependencyValue,
+  dense = false,
 }) => {
   const value = filters[config.key];
+  const isCompact = dense || config.ui?.compact;
+
+  const commonProps = {
+    label: config.label,
+    placeholder: config.placeholder,
+    dense: isCompact,
+  };
+
+  const wrapperStyle: React.CSSProperties = {
+    width:
+      typeof config.ui?.width === "number"
+        ? `${config.ui.width}px`
+        : config.ui?.width,
+    gridColumn: config.ui?.columnSpan
+      ? `span ${config.ui.columnSpan} / span ${config.ui.columnSpan}`
+      : undefined,
+  };
 
   switch (config.type) {
     case "text":
       return (
-        <FilterTextInput
-          label={config.label}
-          value={String(value ?? "")}
-          placeholder={config.placeholder}
-          onChange={(val) => onChange(config.key, val)}
-          debounceMs={debounceMs}
-        />
+        <div style={wrapperStyle}>
+          <FilterTextInput
+            {...commonProps}
+            value={String(value ?? "")}
+            onChange={(val) => onChange(config.key, val)}
+            debounceMs={debounceMs}
+          />
+        </div>
       );
 
     case "select":
       return (
-        <FilterSelect
-          label={config.label}
-          value={String(value ?? "")}
-          options={config.options ?? []}
-          placeholder={config.placeholder}
-          onChange={(val) => onChange(config.key, val)}
-          debounceMs={debounceMs}
-        />
+        <div style={wrapperStyle}>
+          <FilterSelect
+            {...commonProps}
+            value={String(value ?? "")}
+            options={config.options ?? []}
+            onChange={(val) => onChange(config.key, val)}
+            debounceMs={debounceMs}
+          />
+        </div>
       );
 
     case "async-select":
       return (
-        <FilterAsyncSelect
-          config={config}
-          value={String(value ?? "")}
-          onChange={(val) => onChange(config.key, val)}
-          dependencyValue={dependencyValue}
-        />
-      );
-
-    case "numberRange":
-      return (
-        <FilterNumberRange
-          label={config.label}
-          value={
-            typeof value === "object" && value !== null
-              ? (value as { min?: number; max?: number })
-              : {}
-          }
-          onChange={(range) => onChange(config.key, range)}
-        />
+        <div style={wrapperStyle}>
+          <FilterAsyncSelect
+            config={config}
+            value={String(value ?? "")}
+            onChange={(val) => onChange(config.key, val)}
+            dependencyValue={dependencyValue}
+          />
+        </div>
       );
 
     case "dateRange":
       let dateRangeValue: { start?: string | null; end?: string | null } = {};
-
-      if (
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value)
-      ) {
+      if (typeof value === "object" && value && !Array.isArray(value)) {
         const val = value as Record<string, unknown>;
         dateRangeValue = {
           start: typeof val.start === "string" ? val.start : null,
@@ -95,13 +97,15 @@ export const FilterRenderer: React.FC<FilterRendererProps> = ({
       }
 
       return (
-        <FilterDateRange
-          label={config.label}
-          start={dateRangeValue.start}
-          end={dateRangeValue.end}
-          onChange={(range) => onChange(config.key, range)}
-          debounceMs={debounceMs}
-        />
+        <div style={wrapperStyle}>
+          <FilterDateRange
+            {...commonProps}
+            start={dateRangeValue.start}
+            end={dateRangeValue.end}
+            onChange={(range) => onChange(config.key, range)}
+            debounceMs={debounceMs}
+          />
+        </div>
       );
 
     default:

@@ -53,8 +53,6 @@ export const FilterAsyncSelect: FC<FilterAsyncSelectProps> = ({
         transform={config.transform}
         disabled={disabled}
         error={error}
-        allowAdd={config.allowAdd}
-        onAddClick={config.onAddClick}
       />
     </div>
   );
