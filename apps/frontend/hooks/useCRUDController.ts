@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "../lib/utils/fetchWithAuth";
+import { serializeFilters } from "../lib/utils/filterSerializers";
+import { FiltersObject } from "@/lib/types/filter.types";
 
 export interface CRUDControllerConfigBase {
   baseUrl: string;
   fetchUrl: string;
   queryKey: string;
   defaultPageSize?: number;
-  defaultFilters?: Record<string, unknown>;
+  defaultFilters?: FiltersObject;
 }
 
 export function useCRUDController<
@@ -18,7 +20,9 @@ export function useCRUDController<
 >(config: C) {
   const queryClient = useQueryClient();
 
-  const [filters, setFilters] = useState(config.defaultFilters ?? {});
+  const [filters, setFilters] = useState<FiltersObject>(
+    config.defaultFilters ?? {}
+  );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(config.defaultPageSize ?? 5);
   const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>(
@@ -34,25 +38,36 @@ export function useCRUDController<
       const skip = (page - 1) * pageSize;
       const take = pageSize;
 
+      // build base url
       const base = new URL(
         config.fetchUrl,
         typeof window !== "undefined"
           ? window.location.origin
           : "http://localhost"
       );
-      const baseParams = new URLSearchParams(base.search);
 
-      const dynamicParams = new URLSearchParams({
-        skip: String(skip),
-      take: String(take),
-        ...(sort.field ? { sort: `${sort.field}:${sort.order}` } : {}),
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([, v]) => v != null && v !== "")
-        ),
-      });
+      const params = new URLSearchParams();
 
-      dynamicParams.forEach((value, key) => baseParams.set(key, value));
-      base.search = baseParams.toString();
+      params.set("skip", String(skip));
+      params.set("take", String(take));
+
+      if (sort.field) {
+        params.set("sortBy", sort.field);
+        params.set("order", sort.order ?? "desc");
+      }
+
+      // safely serialize filters to match backend expectations
+      const serializedFilters = serializeFilters(filters);
+      if (serializedFilters) {
+        params.set("filters", serializedFilters);
+      }
+
+      // attach search string if provided through filters
+      if (typeof filters.search === "string" && filters.search.trim() !== "") {
+        params.set("search", filters.search.trim());
+      }
+
+      base.search = params.toString();
 
       const res = await fetchWithAuth(base.toString());
       return res;
