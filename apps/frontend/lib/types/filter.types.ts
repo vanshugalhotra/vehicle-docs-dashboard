@@ -1,5 +1,3 @@
-// lib/types/filter.ts
-
 import { Option } from "@/components/ui/AppSelect";
 
 /** Basic type for option-based filters (static or async) */
