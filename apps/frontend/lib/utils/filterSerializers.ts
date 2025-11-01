@@ -26,7 +26,8 @@ export function serializeFilters(
 
   try {
     const json = JSON.stringify(cleaned);
-    return encodeURIComponent(json);
+    // return encodeURIComponent(json);
+    return json;
   } catch (err) {
     console.warn("[serializeFilters] Failed to serialize filters:", err);
     return "";

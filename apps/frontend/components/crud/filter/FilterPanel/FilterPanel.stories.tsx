@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FilterPanel } from "./FilterPanel";
-import type { FilterPanelProps, FilterFieldConfig } from "./FilterPanel";
+import type { FilterPanelProps } from "./FilterPanel";
+
+interface FilterFieldConfig {
+  key: string;
+  label: string;
+  type: "text" | "select" | "dateRange";
+  placeholder?: string;
+  options?: { label: string; value: string }[];
+  startKey?: string;
+  endKey?: string;
+  dependsOn?: { key: string };
+}
 
 const meta: Meta<typeof FilterPanel> = {
   title: "Filters/FilterPanel",

@@ -57,14 +57,21 @@ export function useCRUDController<
       }
 
       // safely serialize filters to match backend expectations
-      const serializedFilters = serializeFilters(filters);
+      const { search: searchTerm, ...otherFilters } = filters;
+
+      // Serialize filters WITHOUT search
+      const serializedFilters = serializeFilters(otherFilters);
       if (serializedFilters) {
         params.set("filters", serializedFilters);
       }
 
-      // attach search string if provided through filters
-      if (typeof filters.search === "string" && filters.search.trim() !== "") {
-        params.set("search", filters.search.trim());
+      // Add search as separate parameter if it exists
+      if (
+        searchTerm &&
+        typeof searchTerm === "string" &&
+        searchTerm.trim() !== ""
+      ) {
+        params.set("search", searchTerm.trim());
       }
 
       base.search = params.toString();
