@@ -1,9 +1,11 @@
 // lib/types/filter.ts
 
+import { Option } from "@/components/ui/AppSelect";
+
 /** Basic type for option-based filters (static or async) */
 export interface FilterOption {
   label: string;
-  value: string | number | boolean;
+  value: string;
 }
 
 /** Supported filter control types */
@@ -33,7 +35,21 @@ export interface FilterConfig {
   /** Dependency config (for dependent selects) */
   dependsOn?: {
     key: string;
-    transform?: (parentValue: string | number | boolean | (string | number | boolean)[] | null | undefined) => string | number | boolean | (string | number | boolean)[] | null | undefined;
+    transform?: (
+      parentValue:
+        | string
+        | number
+        | boolean
+        | (string | number | boolean)[]
+        | null
+        | undefined
+    ) =>
+      | string
+      | number
+      | boolean
+      | (string | number | boolean)[]
+      | null
+      | undefined;
   };
   /** Allow multiple selection (only relevant for select/multi-select) */
   allowMultiple?: boolean;
@@ -43,6 +59,12 @@ export interface FilterConfig {
     width?: string | number;
     columnSpan?: number;
   };
+  /** Transform function for async select data */
+  transform?: (data: unknown[]) => Option[];
+  /** Allow adding new options */
+  allowAdd?: boolean;
+  /** Callback when add button is clicked */
+  onAddClick?: () => void;
 }
 
 /** Sorting options for a CRUD entity */
