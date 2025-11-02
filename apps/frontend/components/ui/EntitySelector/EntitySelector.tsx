@@ -14,6 +14,8 @@ export interface FieldDefinition {
   icon?: React.ReactNode;
 }
 
+export type EntitySelectorVariant = "detailed" | "simple";
+
 export interface EntitySelectorProps<T extends { id: string }> {
   /** Display label for the select */
   label?: string;
@@ -24,8 +26,14 @@ export interface EntitySelectorProps<T extends { id: string }> {
   /** Transforms fetched list items into select options */
   transformOption: (data: T[]) => { label: string; value: string }[];
 
-  /** Defines what fields to show when item is selected */
-  renderFields: (item: T) => FieldDefinition[];
+  /** Defines what fields to show when item is selected (for detailed variant) */
+  renderFields?: (item: T) => FieldDefinition[];
+
+  /** Render function for simple variant: returns the prominent value text */
+  simpleValue?: (item: T) => string;
+
+  /** Variant: 'detailed' for grid fields or 'simple' for single prominent value */
+  variant?: EntitySelectorVariant;
 
   /** Placeholder text for the select */
   placeholder?: string;
@@ -39,6 +47,8 @@ export const EntitySelector = <T extends { id: string }>({
   endpoint,
   transformOption,
   renderFields,
+  simpleValue,
+  variant = "detailed",
   placeholder = "Search or select...",
   onSelect,
 }: EntitySelectorProps<T>) => {
@@ -69,9 +79,10 @@ export const EntitySelector = <T extends { id: string }>({
     fetchDetails();
   }, [selectedId, endpoint, onSelect]);
 
+  const isSimple = variant === "simple";
+
   return (
     <div className="flex flex-col gap-4">
-      {/* 🔽 Async select */}
       <AppAsyncSelect<T>
         label={label}
         endpoint={endpoint}
@@ -81,22 +92,29 @@ export const EntitySelector = <T extends { id: string }>({
         transform={transformOption}
       />
 
-      {/* 📋 Details card */}
       {selectedItem ? (
         <AppCard bordered hoverable className={componentTokens.card.interactive}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {renderFields(selectedItem).map((field, idx) => (
-              <EntityField
-                key={idx}
-                label={field.label}
-                value={field.value}
-                icon={field.icon}
-              />
-            ))}
-          </div>
+          {isSimple ? (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <AppText size="heading2" variant="primary" className="font-bold">
+                {simpleValue?.(selectedItem) || ""}
+              </AppText>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {renderFields?.(selectedItem).map((field, idx) => (
+                <EntityField
+                  key={idx}
+                  label={field.label}
+                  value={field.value}
+                  icon={field.icon}
+                />
+              ))}
+            </div>
+          )}
         </AppCard>
       ) : (
-        <EmptyState label={label} />
+        <EmptyState label={label} variant={variant} />
       )}
     </div>
   );
@@ -126,7 +144,7 @@ const EntityField = ({
   </div>
 );
 
-const EmptyState = ({ label }: { label?: string }) => (
+const EmptyState = ({ label, variant }: { label?: string; variant?: EntitySelectorVariant }) => (
   <AppCard className={componentTokens.card.base}>
     <div className="flex flex-col items-center justify-center p-4 bg-surface-subtle text-center rounded-lg">
       <div className="bg-primary-light/80 p-2 rounded-full mb-2">
@@ -136,7 +154,10 @@ const EmptyState = ({ label }: { label?: string }) => (
         {label ? `No ${label} Selected` : "No Selection"}
       </AppText>
       <AppText size="body" variant="secondary">
-        Search and select a record to view its details.
+        {variant === "simple"
+          ? `Search and select to view.`
+          : `Search and select a record to view its details.`
+        }
       </AppText>
     </div>
   </AppCard>

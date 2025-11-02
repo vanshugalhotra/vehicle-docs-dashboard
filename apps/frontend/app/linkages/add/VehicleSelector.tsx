@@ -10,10 +10,11 @@ export default function VehicleSelector() {
       endpoint={apiRoutes.vehicles.list}
       transformOption={(data) =>
         data.map((v) => ({
-          label: `${v.name} (${v.licensePlate})`,
+          label: `${v.name}`,
           value: v.id,
         }))
       }
+      variant="detailed"
       renderFields={(v) => [
         {
           label: "Category",

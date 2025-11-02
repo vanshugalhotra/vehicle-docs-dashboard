@@ -1,32 +1,39 @@
 "use client";
 
 import React from "react";
-import { PageWrapper } from "@/components/layout/pagewrapper";
-import { AppText } from "@/components/ui/AppText";
+import { HeaderBar } from "@/components/crud/HeaderBar/HeaderBar";
 import { AppCard } from "@/components/ui/AppCard";
-import { componentTokens } from "@/styles/design-system";
 import VehicleSelector from "./VehicleSelector";
+import DocumentTypeSelector from "./DocumentTypeSelector";
 
 export default function LinkagePage() {
   return (
-    <PageWrapper>
-      <div className="flex flex-col gap-6">
-        {/* 🏷️ Header Section */}
-        <div>
-          <AppText size="heading2" className={componentTokens.text.primary}>
-            Link Vehicle Documents
-          </AppText>
-          <AppText size="body" className={componentTokens.text.bodySecondary}>
-            Select a vehicle below to start adding or viewing its document
-            linkages.
-          </AppText>
+    <div className="flex flex-col space-y-6">
+      <HeaderBar title="Link Vehicle Documents"></HeaderBar>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="lg:col-span-2 flex flex-col space-y-4 h-full">
+          <AppCard
+            bordered
+            hoverable
+            padded
+            className="flex-1 flex flex-col min-h-[300px]"
+          >
+            <VehicleSelector />
+          </AppCard>
         </div>
 
-        {/* 🚘 Vehicle Selection Panel */}
-        <AppCard bordered padded hoverable>
-          <VehicleSelector />
-        </AppCard>
+        <div className="flex flex-col space-y-4 h-full">
+          <AppCard
+            bordered
+            hoverable
+            padded
+            className="flex-1 flex flex-col min-h-[300px]"
+          >
+            <DocumentTypeSelector />
+          </AppCard>
+        </div>
       </div>
-    </PageWrapper>
+    </div>
   );
 }
