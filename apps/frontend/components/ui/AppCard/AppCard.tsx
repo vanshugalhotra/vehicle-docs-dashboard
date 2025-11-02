@@ -56,7 +56,7 @@ export const AppCard: FC<AppCardProps> = ({
             )}
           </div>
           {actions && (
-            <div className="flex-shrink-0">{actions}</div>
+            <div className="shrink-0">{actions}</div>
           )}
         </div>
       )}

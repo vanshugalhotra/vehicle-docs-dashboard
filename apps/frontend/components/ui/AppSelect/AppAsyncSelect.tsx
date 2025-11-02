@@ -54,7 +54,7 @@ export const AppAsyncSelect = <T,>({
     filterBy,
     transform,
     extraParams: { take: 4 },
-    selectedValue: value
+    selectedValue: value,
   });
 
   const selectedOption = useMemo(() => {
@@ -72,9 +72,9 @@ export const AppAsyncSelect = <T,>({
   const placeholderOption: Option = { label: placeholder, value: "" };
 
   return (
-    <div className={clsx("flex flex-col gap-1", className)}>
+    <div className={clsx("flex flex-col gap-2", className)}>
       {label && (
-        <AppText size="label" className={componentTokens.text.primary}>
+        <AppText size="label" variant="primary">
           {label}
         </AppText>
       )}
@@ -87,6 +87,7 @@ export const AppAsyncSelect = <T,>({
         >
           <div className="relative w-full">
             <ListboxButton
+              aria-invalid={!!error}
               className={clsx(
                 componentTokens.select.button,
                 error && componentTokens.input.error,
@@ -107,32 +108,32 @@ export const AppAsyncSelect = <T,>({
 
             {!isLoading && (
               <ListboxOptions className={componentTokens.select.options}>
-                    <div
-                      className="px-2 pb-1"
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
-                    >
-                      <AppInput
-                        ref={inputRef}
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search..."
-                        className="text-sm w-full"
-                        onFocus={(e) => e.stopPropagation()}
-                      />
-                    </div>
+                <div
+                  className="px-2 pb-2"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <AppInput
+                    ref={inputRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search..."
+                    className="text-caption w-full mt-2"
+                    onFocus={(e) => e.stopPropagation()}
+                  />
+                </div>
 
                 {isError && (
-                  <div className="flex items-center justify-between px-3 py-2 text-sm text-red-500">
+                  <div className="flex items-center justify-between px-3 py-2 text-caption text-danger-text">
                     Failed to load
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         refetch();
                       }}
-                      className="flex items-center gap-1 text-primary hover:underline"
+                      className={clsx(componentTokens.button.ghost, "text-sm")}
                     >
                       <RotateCw className="h-3 w-3" /> Retry
                     </button>
@@ -156,7 +157,7 @@ export const AppAsyncSelect = <T,>({
                       </ListboxOption>
                     ))
                   : !isError && (
-                      <div className="px-3 py-2 text-sm text-gray-500">
+                      <div className="px-3 py-2 text-caption text-text-tertiary">
                         No options found
                       </div>
                     )}
@@ -169,8 +170,8 @@ export const AppAsyncSelect = <T,>({
                       onAddClick?.();
                     }}
                     className={clsx(
-                      "w-full text-left px-3 py-2 text-sm font-medium text-primary hover:bg-accent",
-                      "border-t border-gray-100 mt-1"
+                      componentTokens.select.addNew,
+                      "border-t border-border-subtle"
                     )}
                   >
                     + Add new
@@ -181,7 +182,7 @@ export const AppAsyncSelect = <T,>({
 
             {isLoading && (
               <div className="absolute inset-y-0 right-3 flex items-center">
-                <Loader2 className="animate-spin h-4 w-4 text-gray-400" />
+                <Loader2 className="animate-spin h-4 w-4 text-text-tertiary" />
               </div>
             )}
           </div>
