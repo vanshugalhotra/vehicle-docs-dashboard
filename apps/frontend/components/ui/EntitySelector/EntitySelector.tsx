@@ -49,7 +49,7 @@ export const EntitySelector = <T extends { id: string }>({
   renderFields,
   simpleValue,
   variant = "detailed",
-  placeholder = "Search or select...",
+  placeholder = "Select....",
   onSelect,
 }: EntitySelectorProps<T>) => {
   const [selectedId, setSelectedId] = useState<string>("");
@@ -155,8 +155,8 @@ const EmptyState = ({ label, variant }: { label?: string; variant?: EntitySelect
       </AppText>
       <AppText size="body" variant="secondary">
         {variant === "simple"
-          ? `Search and select to view.`
-          : `Search and select a record to view its details.`
+          ? `Select to view.`
+          : `Select a record to view its details.`
         }
       </AppText>
     </div>

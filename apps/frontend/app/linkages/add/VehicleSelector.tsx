@@ -19,6 +19,7 @@ export default function VehicleSelector({ onSelect }: VehicleSelectorProps) {
         }))
       }
       variant="detailed"
+      placeholder="Select a Vehicle...."
       onSelect={onSelect}
       renderFields={(v) => [
         {

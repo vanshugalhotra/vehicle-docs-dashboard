@@ -13,6 +13,7 @@ export interface VehicleDocumentResponse {
   createdById?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  daysRemaining: number;
   // Relations (optional - included when relations are fetched)
   vehicle?: VehicleResponse;
   documentType?: DocumentTypeResponse;

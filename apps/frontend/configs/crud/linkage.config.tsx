@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { VehicleDocumentResponse } from "@/lib/types/vehicle-document.types";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
+import { AppBadge } from "@/components/ui/AppBadge";
 
 // =====================
 // 🔹 Schema
@@ -29,8 +31,14 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
     cell: ({ row }) => row.index + 1,
     size: 40,
   },
-  { accessorKey: "documentTypeName", header: "Document Type" },
-  { accessorKey: "documentNo", header: "Document No" },
+  {
+    accessorKey: "documentTypeName",
+    header: "Document Type",
+  },
+  {
+    accessorKey: "documentNo",
+    header: "Document No",
+  },
   {
     accessorKey: "startDate",
     header: "Start Date",
@@ -41,8 +49,40 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
     header: "Expiry Date",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
   },
-  { accessorKey: "link", header: "Link" },
-  { accessorKey: "notes", header: "Notes" },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const daysRemaining = row.original.daysRemaining;
+      if (daysRemaining <= 0)
+        return <AppBadge variant="danger">Expired</AppBadge>;
+      if (daysRemaining <= 30)
+        return <AppBadge variant="warning">Expiring Soon</AppBadge>;
+      return <AppBadge variant="success">Active</AppBadge>;
+    },
+  },
+  {
+    accessorKey: "link",
+    header: "Link",
+    cell: ({ getValue }) => {
+      const link = getValue() as string | null;
+      if (!link) return "-";
+      return (
+        <Link
+          href={link.startsWith("http") ? link : `https://${link}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary-dark transition-colors"
+        >
+          Open
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "notes",
+    header: "Notes",
+  },
 ];
 
 // =====================
@@ -55,5 +95,5 @@ export const linkageCrudConfig = {
   queryKey: "vehicle-documents",
   schema: linkageSchema,
   columns: linkageColumns,
-  defaultPageSize: 10,
+  defaultPageSize: 3,
 };

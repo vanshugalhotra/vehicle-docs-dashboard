@@ -8,9 +8,9 @@ import { DocumentTypeResponse } from "@/lib/types/document-type.types";
 export default function DocumentTypeSelector() {
   return (
     <EntitySelector<DocumentTypeResponse>
-      label="Document Type"
+      label="Document"
       endpoint={apiRoutes.document_types.list}
-      placeholder="Search or select a document type..."
+      placeholder="Select a document..."
       variant="simple"
       simpleValue={(d) => d.name}
       transformOption={(data) =>

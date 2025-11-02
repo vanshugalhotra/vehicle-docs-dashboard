@@ -18,6 +18,7 @@ import {
 import { AppBadge } from "@/components/ui/AppBadge";
 import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 import { toastUtils } from "@/lib/utils/toastUtils";
+import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { Search } from "lucide-react";
 
 export default function LinkagePage() {
@@ -43,7 +44,18 @@ export default function LinkagePage() {
     defaultFilters: filters,
   });
 
-  const { data, isLoading, remove, refetch, setFilters } = crud;
+  const {
+    data,
+    isLoading,
+    remove,
+    refetch,
+    setFilters,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    total,
+  } = crud;
 
   // -------------------------------
   // 🔹 Form Controller
@@ -130,14 +142,24 @@ export default function LinkagePage() {
             </AppBadge>
           </AppText>
 
-          <DataTable<LinkageEntity>
-            columns={linkageCrudConfig.columns}
-            data={data}
-            loading={isLoading}
-            onEdit={(row: LinkageEntity) => form.openEdit(row)}
-            onDelete={handleDelete}
-            className="mt-4"
-          />
+          <div className="flex flex-col gap-4">
+            <DataTable<LinkageEntity>
+              columns={linkageCrudConfig.columns}
+              data={data}
+              loading={isLoading}
+              onEdit={(row: LinkageEntity) => form.openEdit(row)}
+              onDelete={handleDelete}
+              className="mt-4"
+            />
+
+            <PaginationBar
+              page={page}
+              pageSize={pageSize}
+              totalCount={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
         </AppCard>
       ) : (
         <AppCard bordered>
