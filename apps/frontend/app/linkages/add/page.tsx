@@ -73,16 +73,20 @@ export default function LinkagePage() {
     }
 
     const payload: LinkageEntity = {
-      ...(formCtrl.selectedItem ?? {}),
-      ...values,
+      documentNo: values.documentNo?.trim() || "",
+      startDate: values.startDate!,
+      expiryDate: values.expiryDate!,
+      notes: values.notes ?? "",
       vehicleId: selectedVehicle.id,
       documentTypeId: selectedDocumentType.id,
+      link: values.link,
     };
 
     const action =
       formCtrl.isEditing && formCtrl.selectedItem?.id
         ? update({ id: formCtrl.selectedItem.id!, data: payload })
         : create(payload);
+
     toastUtils.promise(action, {
       loading: formCtrl.isEditing ? "Updating linkage..." : "Adding linkage...",
       success: formCtrl.isEditing
