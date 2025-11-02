@@ -38,29 +38,29 @@
   /* Success */
   --color-success: #16a34a;
   --color-success-hover: #15803d;
-  --color-success-light: #f0fdf4;
-  --color-success-light-hover: #dcfce7;
+  --color-success-light: #c4f7d4;
+  --color-success-light-hover: #b0f8c9;
   --color-success-text: #15803d;
 
   /* Warning */
   --color-warning: #d97706;
   --color-warning-hover: #b45309;
-  --color-warning-light: #fffbeb;
-  --color-warning-light-hover: #fef3c7;
+  --color-warning-light: #fff1b9;
+  --color-warning-light-hover: #fde99a;
   --color-warning-text: #b45309;
 
   /* Danger */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
-  --color-danger-light: #fef2f2;
-  --color-danger-light-hover: #fee2e2;
+  --color-danger-light: #fac3c3;
+  --color-danger-light-hover: #fcb3b3;
   --color-danger-text: #b91c1c;
 
   /* Info */
   --color-info: #0284c7;
   --color-info-hover: #0369a1;
-  --color-info-light: #dcedf8;
-  --color-info-light-hover: #e0f2fe;
+  --color-info-light: #b5d8f0;
+  --color-info-light-hover: #b1defc;
   --color-info-text: #0369a1;
 
   /* Special States */

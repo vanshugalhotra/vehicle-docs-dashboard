@@ -93,6 +93,7 @@ const handleSubmit = async (values: VehicleCategory) => {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Category" : "Add Category"}
             fields={vehicleCategoryCrudConfig.fields}
             schema={vehicleCategoryCrudConfig.schema}

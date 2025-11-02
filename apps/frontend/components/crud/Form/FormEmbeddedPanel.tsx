@@ -22,6 +22,7 @@ export interface FormEmbeddedPanelProps<T extends object> {
   loading?: boolean;
   layout?: FormLayoutConfig;
   hoverable?: boolean;
+  isEditMode?: boolean;
 }
 
 export const FormEmbeddedPanel = <T extends object>({
@@ -35,6 +36,7 @@ export const FormEmbeddedPanel = <T extends object>({
   loading = false,
   layout,
   hoverable = false,
+  isEditMode = false,
 }: FormEmbeddedPanelProps<T>) => {
   const form = useEntityForm<T>({
     fields,
@@ -149,10 +151,10 @@ export const FormEmbeddedPanel = <T extends object>({
             className="min-w-24 w-full sm:w-auto"
           >
             {loading
-              ? selectedRecord
+              ? isEditMode
                 ? "Updating..."
                 : "Saving..."
-              : selectedRecord
+              : isEditMode
               ? "Update"
               : "Save"}
           </AppButton>

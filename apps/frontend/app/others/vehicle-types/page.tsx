@@ -94,6 +94,7 @@ export default function VehicleTypesPage() {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Vehicle Type" : "Add Vehicle Type"}
             fields={vehicleTypeCrudConfig.fields}
             schema={vehicleTypeCrudConfig.schema}

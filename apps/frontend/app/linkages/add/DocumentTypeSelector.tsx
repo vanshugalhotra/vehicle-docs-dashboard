@@ -5,7 +5,11 @@ import { EntitySelector } from "@/components/ui/EntitySelector/EntitySelector";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { DocumentTypeResponse } from "@/lib/types/document-type.types";
 
-export default function DocumentTypeSelector() {
+interface DocumentTypeSelectorProps {
+  onSelect?: (documentType: DocumentTypeResponse | null) => void;
+}
+
+export default function DocumentTypeSelector({ onSelect }: DocumentTypeSelectorProps) {
   return (
     <EntitySelector<DocumentTypeResponse>
       label="Document"
@@ -13,6 +17,7 @@ export default function DocumentTypeSelector() {
       placeholder="Select a document..."
       variant="simple"
       simpleValue={(d) => d.name}
+      onSelect={onSelect}
       transformOption={(data) =>
         data.map((d) => ({
           label: d.name,

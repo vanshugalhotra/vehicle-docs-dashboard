@@ -89,6 +89,7 @@ export default function DocumentTypesPage() {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Document Type" : "Add Document Type"}
             fields={documentTypeCrudConfig.fields}
             schema={documentTypeCrudConfig.schema}

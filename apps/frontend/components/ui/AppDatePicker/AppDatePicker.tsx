@@ -15,16 +15,17 @@ interface AppDatePickerProps {
   error?: string;
   placeholder?: string;
   disabled?: boolean;
+  className?: string;
 }
 
 export const AppDatePicker: FC<AppDatePickerProps> = ({
   value,
   onChange,
   label,
-  helperText,
   error,
   placeholder = "Select date...",
   disabled = false,
+  className,
 }) => {
   return (
     <div className="flex flex-col w-full gap-1">
@@ -43,23 +44,12 @@ export const AppDatePicker: FC<AppDatePickerProps> = ({
           componentTokens.input.base,
           error && componentTokens.input.error,
           disabled && componentTokens.input.disabled,
-          !disabled && componentTokens.input.focus // Hover/focus baked in
+          !disabled && componentTokens.input.focus,
+          className
         )}
         wrapperClassName="w-full"
         dateFormat="dd/MM/yyyy"
       />
-
-      {error ? (
-        <AppText size="label" className={componentTokens.text.error} variant="error">
-          {error}
-        </AppText>
-      ) : (
-        helperText && (
-          <AppText size="label" className={componentTokens.text.bodySecondary}>
-            {helperText}
-          </AppText>
-        )
-      )}
     </div>
   );
 };

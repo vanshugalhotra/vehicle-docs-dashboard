@@ -89,6 +89,7 @@ export default function OwnersPage() {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Owner" : "Add Owner"}
             fields={ownerCrudConfig.fields}
             schema={ownerCrudConfig.schema}

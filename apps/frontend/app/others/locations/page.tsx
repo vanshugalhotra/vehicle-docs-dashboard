@@ -96,6 +96,7 @@ export default function LocationsPage() {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Location" : "Add Location"}
             fields={locationCrudConfig.fields}
             schema={locationCrudConfig.schema}

@@ -47,6 +47,7 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 type={field.type}
                 placeholder={field.placeholder}
                 error={errorMessage}
+                disabled={field.disabled}
                 className="w-full"
                 aria-invalid={!!errorMessage}
                 aria-describedby={errorMessage ? `${field.key}-error` : undefined}
@@ -158,6 +159,7 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 label=""
                 placeholder={field.placeholder}
                 error={errorMessage}
+                className="w-full"
                 aria-invalid={!!errorMessage}
                 aria-describedby={errorMessage ? `${field.key}-error` : undefined}
               />

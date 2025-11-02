@@ -1,20 +1,16 @@
-import { VehicleResponse } from './vehicle.types';
-import { DocumentTypeResponse } from './document-type.types';
-
 export interface VehicleDocumentResponse {
-  id: string;
-  vehicleId: string;
-  documentTypeId: string;
-  documentNo: string;
-  startDate: string | Date;
-  expiryDate: string | Date;
+  id?: string;
+  vehicleId?: string;                    // Made optional
+  documentTypeId?: string;               // Made optional
+  documentNo?: string;                   // Made optional
+  startDate?: string | Date;             // Made optional
+  expiryDate?: string | Date;            // Made optional
   notes?: string | null;
   link?: string | null;
   createdById?: string | null;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-  daysRemaining: number;
-  // Relations (optional - included when relations are fetched)
-  vehicle?: VehicleResponse;
-  documentType?: DocumentTypeResponse;
+  createdAt?: string | Date;             // Made optional
+  updatedAt?: string | Date;             // Made optional
+  daysRemaining?: number;                // Made optional
+  vehicleName?: string;                  // Made optional
+  documentTypeName?: string;             // Made optional
 }

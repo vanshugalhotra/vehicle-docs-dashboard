@@ -98,6 +98,7 @@ export default function DriversPage() {
         formCtrl.isOpen && (
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            isEditMode={formCtrl.isEditing}
             title={formCtrl.isEditing ? "Edit Driver" : "Add Driver"}
             fields={driverCrudConfig.fields}
             schema={driverCrudConfig.schema}

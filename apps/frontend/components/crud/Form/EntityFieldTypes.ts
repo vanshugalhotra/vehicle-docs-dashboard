@@ -14,6 +14,7 @@ export interface EntityField {
   label: string;
   type: FieldType;
   required?: boolean;
+  disabled?: boolean;
   options?: { label: string; value: string }[];
   placeholder?: string;
   inlineConfig?: InlineDropdownCreateConfig;

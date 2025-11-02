@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { HeaderBar } from "@/components/crud/HeaderBar/HeaderBar";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppText } from "@/components/ui/AppText";
 import { DataTable } from "@/components/crud/DataTable/DataTable";
+import { FormEmbeddedPanel } from "@/components/crud/Form/FormEmbeddedPanel";
 import VehicleSelector from "./VehicleSelector";
 import DocumentTypeSelector from "./DocumentTypeSelector";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { VehicleResponse } from "@/lib/types/vehicle.types";
-import { FiltersObject } from "@/lib/types/filter.types";
 import {
   linkageCrudConfig,
   LinkageEntity,
@@ -29,24 +29,22 @@ export default function LinkagePage() {
     useState<VehicleResponse | null>(null);
 
   // -------------------------------
-  // 🔹 Filters (depend on vehicle)
+  // 🔹 Selected Document Type
   // -------------------------------
-  const filters: FiltersObject = useMemo(
-    () => (selectedVehicle ? { vehicleId: selectedVehicle.id } : {}),
-    [selectedVehicle]
-  );
+  const [selectedDocumentType, setSelectedDocumentType] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // -------------------------------
   // 🔹 CRUD Controller
   // -------------------------------
-  const crud = useCRUDController<LinkageEntity>({
-    ...linkageCrudConfig,
-    defaultFilters: filters,
-  });
-
+  const crud = useCRUDController<LinkageEntity>(linkageCrudConfig);
   const {
     data,
     isLoading,
+    create,
+    update,
     remove,
     refetch,
     setFilters,
@@ -60,10 +58,46 @@ export default function LinkagePage() {
   // -------------------------------
   // 🔹 Form Controller
   // -------------------------------
-  const form = useFormStateController<LinkageEntity>("modal");
+  const formCtrl = useFormStateController<LinkageEntity>("embedded");
+  const [formKey, setFormKey] = useState(0);
+
+  const handleCancel = () => {
+    formCtrl.closeForm();
+    setFormKey((k) => k + 1);
+  };
+
+  const handleSubmit = async (values: Partial<LinkageEntity>) => {
+    if (!selectedVehicle?.id || !selectedDocumentType?.id) {
+      toastUtils.error("Vehicle and Document Type are required.");
+      return;
+    }
+
+    const payload: LinkageEntity = {
+      ...(formCtrl.selectedItem ?? {}),
+      ...values,
+      vehicleId: selectedVehicle.id,
+      documentTypeId: selectedDocumentType.id,
+    };
+
+    const action =
+      formCtrl.isEditing && formCtrl.selectedItem?.id
+        ? update({ id: formCtrl.selectedItem.id!, data: payload })
+        : create(payload);
+    toastUtils.promise(action, {
+      loading: formCtrl.isEditing ? "Updating linkage..." : "Adding linkage...",
+      success: formCtrl.isEditing
+        ? "Linkage updated successfully"
+        : "Linkage added successfully",
+      error: (err) => (err instanceof Error ? err.message : "Operation failed"),
+    });
+
+    setFormKey((k) => k + 1);
+    formCtrl.closeForm();
+    await refetch();
+  };
 
   // -------------------------------
-  // 🔹 Deletion State
+  // 🔹 Deletion
   // -------------------------------
   const [itemToDelete, setItemToDelete] = useState<LinkageEntity | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -77,10 +111,8 @@ export default function LinkagePage() {
       await remove(itemToDelete.id);
       await refetch();
       toastUtils.success("Document linkage deleted successfully");
-    } catch (err) {
-      toastUtils.error(
-        err instanceof Error ? err.message : "Failed to delete document linkage"
-      );
+    } catch {
+      toastUtils.error("Failed to delete document linkage");
     } finally {
       setDeleteLoading(false);
       setItemToDelete(null);
@@ -88,7 +120,7 @@ export default function LinkagePage() {
   };
 
   // -------------------------------
-  // 🔹 Watch vehicle change → update filters
+  // 🔹 Watch Vehicle → update filters
   // -------------------------------
   useEffect(() => {
     if (selectedVehicle) {
@@ -106,35 +138,23 @@ export default function LinkagePage() {
     <div className="flex flex-col space-y-6">
       <HeaderBar title="Link Vehicle Documents" />
 
+      {/* Vehicle & DocumentType Selectors */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        {/* Vehicle Selector */}
-        <div className="lg:col-span-2 flex flex-col space-y-4 h-full">
-          <AppCard
-            bordered
-            hoverable
-            padded
-            className="flex-1 flex flex-col min-h-[300px]"
-          >
+        <div className="lg:col-span-2 flex flex-col space-y-4">
+          <AppCard bordered hoverable padded className="flex-1">
             <VehicleSelector onSelect={setSelectedVehicle} />
           </AppCard>
         </div>
-
-        {/* Document Type Selector */}
-        <div className="flex flex-col space-y-4 h-full">
-          <AppCard
-            bordered
-            hoverable
-            padded
-            className="flex-1 flex flex-col min-h-[300px]"
-          >
-            <DocumentTypeSelector />
+        <div className="flex flex-col space-y-4">
+          <AppCard bordered hoverable padded className="flex-1">
+            <DocumentTypeSelector onSelect={setSelectedDocumentType} />
           </AppCard>
         </div>
       </div>
 
-      {/* Linked Documents Table */}
+      {/* Table + Embedded Form */}
       {selectedVehicle ? (
-        <AppCard bordered hoverable padded className="m-0">
+        <AppCard bordered hoverable padded>
           <AppText size="heading3" className="mb-3">
             Linked Documents{" "}
             <AppBadge variant="info" className="ml-4 text-xl!">
@@ -142,24 +162,23 @@ export default function LinkagePage() {
             </AppBadge>
           </AppText>
 
-          <div className="flex flex-col gap-4">
-            <DataTable<LinkageEntity>
-              columns={linkageCrudConfig.columns}
-              data={data}
-              loading={isLoading}
-              onEdit={(row: LinkageEntity) => form.openEdit(row)}
-              onDelete={handleDelete}
-              className="mt-4"
-            />
+          {/* Table */}
+          <DataTable<LinkageEntity>
+            columns={linkageCrudConfig.columns}
+            data={data}
+            loading={isLoading}
+            onEdit={(record) => formCtrl.openEdit(record)}
+            onDelete={handleDelete}
+            className="my-4"
+          />
 
-            <PaginationBar
-              page={page}
-              pageSize={pageSize}
-              totalCount={total}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-            />
-          </div>
+          <PaginationBar
+            page={page}
+            pageSize={pageSize}
+            totalCount={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </AppCard>
       ) : (
         <AppCard bordered>
@@ -171,18 +190,46 @@ export default function LinkagePage() {
               Please select a vehicle
             </AppText>
             <AppText size="body" variant="secondary">
-              to view linked documents.
+              to view or add linked documents.
             </AppText>
           </div>
         </AppCard>
       )}
+      {/* Form */}
+      {formCtrl.isOpen && (
+        <div className="mt-0">
+          <FormEmbeddedPanel<LinkageEntity>
+            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            title={
+              formCtrl.isEditing
+                ? "Edit Linked Document"
+                : "Add New Linked Document"
+            }
+            isEditMode={formCtrl.isEditing}
+            fields={linkageCrudConfig.fields}
+            schema={linkageCrudConfig.schema}
+            selectedRecord={{
+              ...formCtrl.selectedItem,
+              vehicleId: selectedVehicle?.name,
+              documentTypeId:
+                selectedDocumentType?.name ||
+                formCtrl.selectedItem?.documentTypeName ||
+                "—",
+            }}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            loading={isLoading}
+            layout={linkageCrudConfig.layout}
+          />
+        </div>
+      )}
 
-      {/* Confirm Deletion Dialog */}
+      {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!itemToDelete}
         title="Delete Linked Document?"
-        description={`Are you sure you want to delete this document linkage${
-          itemToDelete?.documentNo ? ` (No: ${itemToDelete.documentNo})` : ""
+        description={`Are you sure you want to delete ${
+          itemToDelete?.documentNo ?? "this record"
         }?`}
         loading={deleteLoading}
         onCancel={() => setItemToDelete(null)}
