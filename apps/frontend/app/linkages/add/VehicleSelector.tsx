@@ -3,7 +3,11 @@ import { apiRoutes } from "@/lib/apiRoutes";
 import { Building2, Hash, Key, MapPin, User } from "lucide-react";
 import type { VehicleResponse } from "@/lib/types/vehicle.types";
 
-export default function VehicleSelector() {
+interface VehicleSelectorProps {
+  onSelect?: (vehicle: VehicleResponse | null) => void;
+}
+
+export default function VehicleSelector({ onSelect }: VehicleSelectorProps) {
   return (
     <EntitySelector<VehicleResponse>
       label="Vehicle"
@@ -15,6 +19,7 @@ export default function VehicleSelector() {
         }))
       }
       variant="detailed"
+      onSelect={onSelect}
       renderFields={(v) => [
         {
           label: "Category",
