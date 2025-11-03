@@ -1,4 +1,3 @@
-// lib/filters/filterUtils.ts
 import type { FiltersObject} from "@/lib/types/filter.types";
 
 /**

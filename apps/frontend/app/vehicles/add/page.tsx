@@ -10,6 +10,7 @@ import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Vehicle, vehicleCrudConfig } from "@/configs/crud/vehicles.config";
+import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
 
 export default function VehiclesPage() {
   const formCtrl = useFormStateController<Vehicle>("embedded");
@@ -36,6 +37,8 @@ export default function VehiclesPage() {
     page,
     setPage,
     total,
+    setSort,
+    sort,
   } = useCRUDController<Vehicle>(vehicleCrudConfig);
 
   const handleSubmit = async (values: Vehicle) => {
@@ -106,6 +109,14 @@ export default function VehiclesPage() {
       }
       table={
         <div className="flex flex-col gap-4">
+          <TableToolbar
+            filtersConfig={vehicleCrudConfig.filters}
+            sortOptions={vehicleCrudConfig.sortOptions}
+            filters={filters}
+            setFilters={setFilters}
+            sort={sort}
+            setSort={setSort}
+          />
           <DataTable
             columns={vehicleCrudConfig.columns}
             data={vehicles}

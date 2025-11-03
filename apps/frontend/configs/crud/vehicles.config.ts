@@ -10,6 +10,8 @@ import {
 import { vehicleTypeFields, vehicleTypeSchema } from "./vehicle-types.config";
 import { ownerFields, ownerSchema } from "./owners.config";
 import { locationFields, locationSchema } from "./locations.config";
+import { FilterConfig, SortOption } from "@/lib/types/filter.types";
+import { Option } from "@/components/ui/AppSelect";
 
 // =====================
 // 🔹 Schema
@@ -202,6 +204,64 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
 ];
 
 // =====================
+// 🔹 Filter Config
+// =====================
+
+export const vehicleFiltersConfig: FilterConfig[] = [
+  {
+    key: "categoryId",
+    label: "Category",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicle_categories.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "typeId",
+    label: "Type",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicle_types.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "driverId",
+    label: "Driver",
+    type: "async-select",
+    asyncSource: apiRoutes.drivers.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "locationId",
+    label: "Location",
+    type: "async-select",
+    asyncSource: apiRoutes.locations.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+];
+// =====================
+// 🔹 Sort Options
+// =====================
+export const vehicleSortOptions: SortOption[] = [
+  { field: "createdAt", label: "Created", default: true },
+  { field: "licensePlate", label: "License Plate" },
+];
+
+// =====================
 // 🔹 CRUD Config
 // =====================
 export const vehicleCrudConfig = {
@@ -213,5 +273,7 @@ export const vehicleCrudConfig = {
   fields: vehicleFields,
   columns: vehicleColumns,
   defaultPageSize: 10,
-  layout: vehicleLayout
+  layout: vehicleLayout,
+  filters: vehicleFiltersConfig,
+  sortOptions: vehicleSortOptions,
 };

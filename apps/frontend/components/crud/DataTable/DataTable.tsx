@@ -38,7 +38,7 @@ export const DataTable = <T extends object>({
   });
 
   return (
-    <div className={clsx("relative", className, componentTokens.table.content)}>
+    <div className={clsx("relative z-0", className, componentTokens.table.content)}>
       <div
         className={clsx(
           "border border-border-subtle rounded-lg bg-surface overflow-hidden thin-scrollbar",

@@ -49,7 +49,7 @@ export const AppSelect: FC<AppSelectProps> = ({
         </AppText>
       )}
 
-      <Listbox value={value} onChange={onChange} disabled={disabled}>
+      <Listbox value={value ?? ({} as Option)} onChange={onChange} disabled={disabled}>
         <div className={"relative w-full"}>
           <ListboxButton
             className={clsx(

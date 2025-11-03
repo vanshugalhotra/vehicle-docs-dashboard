@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "../lib/utils/fetchWithAuth";
-import { serializeFilters } from "../lib/utils/filterSerializers";
+import { serializeFilters } from "@/lib/utils/filterUtils";
 import { FiltersObject } from "@/lib/types/filter.types";
 
 export interface CRUDControllerConfigBase {
