@@ -13,6 +13,7 @@ import {
   VehicleType,
   vehicleTypeCrudConfig,
 } from "@/configs/crud/vehicle-types.config";
+import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
 
 export default function VehicleTypesPage() {
   const formCtrl = useFormStateController<VehicleType>("embedded");
@@ -39,6 +40,8 @@ export default function VehicleTypesPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<VehicleType>(vehicleTypeCrudConfig);
 
   const handleSubmit = async (values: VehicleType) => {
@@ -95,7 +98,9 @@ export default function VehicleTypesPage() {
           <FormEmbeddedPanel
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
             isEditMode={formCtrl.isEditing}
-            title={formCtrl.isEditing ? "Edit Vehicle Type" : "Add Vehicle Type"}
+            title={
+              formCtrl.isEditing ? "Edit Vehicle Type" : "Add Vehicle Type"
+            }
             fields={vehicleTypeCrudConfig.fields}
             schema={vehicleTypeCrudConfig.schema}
             selectedRecord={formCtrl.selectedItem}
@@ -108,6 +113,14 @@ export default function VehicleTypesPage() {
       }
       table={
         <div className="flex flex-col gap-4">
+          <TableToolbar
+            filtersConfig={vehicleTypeCrudConfig.filters}
+            sortOptions={vehicleTypeCrudConfig.sortOptions}
+            filters={filters}
+            setFilters={setFilters}
+            sort={sort}
+            setSort={setSort}
+          />
           <DataTable
             columns={vehicleTypeCrudConfig.columns}
             data={types}

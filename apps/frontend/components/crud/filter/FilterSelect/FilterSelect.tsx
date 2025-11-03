@@ -77,6 +77,7 @@ export const FilterSelect: React.FC<FilterSelectProps> = ({
         placeholder={placeholder}
         helperText={helperText}
         disabled={disabled}
+        className="w-full"
       />
 
       {clearable && localValue && (

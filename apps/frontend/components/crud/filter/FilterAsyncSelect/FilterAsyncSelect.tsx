@@ -53,6 +53,7 @@ export const FilterAsyncSelect: FC<FilterAsyncSelectProps> = ({
         transform={config.transform}
         disabled={disabled}
         error={error}
+        className="w-full"
       />
     </div>
   );

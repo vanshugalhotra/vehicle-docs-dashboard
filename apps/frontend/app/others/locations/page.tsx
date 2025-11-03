@@ -9,10 +9,7 @@ import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
-import {
-  Location,
-  locationCrudConfig,
-} from "@/configs/crud/locations.config";
+import { Location, locationCrudConfig } from "@/configs/crud/locations.config";
 
 export default function LocationsPage() {
   const formCtrl = useFormStateController<Location>("embedded");
@@ -41,6 +38,8 @@ export default function LocationsPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<Location>(locationCrudConfig);
 
   const handleSubmit = async (values: Location) => {
@@ -116,6 +115,8 @@ export default function LocationsPage() {
             loading={isLoading}
             onEdit={formCtrl.openEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

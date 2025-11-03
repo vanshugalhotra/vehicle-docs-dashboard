@@ -189,8 +189,8 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     cell: ({ row }) => row.index + 1,
     size: 40,
   },
-  { accessorKey: "name", header: "Vehicle Name" },
-  { accessorKey: "licensePlate", header: "License Plate" },
+  { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
+  { accessorKey: "licensePlate", header: "License Plate", enableSorting: true },
   { accessorKey: "typeName", header: "Type" },
   { accessorKey: "categoryName", header: "Category" },
   { accessorKey: "driverName", header: "Driver" },
@@ -200,6 +200,7 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 

@@ -37,6 +37,7 @@ export const locationColumns: ColumnDef<Location>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 

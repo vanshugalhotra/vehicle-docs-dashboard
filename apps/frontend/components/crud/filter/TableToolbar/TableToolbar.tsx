@@ -89,15 +89,13 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     });
   }, [setFilters, setSort, sortOptions]);
 
-  // 🧱 Layout
   return (
     <div
-      className={`w-full flex flex-col gap-3 border border-border-subtle bg-surface p-3 rounded-xl ${
+      className={`w-full flex flex-col gap-3 bg-surface px-3 py-1 rounded-xl ${
         compact ? "md:flex-row md:items-end md:justify-between" : ""
       }`}
     >
-      <div className="flex-1 flex flex-col gap-3">
-        {/* 🔎 Optional Search */}
+      <div className="flex-1 flex flex-col gap-3 w-full">
         {showSearch && (
           <AppInput
             placeholder="Search..."
@@ -108,7 +106,6 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
           />
         )}
 
-        {/* 🧩 Optional FilterPanel */}
         {showFilters && filtersConfig.length > 0 && (
           <FilterPanel
             filters={filters ?? {}}
@@ -118,7 +115,6 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
         )}
       </div>
 
-      {/* ⚙️ Optional Sort + Reset */}
       {(showSort || showReset) && (
         <div className="flex flex-wrap items-center gap-2 justify-end">
           {showSort && sortOptions.length > 0 && (

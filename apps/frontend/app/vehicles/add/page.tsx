@@ -126,6 +126,8 @@ export default function VehiclesPage() {
             onView={(item) => {
               console.log("View vehicle:", item);
             }}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

@@ -54,6 +54,7 @@ export const FilterTextInput: React.FC<FilterTextInputProps> = ({
       }}
       disabled={disabled}
       helperText={helperText}
+      className="w-full"
     />
   );
 };

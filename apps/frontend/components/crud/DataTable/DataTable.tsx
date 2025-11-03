@@ -11,7 +11,12 @@ import { componentTokens } from "@/styles/design-system/componentTokens";
 import { AppText } from "../../ui/AppText";
 import { DataTableActions } from "./DataTableActions";
 import { DataTableEmptyState } from "./DataTableEmptyState";
+import { ColumnSorter } from "./ColumnSorter";
 
+export interface SortState {
+  field?: string;
+  order?: "asc" | "desc";
+}
 export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
@@ -20,6 +25,8 @@ export interface DataTableProps<T> {
   onDelete?: (row: T) => void;
   onView?: (row: T) => void;
   className?: string;
+  sort?: SortState;
+  setSort?: (sort: SortState) => void;
 }
 
 export const DataTable = <T extends object>({
@@ -30,6 +37,8 @@ export const DataTable = <T extends object>({
   onDelete,
   onView,
   className,
+  sort,
+  setSort,
 }: DataTableProps<T>) => {
   const table = useReactTable({
     data,
@@ -38,7 +47,9 @@ export const DataTable = <T extends object>({
   });
 
   return (
-    <div className={clsx("relative z-0", className, componentTokens.table.content)}>
+    <div
+      className={clsx("relative z-0", className, componentTokens.table.content)}
+    >
       <div
         className={clsx(
           "border border-border-subtle rounded-lg bg-surface overflow-hidden thin-scrollbar",
@@ -53,26 +64,49 @@ export const DataTable = <T extends object>({
                   key={headerGroup.id}
                   className="border-b border-border-subtle"
                 >
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className={clsx(
-                        "text-left px-4 py-3",
-                        "font-semibold text-text-secondary",
-                        "border-r border-border-subtle last:border-r-0",
-                        "transition-colors duration-200"
-                      )}
-                      style={{
-                        width: header.getSize(),
-                        minWidth: header.getSize(),
-                      }}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </th>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const colDef = header.column.columnDef as ColumnDef<T, unknown>;
+                    const isSortable = colDef.enableSorting;
+                    const field = header.column.id;
+
+                    return (
+                      <th
+                        key={header.id}
+                        className={clsx(
+                          "text-left px-4 py-3",
+                          "font-semibold text-text-secondary",
+                          "border-r border-border-subtle last:border-r-0",
+                          "transition-colors duration-200"
+                        )}
+                        style={{
+                          width: header.getSize(),
+                          minWidth: header.getSize(),
+                        }}
+                      >
+                        {isSortable && field && setSort ? (
+                          <ColumnSorter
+                            field={field as string}
+                            label={
+                              typeof colDef.header === "string"
+                                ? colDef.header
+                                : String(flexRender(colDef.header, header.getContext()))
+                            }
+                            currentSort={
+                              sort?.field && sort?.order
+                                ? { field: sort.field, order: sort.order }
+                                : null
+                            }
+                            onChange={(f, o) => setSort({ field: f, order: o })}
+                          />
+                        ) : (
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )
+                        )}
+                      </th>
+                    );
+                  })}
                   {(onEdit || onDelete) && (
                     <th
                       className="px-4 py-3 text-center border-r border-border-subtle last:border-r-0"
