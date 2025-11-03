@@ -1,101 +1,98 @@
 import { Option } from "@/components/ui/AppSelect";
 
-/** Basic type for option-based filters (static or async) */
+/* ---------- FILTERS ---------- */
+
 export interface FilterOption {
   label: string;
   value: string;
 }
 
-/** Supported filter control types */
-export type FilterControlType =
-  | "text"
-  | "select"
-  | "async-select"
-  | "dateRange";
+export type FilterControlType = "text" | "select" | "async-select" | "dateRange";
 
-/** FilterConfig defines how each filter behaves and renders */
 export interface FilterConfig {
-  /** The backend filter key (maps to filters JSON key) */
-  key: string;
-  /** Display label */
+  key: string; // backend filter key
   label: string;
-  /** UI control type */
   type: FilterControlType;
-  /** Optional placeholder text */
   placeholder?: string;
-  /** Static options for select / multi-select */
   options?: FilterOption[];
-  /** API endpoint for async selects */
   asyncSource?: string;
-  /** Dependency config (for dependent selects) */
+  transform?: (data: unknown[]) => Option[];
+  allowMultiple?: boolean;
   dependsOn?: {
     key: string;
-    transform?: (
-      parentValue:
-        | string
-        | number
-        | boolean
-        | (string | number | boolean)[]
-        | null
-        | undefined
-    ) =>
-      | string
-      | number
-      | boolean
-      | (string | number | boolean)[]
-      | null
-      | undefined;
+    transform?: (parentValue: unknown) => unknown;
   };
-  /** Allow multiple selection (only relevant for select/multi-select) */
-  allowMultiple?: boolean;
-  /** Layout hints for responsive filter bar */
   ui?: {
     compact?: boolean;
     width?: string | number;
     columnSpan?: number;
   };
-  /** Transform function for async select data */
-  transform?: (data: unknown[]) => Option[];
 }
 
-/** Sorting options for a CRUD entity */
+/** Canonical filters object used in state & serialization */
+export type FilterValue =
+  | string
+  | number
+  | boolean
+  | (string | number | boolean)[]
+  | { gte?: string | number; lte?: string | number }
+  | null
+  | undefined;
+
+export type FiltersObject = Record<string, FilterValue>;
+
+/* ---------- SORT ---------- */
+
 export interface SortOption {
   field: string;
   label: string;
   default?: boolean;
 }
 
-/** Sort state used internally */
 export interface SortState {
-  field: string;
-  order: "asc" | "desc";
+  field?: string;
+  order?: "asc" | "desc";
 }
 
-/** Filter value representations for each control type */
-export type FilterValue =
-  | string
-  | number
-  | boolean
-  | (string | number | boolean)[]
-  | { gte?: string | number; lte?: string | number } // for range types
-  | null
-  | undefined;
+/* ---------- COMBINED STATE ---------- */
 
-/** Canonical filters object used in state & serialization */
-export type FiltersObject = Record<string, FilterValue>;
-
-/** Hook state shape for filter + sort */
 export interface FilterSortState {
   filters: FiltersObject;
   sort: SortState;
 }
 
-/** Props for main FilterSortBar */
-export interface FilterSortBarProps {
-  filtersConfig: FilterConfig[];
-  sortOptions: SortOption[];
-  initialState?: FilterSortState;
-  autoApply?: boolean;
-  mode?: "panel" | "compact";
-  onChange?: (state: FilterSortState) => void;
+/* ---------- QUERY HOOK TYPES ---------- */
+
+export interface QueryOptions {
+  search?: string;
+  filters?: FiltersObject;
+  sort?: SortState;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface QueryController {
+  search: string | undefined;
+  filters: FiltersObject;
+  sort: SortState;
+  page: number;
+  pageSize: number;
+  skip: number;
+  take: number;
+
+  queryOptions: {
+    skip: number;
+    take: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    filters?: string;
+  };
+
+  setSearch: (v: string) => void;
+  setFilters: (f: FiltersObject) => void;
+  setSort: (field: string, order: "asc" | "desc") => void;
+  setPage: (v: number) => void;
+  setPageSize: (v: number) => void;
+  resetAll: () => void;
 }
