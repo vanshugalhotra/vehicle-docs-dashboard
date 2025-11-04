@@ -60,39 +60,3 @@ export interface FilterSortState {
   filters: FiltersObject;
   sort: SortState;
 }
-
-/* ---------- QUERY HOOK TYPES ---------- */
-
-export interface QueryOptions {
-  search?: string;
-  filters?: FiltersObject;
-  sort?: SortState;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface QueryController {
-  search: string | undefined;
-  filters: FiltersObject;
-  sort: SortState;
-  page: number;
-  pageSize: number;
-  skip: number;
-  take: number;
-
-  queryOptions: {
-    skip: number;
-    take: number;
-    search?: string;
-    sortBy?: string;
-    order?: "asc" | "desc";
-    filters?: string;
-  };
-
-  setSearch: (v: string) => void;
-  setFilters: (f: FiltersObject) => void;
-  setSort: (field: string, order: "asc" | "desc") => void;
-  setPage: (v: number) => void;
-  setPageSize: (v: number) => void;
-  resetAll: () => void;
-}

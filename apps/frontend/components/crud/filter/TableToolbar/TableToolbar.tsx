@@ -13,18 +13,18 @@ import type {
 } from "@/lib/types/filter.types";
 
 interface TableToolbarProps {
-  /** 🔹 Config-driven optional elements */
+  /** Config-driven optional elements */
   showSearch?: boolean;
   showFilters?: boolean;
   showSort?: boolean;
   showReset?: boolean;
 
-  /** 🔹 Filter configuration */
+  /** Filter configuration */
   filtersConfig?: FilterConfig[];
   filters: FiltersObject;
   setFilters: (filters: FiltersObject) => void;
 
-  /** 🔹 Sort configuration */
+  /** Sort configuration */
   sortOptions?: SortOption[];
   sort?: { field?: string; order?: "asc" | "desc" };
   setSort?: (sort: { field?: string; order?: "asc" | "desc" }) => void;
@@ -91,7 +91,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
 
   return (
     <div
-      className={`w-full flex flex-col gap-3 bg-surface px-3 py-1 rounded-xl ${
+      className={`w-full flex flex-col gap-3 bg-surface p-3 rounded-xl ${
         compact ? "md:flex-row md:items-end md:justify-between" : ""
       }`}
     >

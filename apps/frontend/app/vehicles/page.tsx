@@ -1,0 +1,63 @@
+"use client";
+
+import React, { useState } from "react";
+import { EntityViewPage } from "@/components/crud/EntityViewPage";
+import { useCRUDController } from "@/hooks/useCRUDController";
+import { vehicleCrudConfig, Vehicle } from "@/configs/crud/vehicles.config";
+import { toastUtils } from "@/lib/utils/toastUtils";
+
+export default function VehiclesPage() {
+  const controller = useCRUDController<Vehicle>(vehicleCrudConfig);
+
+  const [itemToDelete, setItemToDelete] = useState<Vehicle | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete?.id) return;
+    setDeleteLoading(true);
+    try {
+      await controller.remove(itemToDelete.id);
+      await controller.refetch();
+      toastUtils.success("Vehicle deleted successfully");
+    } catch {
+      toastUtils.error("Failed to delete vehicle");
+    } finally {
+      setDeleteLoading(false);
+      setItemToDelete(null);
+    }
+  };
+
+  return (
+    <EntityViewPage<Vehicle>
+      title="Vehicles"
+      columns={vehicleCrudConfig.columns}
+      data={controller.data}
+      loading={controller.isLoading}
+      filtersConfig={vehicleCrudConfig.filters}
+      filters={controller.filters}
+      onFiltersChange={controller.setFilters}
+      sortOptions={vehicleCrudConfig.sortOptions}
+      sort={controller.sort}
+      onSortChange={controller.setSort}
+      search={controller.filters.search as string}
+      onSearchChange={(val) =>
+        controller.setFilters((prev) => ({ ...prev, search: val }))
+      }
+      onAdd={() => console.log("Add Vehicle clicked")}
+      onExport={() => console.log("Export Vehicles clicked")}
+      page={controller.page}
+      pageSize={controller.pageSize}
+      totalCount={controller.total}
+      onPageChange={controller.setPage}
+      onPageSizeChange={controller.setPageSize}
+      // --- delete flow ---
+      handleDelete={(item) => setItemToDelete(item)}
+      confirmDelete={handleConfirmDelete}
+      deleteLoading={deleteLoading}
+      itemToDelete={itemToDelete}
+      onCancelDelete={() => setItemToDelete(null)}
+      onEdit={() => {}}
+      onView={() => {}}
+    />
+  );
+}
