@@ -6,16 +6,14 @@ import { debounce } from "@/lib/utils/debounce";
 
 /**
  * FilterDateRange
- * - Wraps AppDatePicker twice (start & end)
- * - Debounced filter updates
- * - Syncs with external values
- * - Designed for list filtering (not forms)
+ * - Sends just the range object { gte?: string; lte?: string }
+ * - The parent component should assign it to the correct field name
  */
 export interface FilterDateRangeProps {
   label?: string;
   start?: string | null; // ISO string
   end?: string | null; // ISO string
-  onChange: (range: { start?: string | null; end?: string | null }) => void;
+  onChange: (range: { gte?: string; lte?: string } | null) => void; // Changed this line
   debounceMs?: number;
   disabled?: boolean;
   helperText?: string;
@@ -30,7 +28,6 @@ export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
   debounceMs = 400,
   disabled = false,
   helperText,
-  clearable = true,
 }) => {
   const [localStart, setLocalStart] = useState<Date | null>(
     start ? new Date(start) : null
@@ -42,7 +39,7 @@ export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
   // Debounced onChange
   const debouncedChange = useMemo(
     () =>
-      debounce((range: { start?: string | null; end?: string | null }) => {
+      debounce((range: { gte?: string; lte?: string } | null) => { // Changed this line
         onChange(range);
       }, debounceMs),
     [onChange, debounceMs]
@@ -57,29 +54,52 @@ export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
     setLocalEnd(end ? new Date(end) : null);
   }, [end]);
 
+  // Convert date to backend-compatible format (start of day for gte, end of day for lte)
+  const normalizeDateForBackend = (date: Date, isEndDate: boolean = false): string => {
+    if (isEndDate) {
+      // For end date, set to end of day
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      return endOfDay.toISOString();
+    }
+    // For start date, set to start of day
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    return startOfDay.toISOString();
+  };
+
+  // Build the range filter object
+  const buildRangeFilter = (startDate: Date | null, endDate: Date | null) => {
+    if (!startDate && !endDate) {
+      return null;
+    }
+
+    const rangeFilter: { gte?: string; lte?: string } = {};
+
+    if (startDate) {
+      rangeFilter.gte = normalizeDateForBackend(startDate, false);
+    }
+
+    if (endDate) {
+      rangeFilter.lte = normalizeDateForBackend(endDate, true);
+    }
+
+    return rangeFilter;
+  };
+
   // Local handlers
   const handleStartChange = (date: Date | null) => {
     setLocalStart(date);
-    debouncedChange({
-      start: date ? date.toISOString() : null,
-      end: localEnd ? localEnd.toISOString() : null,
-    });
+    const rangeFilter = buildRangeFilter(date, localEnd);
+    debouncedChange(rangeFilter);
   };
 
   const handleEndChange = (date: Date | null) => {
     setLocalEnd(date);
-    debouncedChange({
-      start: localStart ? localStart.toISOString() : null,
-      end: date ? date.toISOString() : null,
-    });
+    const rangeFilter = buildRangeFilter(localStart, date);
+    debouncedChange(rangeFilter);
   };
-
-  const handleClear = () => {
-    setLocalStart(null);
-    setLocalEnd(null);
-    onChange({ start: null, end: null });
-  };
-
+  
   return (
     <div className="flex flex-col w-full gap-2">
       {label && (
@@ -99,16 +119,6 @@ export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
           onChange={handleEndChange}
           disabled={disabled}
         />
-
-        {clearable && (localStart || localEnd) && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="text-gray-400 hover:text-gray-600 transition-colors mt-6"
-          >
-            ✕
-          </button>
-        )}
       </div>
 
       {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}

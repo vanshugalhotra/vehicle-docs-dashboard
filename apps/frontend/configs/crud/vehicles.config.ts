@@ -252,7 +252,7 @@ export const vehicleFiltersConfig: FilterConfig[] = [
         label: item.name,
         value: String(item.id),
       })),
-  },
+  }
 ];
 // =====================
 // 🔹 Sort Options
