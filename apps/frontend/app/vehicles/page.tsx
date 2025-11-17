@@ -5,9 +5,11 @@ import { EntityViewPage } from "@/components/crud/EntityViewPage";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { vehicleCrudConfig, Vehicle } from "@/configs/crud/vehicles.config";
 import { toastUtils } from "@/lib/utils/toastUtils";
+import { useRouter } from "next/navigation";
 
 export default function VehiclesPage() {
   const controller = useCRUDController<Vehicle>(vehicleCrudConfig);
+  const router = useRouter();
 
   const [itemToDelete, setItemToDelete] = useState<Vehicle | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -43,7 +45,7 @@ export default function VehiclesPage() {
       onSearchChange={(val) =>
         controller.setFilters((prev) => ({ ...prev, search: val }))
       }
-      onAdd={() => console.log("Add Vehicle clicked")}
+      onAdd={() => router.push("/vehicles/add")}
       onExport={() => console.log("Export Vehicles clicked")}
       page={controller.page}
       pageSize={controller.pageSize}

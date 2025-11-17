@@ -2,7 +2,12 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { SortOption } from "@/lib/types/filter.types";
+import { FilterConfig } from "@/lib/types/filter.types";
 
+// -------------------------------
+// Schema
+// -------------------------------
 export const documentTypeSchema = z.object({
   name: z.string().min(1, "Document type name is required"),
 });
@@ -13,6 +18,9 @@ export type DocumentType = z.infer<typeof documentTypeSchema> & {
   updatedAt?: string;
 };
 
+// -------------------------------
+// Fields
+// -------------------------------
 export const documentTypeFields = [
   {
     key: "name",
@@ -23,10 +31,16 @@ export const documentTypeFields = [
   },
 ];
 
+// -------------------------------
+// Form layout
+// -------------------------------
 export const documentTypeLayout = {
-  gridColumns: 1
-}
+  gridColumns: 1,
+};
 
+// -------------------------------
+// Table columns
+// -------------------------------
 export const documentTypeColumns: ColumnDef<DocumentType>[] = [
   {
     id: "serial",
@@ -36,14 +50,31 @@ export const documentTypeColumns: ColumnDef<DocumentType>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Name" },
+  { accessorKey: "name", header: "Name", enableSorting: true },
   {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
+// -------------------------------
+// Filters
+// -------------------------------
+export const documentTypeFilters: FilterConfig[] = [];
+
+// -------------------------------
+// Sort options
+// -------------------------------
+export const documentTypeSortOptions: SortOption[] = [
+  { field: "createdAt", label: "Created Date", default: true },
+  { field: "name", label: "Name" },
+];
+
+// -------------------------------
+// CRUD Config
+// -------------------------------
 export const documentTypeCrudConfig = {
   name: "Document Type",
   baseUrl: apiRoutes.document_types.base,
@@ -53,5 +84,7 @@ export const documentTypeCrudConfig = {
   fields: documentTypeFields,
   columns: documentTypeColumns,
   layout: documentTypeLayout,
+  filters: documentTypeFilters,
+  sortOptions: documentTypeSortOptions,
   defaultPageSize: 5,
 };
