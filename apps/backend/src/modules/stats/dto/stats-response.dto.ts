@@ -65,3 +65,11 @@ export class OverviewResponseDto {
   @ApiProperty({ type: [TrendRowDto] })
   documentExpiryTrend!: TrendRowDto[];
 }
+
+export class CountResponseDto {
+  @ApiProperty({ description: 'Label for the group (e.g., category name)' })
+  label!: string;
+
+  @ApiProperty({ description: 'Count for this group' })
+  count!: number;
+}

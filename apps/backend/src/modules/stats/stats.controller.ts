@@ -3,7 +3,7 @@ import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import {
   OverviewQueryDto,
-  //   VehiclesByCategoryQueryDto,
+  VehiclesByCategoryQueryDto,
   //   VehiclesByLocationQueryDto,
   //   CreatedTrendQueryDto,
   //   ExpiryDistributionQueryDto,
@@ -15,7 +15,7 @@ import {
 
 import {
   OverviewResponseDto,
-  //   CountResponseDto,
+  CountResponseDto,
   //   TimeSeriesResponseDto,
   //   ExpiryBucketResponseDto,
   //   ExpiringSoonResponseDto,
@@ -45,20 +45,20 @@ export class StatsController {
     return this.statsService.getOverview(query);
   }
 
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 2. VEHICLES BY CATEGORY
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('vehicles/by-category')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Counts of vehicles grouped by category',
-  //     type: [CountResponseDto],
-  //   })
-  //   async getVehiclesByCategory(
-  //     @Query() query: VehiclesByCategoryQueryDto,
-  //   ): Promise<CountResponseDto[]> {
-  //     return this.statsService.getVehiclesByCategory(query);
-  //   }
+  // ─────────────────────────────────────────────────────────────
+  // 2. VEHICLES BY CATEGORY
+  // ─────────────────────────────────────────────────────────────
+  @Get('vehicles/by-category')
+  @ApiResponse({
+    status: 200,
+    description: 'Counts of vehicles grouped by category',
+    type: [CountResponseDto],
+  })
+  async getVehiclesByCategory(
+    @Query() query: VehiclesByCategoryQueryDto,
+  ): Promise<CountResponseDto[]> {
+    return this.statsService.getVehiclesByCategory(query);
+  }
 
   //   // ─────────────────────────────────────────────────────────────
   //   // 3. VEHICLES BY LOCATION

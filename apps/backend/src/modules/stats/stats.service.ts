@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OverviewQueryDto } from './dto/stats-query.dto';
 import { OverviewResponseDto } from './dto/stats-response.dto';
+import { VehiclesByCategoryQueryDto } from './dto/stats-query.dto';
+import { CountResponseDto } from './dto/stats-response.dto';
 import { Prisma, VehicleDocument } from '@prisma/client';
 
 interface TrendRow {
@@ -211,5 +213,57 @@ export class StatsService {
       GROUP BY date("expiryDate")
       ORDER BY date("expiryDate");
     `;
+  }
+
+  async getVehiclesByCategory(
+    query: VehiclesByCategoryQueryDto,
+  ): Promise<CountResponseDto[]> {
+    const { startDate, endDate, search, status, tenantId } = query;
+
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+
+    const where: Prisma.VehicleWhereInput = {
+      ...(start && { createdAt: { gte: start } }),
+      ...(end && { createdAt: { lte: end } }),
+
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { licensePlate: { contains: search, mode: 'insensitive' } },
+          { rcNumber: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+
+      ...(status && { status }),
+      ...(tenantId && { tenantId }),
+    };
+
+    // Group vehicles by categoryId
+    const grouped = await this.prisma.vehicle.groupBy({
+      by: ['categoryId'],
+      where,
+      _count: { id: true },
+    });
+
+    if (grouped.length === 0) return [];
+
+    // Fetch category names
+    const categoryIds = grouped.map((g) => g.categoryId);
+
+    const categories = await this.prisma.vehicleCategory.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true, name: true },
+    });
+
+    const nameMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+
+    // Build typed response
+    const response: CountResponseDto[] = grouped.map((g) => ({
+      label: nameMap[g.categoryId] ?? 'Unknown',
+      count: g._count.id,
+    }));
+
+    return response;
   }
 }
