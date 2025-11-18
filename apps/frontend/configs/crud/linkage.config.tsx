@@ -117,18 +117,6 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
   { accessorKey: "documentTypeName", header: "Document Type" },
   { accessorKey: "documentNo", header: "Document No" },
   {
-    accessorKey: "startDate",
-    header: "Start Date",
-    cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
-    enableSorting: true,
-  },
-  {
-    accessorKey: "expiryDate",
-    header: "Expiry Date",
-    cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
-    enableSorting: true,
-  },
-  {
     id: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -139,6 +127,18 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
         return <AppBadge variant="warning">Expiring Soon</AppBadge>;
       return <AppBadge variant="success">Active</AppBadge>;
     },
+  },
+  {
+    accessorKey: "startDate",
+    header: "Start Date",
+    cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "expiryDate",
+    header: "Expiry Date",
+    cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
   {
     accessorKey: "link",

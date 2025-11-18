@@ -9,28 +9,27 @@ interface AppBadgeProps {
   children: ReactNode;
   variant?: BadgeVariant;
   className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
 export const AppBadge: FC<AppBadgeProps> = ({
   children,
   variant = "neutral",
   className,
+  size = "md",
 }) => {
-  const variantClasses: Record<BadgeVariant, string> = {
-    neutral: componentTokens.badge.neutral,
-    success: componentTokens.badge.success,
-    warning: componentTokens.badge.warning,
-    danger: componentTokens.badge.danger,
-    info: componentTokens.badge.info,
-  };
+  const sizeClasses = componentTokens.badge.sizes[size];
+  const variantClasses = componentTokens.badge.variants[variant];
 
   return (
     <span
       className={clsx(
-        "inline-block select-none transition-all duration-150",
-        variantClasses[variant],
+        componentTokens.badge.base,
+        sizeClasses,
+        variantClasses,
         className
       )}
+      role="badge"
     >
       {children}
     </span>

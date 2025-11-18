@@ -7,7 +7,7 @@ export function CategoryTypesCell({ types }: { types?: { id: string; name: strin
   return (
     <div className="flex flex-wrap items-center gap-1">
       {preview.map((t) => (
-        <AppBadge key={t.id} variant="success" className="text-[11px] px-2 py-0.5 rounded-full">
+        <AppBadge key={t.id} variant="success" className="">
           {t.name}
         </AppBadge>
       ))}

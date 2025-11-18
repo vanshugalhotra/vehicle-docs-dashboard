@@ -2,7 +2,7 @@
  * Pre-composed class strings for common component patterns
  * These reference the CSS variables from global.css
  */
-
+import clsx from "clsx";
 export const componentTokens = {
   // ============================================
   // BUTTONS
@@ -27,6 +27,11 @@ export const componentTokens = {
       sm: "px-3 py-1 text-sm",
       md: "px-4 py-2 text-base",
       lg: "px-5 py-3 text-lg",
+    },
+    brightness: {
+      hover: "hover:brightness-105",
+      active: "active:brightness-95",
+      focus: "focus-visible:brightness-105",
     },
   },
 
@@ -61,15 +66,39 @@ export const componentTokens = {
   // BADGES
   // ============================================
   badge: {
-    neutral:
-      "bg-secondary hover:bg-secondary-hover text-secondary-text px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-150 cursor-default",
-    success:
-      "bg-success-light hover:bg-success-light-hover text-success-text px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-150 cursor-default",
-    warning:
-      "bg-warning-light hover:bg-warning-light-hover text-warning-text px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-150 cursor-default",
-    danger:
-      "bg-danger-light hover:bg-danger-light-hover text-danger-text px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-150 cursor-default",
-    info: "bg-info-light hover:bg-info-light-hover text-info-text px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-150 cursor-default",
+    base: "inline-flex items-center justify-center select-none font-medium leading-none transition-all duration-200 ease-out rounded-full shadow-sm cursor-default",
+    sizes: {
+      sm: "px-2 py-0.5 text-xs",
+      md: "px-2.5 py-0.5 text-sm",
+      lg: "px-3 py-1 text-base",
+    },
+    variants: {
+      neutral: clsx(
+        "bg-secondary text-secondary-text border border-secondary/20",
+        "hover:bg-secondary-hover hover:shadow-md hover:shadow-secondary/20",
+        "dark:bg-secondary-dark dark:text-secondary-text-inverse dark:border-secondary-dark/30 dark:hover:bg-secondary-dark-hover"
+      ),
+      success: clsx(
+        "bg-success-light text-success-text border border-success/20",
+        "hover:bg-success-light-hover hover:shadow-md hover:shadow-success/20",
+        "dark:bg-success-dark dark:text-success-text-inverse dark:border-success-dark/30 dark:hover:bg-success-dark-hover"
+      ),
+      warning: clsx(
+        "bg-warning-light text-warning-text border border-warning/20",
+        "hover:bg-warning-light-hover hover:shadow-md hover:shadow-warning/20",
+        "dark:bg-warning-dark dark:text-warning-text-inverse dark:border-warning-dark/30 dark:hover:bg-warning-dark-hover"
+      ),
+      danger: clsx(
+        "bg-danger-light text-danger-text border border-danger/20",
+        "hover:bg-danger-light-hover hover:shadow-md hover:shadow-danger/20",
+        "dark:bg-danger-dark dark:text-danger-text-inverse dark:border-danger-dark/30 dark:hover:bg-danger-dark-hover"
+      ),
+      info: clsx(
+        "bg-info-light text-info-text border border-info/20",
+        "hover:bg-info-light-hover hover:shadow-md hover:shadow-info/20",
+        "dark:bg-info-dark dark:text-info-text-inverse dark:border-info-dark/30 dark:hover:bg-info-dark-hover"
+      ),
+    },
   },
 
   // ============================================

@@ -171,3 +171,25 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
 }
+
+@keyframes button-ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+[data-ripple] {
+  position: absolute;
+  border-radius: inherit; 
+  background: currentColor;
+  opacity: 0.3;
+  transform: scale(0);
+  animation: button-ripple 0.6s linear;
+  pointer-events: none;
+}
+
+button:active [data-ripple],
+button:focus-visible [data-ripple] {
+  animation-play-state: running;
+}
