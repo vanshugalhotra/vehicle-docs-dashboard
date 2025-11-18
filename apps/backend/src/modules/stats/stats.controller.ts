@@ -7,9 +7,6 @@ import {
   CreatedTrendQueryDto,
   ExpiryDistributionQueryDto,
   ExpiringSoonQueryDto,
-  //   DocumentsByTypeQueryDto,
-  //   RecentActivityQueryDto,
-  //   ActivitySummaryQueryDto,
 } from './dto/stats-query.dto';
 
 import {
@@ -18,8 +15,6 @@ import {
   TimeSeriesResponseDto,
   ExpiryBucketResponseDto,
   ExpiringSoonResponseDto,
-  //   RecentActivityResponseDto,
-  //   ActivitySummaryResponseDto,
 } from './dto/stats-response.dto';
 
 import { StatsService } from './stats.service';
@@ -103,19 +98,4 @@ export class StatsController {
   ): Promise<ExpiringSoonResponseDto[]> {
     return this.statsService.getExpiringSoon(query);
   }
-
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 7. DOCUMENTS BY TYPE
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('documents/by-type')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Counts of documents grouped by document type',
-  //     type: [CountResponseDto],
-  //   })
-  //   async getDocumentsByType(
-  //     @Query() query: DocumentsByTypeQueryDto,
-  //   ): Promise<CountResponseDto[]> {
-  //     return this.statsService.getDocumentsByType(query);
-  //   }
 }

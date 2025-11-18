@@ -1,14 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { VehicleResponseDto } from 'src/modules/vehicle/dto/vehicle-response.dto';
 
-export class VehicleCountByCategory {
-  @ApiProperty() categoryId!: string;
+export class BaseCountDto {
   @ApiProperty() count!: number;
+  @ApiProperty({ required: false }) label?: string;
 }
 
-export class VehicleCountByLocation {
+export class VehicleCountByCategory extends BaseCountDto {
+  @ApiProperty() categoryId!: string;
+}
+
+export class VehicleCountByLocation extends BaseCountDto {
   @ApiProperty() locationId!: string | null;
-  @ApiProperty() count!: number;
+}
+
+export class CountResponseDto extends BaseCountDto {
+  @ApiProperty({ description: 'Label for the group (e.g., category name)' })
+  declare label: string;
 }
 
 export class DocumentCountByType {
@@ -65,14 +73,6 @@ export class OverviewResponseDto {
 
   @ApiProperty({ type: [TrendRowDto] })
   documentExpiryTrend!: TrendRowDto[];
-}
-
-export class CountResponseDto {
-  @ApiProperty({ description: 'Label for the group (e.g., category name)' })
-  label!: string;
-
-  @ApiProperty({ description: 'Count for this group' })
-  count!: number;
 }
 
 export class TimeSeriesResponseDto {

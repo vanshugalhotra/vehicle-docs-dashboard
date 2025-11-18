@@ -13,9 +13,12 @@ import {
   TimeSeriesResponseDto,
   ExpiryBucketResponseDto,
   ExpiringSoonResponseDto,
+  VehicleCountByCategory,
+  VehicleCountByLocation,
 } from './dto/stats-response.dto';
 import { VehicleResponseDto } from '../vehicle/dto/vehicle-response.dto';
 import { Prisma, VehicleDocument } from '@prisma/client';
+
 interface TrendRow {
   date: string;
   count: number;
@@ -24,40 +27,145 @@ interface TrendRow {
 @Injectable()
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
+
   private parseDate(dateString: string | undefined, fallback: Date): Date {
     if (!dateString) return fallback;
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? fallback : date;
   }
 
-  async getOverview(query: OverviewQueryDto): Promise<OverviewResponseDto> {
+  private buildVehicleFilter(query: {
+    categoryId?: string;
+    typeId?: string;
+    locationId?: string;
+    ownerId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }): Prisma.VehicleWhereInput {
     const {
-      startDate,
-      endDate,
       categoryId,
       typeId,
       locationId,
       ownerId,
-      expiringDays = 30,
+      startDate,
+      endDate,
+      search,
     } = query;
-    const fallbackStart: Date = new Date(Date.now() - 30 * 86400000);
-    const start: Date = this.parseDate(startDate, fallbackStart);
-    const end: Date = this.parseDate(endDate, new Date());
-    const now = new Date();
-    const soon = new Date(now.getTime() + expiringDays * 86400000);
 
-    // VEHICLE FILTER
-    const vehicleFilter: Prisma.VehicleWhereInput = {
+    const filter: Prisma.VehicleWhereInput = {
       ...(categoryId && { categoryId }),
       ...(typeId && { typeId }),
       ...(locationId && { locationId }),
       ...(ownerId && { ownerId }),
     };
 
-    // DOCUMENT FILTER
-    const documentFilter: Prisma.VehicleDocumentWhereInput = {
+    // Date range filter
+    if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : undefined;
+      const end = endDate ? new Date(endDate) : undefined;
+      filter.createdAt = {
+        ...(start && { gte: start }),
+        ...(end && { lte: end }),
+      };
+    }
+
+    // Search filter
+    if (search) {
+      filter.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { licensePlate: { contains: search, mode: 'insensitive' } },
+        { rcNumber: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return filter;
+  }
+
+  private buildDocumentFilter(
+    vehicleFilter: Prisma.VehicleWhereInput,
+    additionalFilters: Prisma.VehicleDocumentWhereInput = {},
+  ): Prisma.VehicleDocumentWhereInput {
+    return {
       vehicle: vehicleFilter,
+      ...additionalFilters,
     };
+  }
+
+  private async getCountsByField(
+    field: Prisma.VehicleScalarFieldEnum,
+    where: Prisma.VehicleWhereInput,
+  ): Promise<CountResponseDto[]> {
+    const grouped = await this.prisma.vehicle.groupBy({
+      by: [field],
+      where,
+      _count: { id: true },
+    });
+
+    if (grouped.length === 0) return [];
+
+    const ids = grouped.map((g) => g[field] as string).filter(Boolean);
+    const labelsMap = await this.getLabelsForField(field, ids);
+
+    return grouped.map((g) => {
+      const idKey = g[field] as string | null;
+      return {
+        label: idKey ? (labelsMap[idKey] ?? 'Unknown') : 'Unassigned',
+        count: g._count.id ?? 0,
+      };
+    });
+  }
+
+  private async getLabelsForField(
+    field: Prisma.VehicleScalarFieldEnum,
+    ids: string[],
+  ): Promise<Record<string, string>> {
+    if (ids.length === 0) return {};
+
+    switch (field) {
+      case 'categoryId': {
+        const categories = await this.prisma.vehicleCategory.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        return Object.fromEntries(categories.map((c) => [c.id, c.name]));
+      }
+      case 'locationId': {
+        const locations = await this.prisma.location.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        return Object.fromEntries(locations.map((l) => [l.id, l.name]));
+      }
+      case 'ownerId': {
+        const owners = await this.prisma.owner.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        return Object.fromEntries(owners.map((o) => [o.id, o.name]));
+      }
+      case 'driverId': {
+        const drivers = await this.prisma.driver.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        return Object.fromEntries(drivers.map((d) => [d.id, d.name]));
+      }
+      default:
+        return {};
+    }
+  }
+
+  async getOverview(query: OverviewQueryDto): Promise<OverviewResponseDto> {
+    const { startDate, endDate, expiringDays = 30 } = query;
+    const fallbackStart: Date = new Date(Date.now() - 30 * 86400000);
+    const start: Date = this.parseDate(startDate, fallbackStart);
+    const end: Date = this.parseDate(endDate, new Date());
+    const now = new Date();
+    const soon = new Date(now.getTime() + expiringDays * 86400000);
+
+    const vehicleFilter = this.buildVehicleFilter(query);
+    const documentFilter = this.buildDocumentFilter(vehicleFilter);
 
     // PARALLEL QUERIES
     const [
@@ -76,17 +184,8 @@ export class StatsService {
     ] = await Promise.all([
       this.prisma.vehicle.count({ where: vehicleFilter }),
 
-      this.prisma.vehicle.groupBy({
-        by: ['categoryId'],
-        where: vehicleFilter,
-        _count: { id: true },
-      }),
-
-      this.prisma.vehicle.groupBy({
-        by: ['locationId'],
-        where: vehicleFilter,
-        _count: { id: true },
-      }),
+      this.getCountsByField('categoryId', vehicleFilter),
+      this.getCountsByField('locationId', vehicleFilter),
 
       this.prisma.vehicle.count({
         where: { createdAt: { gte: start, lte: end }, ...vehicleFilter },
@@ -109,11 +208,8 @@ export class StatsService {
       }),
 
       this.computeExpiryDistribution(documentFilter),
-
       this.getActivitySummary(),
-
       this.computeVehicleCreatedTrend(),
-
       this.computeDocumentExpiryTrend(),
     ]);
 
@@ -129,36 +225,47 @@ export class StatsService {
 
     return {
       totalVehicles,
-
-      vehiclesByCategory: vehiclesByCategoryRaw.map((x) => ({
-        categoryId: x.categoryId,
-        count: x._count.id,
-      })),
-
-      vehiclesByLocation: vehiclesByLocationRaw.map((x) => ({
-        locationId: x.locationId,
-        count: x._count.id,
-      })),
-
+      vehiclesByCategory: this.mapToVehicleCountByCategory(
+        vehiclesByCategoryRaw,
+      ),
+      vehiclesByLocation: this.mapToVehicleCountByLocation(
+        vehiclesByLocationRaw,
+      ),
       newVehicles,
       totalDocuments,
       documentsExpiringSoon,
       documentsExpired,
-
       documentsByType: documentsByTypeRaw.map((d) => ({
         documentTypeId: d.documentTypeId,
         count: d._count.id,
       })),
-
       complianceRate,
-
       expiryDistribution,
       recentActivityCount,
       activitySummary,
-
       vehicleCreatedTrend,
       documentExpiryTrend,
     };
+  }
+
+  private mapToVehicleCountByCategory(
+    items: CountResponseDto[],
+  ): VehicleCountByCategory[] {
+    return items.map((item) => ({
+      categoryId: item.label, // or you can extract ID from somewhere if needed
+      count: item.count,
+      label: item.label,
+    }));
+  }
+
+  private mapToVehicleCountByLocation(
+    items: CountResponseDto[],
+  ): VehicleCountByLocation[] {
+    return items.map((item) => ({
+      locationId: item.label, // or you can extract ID from somewhere if needed
+      count: item.count,
+      label: item.label,
+    }));
   }
 
   private async computeExpiryDistribution(
@@ -228,24 +335,8 @@ export class StatsService {
   async getVehiclesGrouped(
     query: VehiclesGroupQueryDto,
   ): Promise<CountResponseDto[]> {
-    const { startDate, endDate, search, groupBy } = query;
+    const { groupBy } = query;
 
-    const start = startDate ? new Date(startDate) : undefined;
-    const end = endDate ? new Date(endDate) : undefined;
-
-    const where: Prisma.VehicleWhereInput = {
-      ...(start && { createdAt: { gte: start } }),
-      ...(end && { createdAt: { lte: end } }),
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { licensePlate: { contains: search, mode: 'insensitive' } },
-          { rcNumber: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
-    };
-
-    // Map to scalar field enum
     const groupFieldMap: Record<string, Prisma.VehicleScalarFieldEnum> = {
       category: 'categoryId',
       location: 'locationId',
@@ -256,68 +347,8 @@ export class StatsService {
     const dbField = groupFieldMap[groupBy];
     if (!dbField) throw new Error('Invalid groupBy field');
 
-    // Group vehicles
-    const grouped = await this.prisma.vehicle.groupBy({
-      by: [dbField],
-      where,
-      _count: { id: true }, // guarantees g._count.id exists
-    });
-
-    if (grouped.length === 0) return [];
-
-    // Fetch labels dynamically
-    let labelsMap: Record<string, string> = {};
-
-    switch (groupBy) {
-      case 'category': {
-        const categories = await this.prisma.vehicleCategory.findMany({
-          where: {
-            id: { in: grouped.map((g) => g.categoryId).filter(Boolean) },
-          },
-          select: { id: true, name: true },
-        });
-        labelsMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-        break;
-      }
-      case 'location': {
-        const ids = grouped.map((g) => g.locationId!).filter(Boolean);
-        const locations = await this.prisma.location.findMany({
-          where: { id: { in: ids } },
-          select: { id: true, name: true },
-        });
-        labelsMap = Object.fromEntries(locations.map((l) => [l.id, l.name]));
-        break;
-      }
-      case 'owner': {
-        const ids = grouped.map((g) => g.ownerId!).filter(Boolean);
-        const owners = await this.prisma.owner.findMany({
-          where: { id: { in: ids } },
-          select: { id: true, name: true },
-        });
-        labelsMap = Object.fromEntries(owners.map((o) => [o.id, o.name]));
-        break;
-      }
-      case 'driver': {
-        const ids = grouped.map((g) => g.driverId!).filter(Boolean);
-        const drivers = await this.prisma.driver.findMany({
-          where: { id: { in: ids } },
-          select: { id: true, name: true },
-        });
-        labelsMap = Object.fromEntries(drivers.map((d) => [d.id, d.name]));
-        break;
-      }
-    }
-
-    // Build response
-    const response: CountResponseDto[] = grouped.map((g) => {
-      const idKey = g[dbField] as string | null;
-      return {
-        label: idKey ? (labelsMap[idKey] ?? 'Unknown') : 'Unassigned',
-        count: g._count.id ?? 0,
-      };
-    });
-
-    return response;
+    const vehicleFilter = this.buildVehicleFilter(query);
+    return this.getCountsByField(dbField, vehicleFilter);
   }
 
   async getCreatedTrend(
@@ -325,14 +356,12 @@ export class StatsService {
   ): Promise<TimeSeriesResponseDto[]> {
     const { startDate, endDate, groupBy = 'day' } = query;
 
-    // Use native Date, default last 30 days
     const now = new Date();
     const start = startDate
       ? new Date(startDate)
       : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : now;
 
-    // Map groupBy to SQL DATE_TRUNC
     const intervalSql = (() => {
       switch (groupBy) {
         case 'week':
@@ -344,7 +373,6 @@ export class StatsService {
       }
     })();
 
-    // Query database
     const rawResult: { date: Date; count: number }[] = await this.prisma
       .$queryRaw<{ date: Date; count: number }[]>`
     SELECT ${Prisma.sql([intervalSql])} AS date,
@@ -355,7 +383,6 @@ export class StatsService {
     ORDER BY ${Prisma.sql([intervalSql])};
   `;
 
-    // Map to DTO
     return rawResult.map((r) => ({
       date: r.date.toISOString(),
       count: r.count,
@@ -374,21 +401,25 @@ export class StatsService {
       maxBucket = 90,
     } = query;
 
-    const where: Prisma.VehicleDocumentWhereInput = {
+    const vehicleFilter = this.buildVehicleFilter({});
+    const additionalFilters: Prisma.VehicleDocumentWhereInput = {
       ...(startDate && { expiryDate: { gte: new Date(startDate) } }),
       ...(endDate && { expiryDate: { lte: new Date(endDate) } }),
       ...(vehicleId && { vehicleId }),
       ...(documentTypeId && { documentTypeId }),
     };
 
+    const documentFilter = this.buildDocumentFilter(
+      vehicleFilter,
+      additionalFilters,
+    );
     const documents = await this.prisma.vehicleDocument.findMany({
-      where,
+      where: documentFilter,
       select: { expiryDate: true },
     });
 
     const today = new Date();
 
-    // Initialize buckets
     const buckets: Record<string, number> = {};
     for (let i = 0; i < maxBucket; i += bucketSize) {
       const start = i + 1;
@@ -397,13 +428,12 @@ export class StatsService {
     }
     buckets[`${maxBucket}+`] = 0;
 
-    // Assign documents to buckets
     for (const doc of documents) {
       const days = Math.ceil(
         (doc.expiryDate.getTime() - today.getTime()) / 86400000,
       );
 
-      if (days <= 0) continue; // expired already, optional: skip or count in 0 bucket
+      if (days <= 0) continue;
       if (days > maxBucket) {
         buckets[`${maxBucket}+`]++;
       } else {
@@ -414,7 +444,6 @@ export class StatsService {
       }
     }
 
-    // Convert to DTO array in order
     const orderedBuckets: ExpiryBucketResponseDto[] = [
       ...Object.keys(buckets)
         .filter((b) => b !== `${maxBucket}+`)
