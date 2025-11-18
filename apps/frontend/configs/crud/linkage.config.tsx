@@ -5,6 +5,8 @@ import { apiRoutes } from "@/lib/apiRoutes";
 import { VehicleDocumentResponse } from "@/lib/types/vehicle-document.types";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { AppBadge } from "@/components/ui/AppBadge";
+import { FilterConfig, SortOption } from "@/lib/types/filter.types";
+import { Option } from "@/components/ui/AppSelect";
 
 // =====================
 // 🔹 Schema
@@ -105,17 +107,24 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
     cell: ({ row }) => row.index + 1,
     size: 40,
   },
+  {
+    accessorKey: "vehicleName",
+    header: "Vehicle",
+    enableSorting: true,
+  },
   { accessorKey: "documentTypeName", header: "Document Type" },
   { accessorKey: "documentNo", header: "Document No" },
   {
     accessorKey: "startDate",
     header: "Start Date",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
   {
     accessorKey: "expiryDate",
     header: "Expiry Date",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
   {
     id: "status",
@@ -151,6 +160,44 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
 ];
 
 // =====================
+// 🔹 Filters Config
+// =====================
+
+export const linkageFiltersConfig: FilterConfig[] = [
+  {
+    key: "vehicleId",
+    label: "Vehicle",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicles.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string; name: string }>).map((v) => ({
+        label: v.name,
+        value: v.id,
+      })),
+  },
+  {
+    key: "documentTypeId",
+    label: "Document Type",
+    type: "async-select",
+    asyncSource: apiRoutes.document_types.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string; name: string }>).map((d) => ({
+        label: d.name,
+        value: d.id,
+      })),
+  },
+];
+
+// =====================
+// 🔹 Sort Options
+// =====================
+export const linkageSortOptions: SortOption[] = [
+  { field: "expiryDate", label: "Expiry Date", default: true },
+  { field: "startDate", label: "Start Date" },
+  { field: "documentNo", label: "Document No" },
+];
+
+// =====================
 // 🔹 CRUD Config
 // =====================
 export const linkageCrudConfig = {
@@ -163,4 +210,6 @@ export const linkageCrudConfig = {
   columns: linkageColumns,
   layout: linkageLayout,
   defaultPageSize: 3,
+  filters: linkageFiltersConfig,
+  sortOptions: linkageSortOptions,
 };

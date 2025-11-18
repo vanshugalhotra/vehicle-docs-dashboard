@@ -54,6 +54,8 @@ export default function LinkagePage() {
     pageSize,
     setPageSize,
     total,
+    sort,
+    setSort,
   } = crud;
 
   // -------------------------------
@@ -179,6 +181,8 @@ export default function LinkagePage() {
               focusForm();
             }}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
             className="my-4"
           />
 

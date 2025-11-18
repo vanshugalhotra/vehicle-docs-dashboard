@@ -49,6 +49,7 @@ interface EntityViewPageProps<TData extends { id?: string | number }> {
   deleteLoading?: boolean;
   itemToDelete?: TData | null;
   onCancelDelete?: () => void;
+  deleteDescription?: (item: TData) => string;
 
   // Pagination
   page: number;
@@ -92,6 +93,7 @@ export function EntityViewPage<TData extends { id?: string | number }>({
   totalCount,
   onPageChange,
   onPageSizeChange,
+  deleteDescription,
 }: EntityViewPageProps<TData>) {
   return (
     <div className="flex flex-col gap-4">
@@ -166,7 +168,9 @@ export function EntityViewPage<TData extends { id?: string | number }>({
       <ConfirmDialog
         open={!!itemToDelete}
         title={`Delete ${title}?`}
-        description={`Are you sure you want to delete this ${title.toLowerCase()}?`}
+        description={
+          itemToDelete ? deleteDescription?.(itemToDelete) : undefined
+        }
         loading={deleteLoading}
         onCancel={onCancelDelete ?? (() => {})}
         onConfirm={confirmDelete ?? (() => {})}

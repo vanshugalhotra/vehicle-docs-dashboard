@@ -60,6 +60,9 @@ export default function VehiclesPage() {
       onCancelDelete={() => setItemToDelete(null)}
       onEdit={() => {}}
       onView={() => {}}
+            deleteDescription={(item) =>
+        `Are you sure you want to delete this vehicle "${item.name}"?`
+      }
     />
   );
 }
