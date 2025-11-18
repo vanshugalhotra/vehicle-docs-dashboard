@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OverviewQueryDto } from './dto/stats-query.dto';
-import { OverviewResponseDto } from './dto/stats-response.dto';
-import { VehiclesGroupQueryDto } from './dto/stats-query.dto';
-import { CountResponseDto } from './dto/stats-response.dto';
+import {
+  OverviewQueryDto,
+  VehiclesGroupQueryDto,
+  CreatedTrendQueryDto,
+} from './dto/stats-query.dto';
+import {
+  OverviewResponseDto,
+  CountResponseDto,
+  TimeSeriesResponseDto,
+} from './dto/stats-response.dto';
 import { Prisma, VehicleDocument } from '@prisma/client';
-
 interface TrendRow {
   date: string;
   count: number;
@@ -308,5 +313,47 @@ export class StatsService {
     });
 
     return response;
+  }
+
+  async getCreatedTrend(
+    query: CreatedTrendQueryDto,
+  ): Promise<TimeSeriesResponseDto[]> {
+    const { startDate, endDate, groupBy = 'day' } = query;
+
+    // Use native Date, default last 30 days
+    const now = new Date();
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : now;
+
+    // Map groupBy to SQL DATE_TRUNC
+    const intervalSql = (() => {
+      switch (groupBy) {
+        case 'week':
+          return `DATE_TRUNC('week', "createdAt")`;
+        case 'month':
+          return `DATE_TRUNC('month', "createdAt")`;
+        default:
+          return `DATE_TRUNC('day', "createdAt")`;
+      }
+    })();
+
+    // Query database
+    const rawResult: { date: Date; count: number }[] = await this.prisma
+      .$queryRaw<{ date: Date; count: number }[]>`
+    SELECT ${Prisma.sql([intervalSql])} AS date,
+           COUNT(*)::int AS count
+    FROM "vehicles"
+    WHERE "createdAt" BETWEEN ${start} AND ${end}
+    GROUP BY ${Prisma.sql([intervalSql])}
+    ORDER BY ${Prisma.sql([intervalSql])};
+  `;
+
+    // Map to DTO
+    return rawResult.map((r) => ({
+      date: r.date.toISOString(),
+      count: r.count,
+    }));
   }
 }

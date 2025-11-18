@@ -4,8 +4,7 @@ import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import {
   OverviewQueryDto,
   VehiclesGroupQueryDto,
-  //   VehiclesByLocationQueryDto,
-  //   CreatedTrendQueryDto,
+  CreatedTrendQueryDto,
   //   ExpiryDistributionQueryDto,
   //   ExpiringSoonQueryDto,
   //   DocumentsByTypeQueryDto,
@@ -16,7 +15,7 @@ import {
 import {
   OverviewResponseDto,
   CountResponseDto,
-  //   TimeSeriesResponseDto,
+  TimeSeriesResponseDto,
   //   ExpiryBucketResponseDto,
   //   ExpiringSoonResponseDto,
   //   RecentActivityResponseDto,
@@ -60,23 +59,23 @@ export class StatsController {
     return this.statsService.getVehiclesGrouped(query);
   }
 
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 3. VEHICLE CREATION TREND
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('vehicles/created-trend')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Returns timeseries of created vehicles',
-  //     type: [TimeSeriesResponseDto],
-  //   })
-  //   async getCreatedTrend(
-  //     @Query() query: CreatedTrendQueryDto,
-  //   ): Promise<TimeSeriesResponseDto[]> {
-  //     return this.statsService.getCreatedTrend(query);
-  //   }
+  // ─────────────────────────────────────────────────────────────
+  // 3. VEHICLE CREATION TREND
+  // ─────────────────────────────────────────────────────────────
+  @Get('vehicles/created-trend')
+  @ApiResponse({
+    status: 200,
+    description: 'Returns timeseries of created vehicles',
+    type: [TimeSeriesResponseDto],
+  })
+  async getCreatedTrend(
+    @Query() query: CreatedTrendQueryDto,
+  ): Promise<TimeSeriesResponseDto[]> {
+    return this.statsService.getCreatedTrend(query);
+  }
 
   //   // ─────────────────────────────────────────────────────────────
-  //   // 5. DOCUMENT EXPIRY DISTRIBUTION
+  //   // 4. DOCUMENT EXPIRY DISTRIBUTION
   //   // ─────────────────────────────────────────────────────────────
   //   @Get('documents/expiry-distribution')
   //   @ApiResponse({

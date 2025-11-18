@@ -73,3 +73,11 @@ export class CountResponseDto {
   @ApiProperty({ description: 'Count for this group' })
   count!: number;
 }
+
+export class TimeSeriesResponseDto {
+  @ApiProperty({ description: 'ISO date representing the bucket start' })
+  date!: string;
+
+  @ApiProperty({ description: 'Count of vehicles in this bucket' })
+  count!: number;
+}

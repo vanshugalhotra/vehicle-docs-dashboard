@@ -85,3 +85,24 @@ export class VehiclesGroupQueryDto {
   @IsIn(['category', 'location', 'owner', 'driver'])
   groupBy!: 'category' | 'location' | 'owner' | 'driver';
 }
+
+export class CreatedTrendQueryDto {
+  @ApiPropertyOptional({ description: 'Start date for trend (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: 'End date for trend (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional({
+    description: 'Group by day/week/month',
+    enum: ['day', 'week', 'month'],
+    default: 'day',
+  })
+  @IsOptional()
+  @IsIn(['day', 'week', 'month'])
+  groupBy?: 'day' | 'week' | 'month';
+}
