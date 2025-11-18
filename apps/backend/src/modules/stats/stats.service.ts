@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OverviewQueryDto } from './dto/stats-query.dto';
 import { OverviewResponseDto } from './dto/stats-response.dto';
-import { VehiclesByCategoryQueryDto } from './dto/stats-query.dto';
+import { VehiclesGroupQueryDto } from './dto/stats-query.dto';
 import { CountResponseDto } from './dto/stats-response.dto';
 import { Prisma, VehicleDocument } from '@prisma/client';
 
@@ -215,10 +215,10 @@ export class StatsService {
     `;
   }
 
-  async getVehiclesByCategory(
-    query: VehiclesByCategoryQueryDto,
+  async getVehiclesGrouped(
+    query: VehiclesGroupQueryDto,
   ): Promise<CountResponseDto[]> {
-    const { startDate, endDate, search, status, tenantId } = query;
+    const { startDate, endDate, search, groupBy } = query;
 
     const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
@@ -226,7 +226,6 @@ export class StatsService {
     const where: Prisma.VehicleWhereInput = {
       ...(start && { createdAt: { gte: start } }),
       ...(end && { createdAt: { lte: end } }),
-
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -234,35 +233,79 @@ export class StatsService {
           { rcNumber: { contains: search, mode: 'insensitive' } },
         ],
       }),
-
-      ...(status && { status }),
-      ...(tenantId && { tenantId }),
     };
 
-    // Group vehicles by categoryId
+    // Map to scalar field enum
+    const groupFieldMap: Record<string, Prisma.VehicleScalarFieldEnum> = {
+      category: 'categoryId',
+      location: 'locationId',
+      owner: 'ownerId',
+      driver: 'driverId',
+    };
+
+    const dbField = groupFieldMap[groupBy];
+    if (!dbField) throw new Error('Invalid groupBy field');
+
+    // Group vehicles
     const grouped = await this.prisma.vehicle.groupBy({
-      by: ['categoryId'],
+      by: [dbField],
       where,
-      _count: { id: true },
+      _count: { id: true }, // guarantees g._count.id exists
     });
 
     if (grouped.length === 0) return [];
 
-    // Fetch category names
-    const categoryIds = grouped.map((g) => g.categoryId);
+    // Fetch labels dynamically
+    let labelsMap: Record<string, string> = {};
 
-    const categories = await this.prisma.vehicleCategory.findMany({
-      where: { id: { in: categoryIds } },
-      select: { id: true, name: true },
+    switch (groupBy) {
+      case 'category': {
+        const categories = await this.prisma.vehicleCategory.findMany({
+          where: {
+            id: { in: grouped.map((g) => g.categoryId).filter(Boolean) },
+          },
+          select: { id: true, name: true },
+        });
+        labelsMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+        break;
+      }
+      case 'location': {
+        const ids = grouped.map((g) => g.locationId!).filter(Boolean);
+        const locations = await this.prisma.location.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        labelsMap = Object.fromEntries(locations.map((l) => [l.id, l.name]));
+        break;
+      }
+      case 'owner': {
+        const ids = grouped.map((g) => g.ownerId!).filter(Boolean);
+        const owners = await this.prisma.owner.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        labelsMap = Object.fromEntries(owners.map((o) => [o.id, o.name]));
+        break;
+      }
+      case 'driver': {
+        const ids = grouped.map((g) => g.driverId!).filter(Boolean);
+        const drivers = await this.prisma.driver.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true },
+        });
+        labelsMap = Object.fromEntries(drivers.map((d) => [d.id, d.name]));
+        break;
+      }
+    }
+
+    // Build response
+    const response: CountResponseDto[] = grouped.map((g) => {
+      const idKey = g[dbField] as string | null;
+      return {
+        label: idKey ? (labelsMap[idKey] ?? 'Unknown') : 'Unassigned',
+        count: g._count.id ?? 0,
+      };
     });
-
-    const nameMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-    // Build typed response
-    const response: CountResponseDto[] = grouped.map((g) => ({
-      label: nameMap[g.categoryId] ?? 'Unknown',
-      count: g._count.id,
-    }));
 
     return response;
   }

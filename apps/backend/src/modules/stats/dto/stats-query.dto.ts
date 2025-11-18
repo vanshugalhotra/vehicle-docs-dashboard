@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import {
   IsOptional,
   IsUUID,
@@ -6,7 +6,7 @@ import {
   Min,
   IsDateString,
   IsString,
-  IsEnum,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -56,12 +56,7 @@ export class OverviewQueryDto {
   expiringDays?: number = 30;
 }
 
-export enum VehicleStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
-
-export class VehiclesByCategoryQueryDto {
+export class VehiclesGroupQueryDto {
   @ApiPropertyOptional({
     description: 'Filter vehicles created after this date (ISO string)',
   })
@@ -83,18 +78,10 @@ export class VehiclesByCategoryQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({
-    enum: VehicleStatus,
-    description: 'Optional filter for vehicle status',
+  @ApiProperty({
+    description: 'Field to group by: "category", "location", "owner", "driver"',
+    enum: ['category', 'location', 'owner', 'driver'],
   })
-  @IsOptional()
-  @IsEnum(VehicleStatus)
-  status?: VehicleStatus;
-
-  @ApiPropertyOptional({
-    description: 'Optional tenant filter (if applicable)',
-  })
-  @IsOptional()
-  @IsString()
-  tenantId?: string;
+  @IsIn(['category', 'location', 'owner', 'driver'])
+  groupBy!: 'category' | 'location' | 'owner' | 'driver';
 }
