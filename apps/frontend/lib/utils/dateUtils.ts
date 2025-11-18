@@ -11,6 +11,17 @@ export function formatReadableDate(input?: string | Date | null): string {
   });
 }
 
+export function formatShortDate(input?: string | Date | null): string {
+  if (!input) return "-";
+  const date = input instanceof Date ? input : new Date(input);
+  if (isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export function timeAgo(date: string | Date | null | undefined): string {
   if (!date) return "-";
 

@@ -161,6 +161,34 @@ export default function LinkagePage() {
       </div>
 
       {/* Table + Embedded Form */}
+      {/* Form */}
+      {formCtrl.isOpen && (
+        <div className="mt-0" ref={formRef}>
+          <FormEmbeddedPanel<LinkageEntity>
+            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+            title={
+              formCtrl.isEditing
+                ? "Edit Linked Document"
+                : "Add New Linked Document"
+            }
+            isEditMode={formCtrl.isEditing}
+            fields={linkageCrudConfig.fields}
+            schema={linkageCrudConfig.schema}
+            selectedRecord={{
+              ...formCtrl.selectedItem,
+              vehicleId: selectedVehicle?.name,
+              documentTypeId:
+                selectedDocumentType?.name ||
+                formCtrl.selectedItem?.documentTypeName ||
+                "—",
+            }}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            loading={isLoading}
+            layout={linkageCrudConfig.layout}
+          />
+        </div>
+      )}
       {selectedVehicle ? (
         <AppCard bordered hoverable padded>
           <AppText size="heading3" className="mb-3">
@@ -208,34 +236,6 @@ export default function LinkagePage() {
             </AppText>
           </div>
         </AppCard>
-      )}
-      {/* Form */}
-      {formCtrl.isOpen && (
-        <div className="mt-0" ref={formRef}>
-          <FormEmbeddedPanel<LinkageEntity>
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            title={
-              formCtrl.isEditing
-                ? "Edit Linked Document"
-                : "Add New Linked Document"
-            }
-            isEditMode={formCtrl.isEditing}
-            fields={linkageCrudConfig.fields}
-            schema={linkageCrudConfig.schema}
-            selectedRecord={{
-              ...formCtrl.selectedItem,
-              vehicleId: selectedVehicle?.name,
-              documentTypeId:
-                selectedDocumentType?.name ||
-                formCtrl.selectedItem?.documentTypeName ||
-                "—",
-            }}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={linkageCrudConfig.layout}
-          />
-        </div>
       )}
 
       {/* Delete Confirmation */}

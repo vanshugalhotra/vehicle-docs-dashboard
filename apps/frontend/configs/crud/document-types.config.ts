@@ -68,7 +68,8 @@ export const documentTypeFilters: FilterConfig[] = [];
 // Sort options
 // -------------------------------
 export const documentTypeSortOptions: SortOption[] = [
-  { field: "createdAt", label: "Created Date", default: true },
+  { field: "createdAt", label: "Created Date" },
+  { field: "updatedAt", label: "Modified Date", default: true },
   { field: "name", label: "Name" },
 ];
 

@@ -111,6 +111,8 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
     accessorKey: "vehicleName",
     header: "Vehicle",
     enableSorting: true,
+    minSize: 250,
+    maxSize: 350,
   },
   { accessorKey: "documentTypeName", header: "Document Type" },
   { accessorKey: "documentNo", header: "Document No" },
@@ -131,9 +133,9 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
     header: "Status",
     cell: ({ row }) => {
       const daysRemaining = row.original.daysRemaining;
-      if (daysRemaining && daysRemaining <= 0)
+      if (typeof daysRemaining === "number" && daysRemaining <= 0)
         return <AppBadge variant="danger">Expired</AppBadge>;
-      else if (daysRemaining && daysRemaining <= 30)
+      else if (typeof daysRemaining === "number" && daysRemaining <= 30)
         return <AppBadge variant="warning">Expiring Soon</AppBadge>;
       return <AppBadge variant="success">Active</AppBadge>;
     },
@@ -155,8 +157,10 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
         </Link>
       );
     },
+    minSize: 100,
+    maxSize: 200,
   },
-  { accessorKey: "notes", header: "Notes" },
+  { accessorKey: "notes", header: "Notes", minSize: 250, maxSize: 300 },
 ];
 
 // =====================
@@ -186,6 +190,16 @@ export const linkageFiltersConfig: FilterConfig[] = [
         value: d.id,
       })),
   },
+  {
+    key: "startDate",
+    label: "Start Date",
+    type: "dateRange",
+  },
+  {
+    key: "expiryDate",
+    label: "Expiry Date",
+    type: "dateRange", // new date range filter
+  },
 ];
 
 // =====================
@@ -209,7 +223,7 @@ export const linkageCrudConfig = {
   fields: linkageFields,
   columns: linkageColumns,
   layout: linkageLayout,
-  defaultPageSize: 3,
+  defaultPageSize: 10,
   filters: linkageFiltersConfig,
   sortOptions: linkageSortOptions,
 };

@@ -63,7 +63,7 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Type Name" },
+  { accessorKey: "name", header: "Type Name", enableSorting: true },
   {
     accessorKey: "categoryName",
     header: "Category",
@@ -73,6 +73,7 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
@@ -95,8 +96,9 @@ export const vehicleTypeFiltersConfig: FilterConfig[] = [
 ];
 
 export const vehicleTypeSortOptions: SortOption[] = [
-  { field: "name", label: "Type Name", default: true },
+  { field: "name", label: "Type Name" },
   { field: "createdAt", label: "Created Date" },
+  { field: "updatedAt", label: "Modified Date", default: true },
 ];
 
 export const vehicleTypeCrudConfig = {

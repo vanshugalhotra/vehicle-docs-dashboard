@@ -137,6 +137,8 @@ export default function VehicleTypesPage() {
             loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

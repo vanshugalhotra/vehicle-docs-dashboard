@@ -1,27 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AppDatePicker } from "@/components/ui/AppDatePicker";
+import React, { FC, useEffect, useMemo, useState } from "react";
+import clsx from "clsx";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { AppText } from "@/components/ui/AppText";
+import { CalendarIcon } from "lucide-react";
+import { componentTokens } from "@/styles/design-system";
 import { debounce } from "@/lib/utils/debounce";
+import { formatShortDate } from "@/lib/utils/dateUtils";
 
-/**
- * FilterDateRange
- * - Sends just the range object { gte?: string; lte?: string }
- * - The parent component should assign it to the correct field name
- */
 export interface FilterDateRangeProps {
   label?: string;
-  start?: string | null; // ISO string
-  end?: string | null; // ISO string
-  onChange: (range: { gte?: string; lte?: string } | null) => void; // Changed this line
+  hideLabel?: boolean;
+  start?: string | null;
+  end?: string | null;
+  onChange: (range: { gte?: string; lte?: string } | null) => void;
   debounceMs?: number;
   disabled?: boolean;
   helperText?: string;
-  clearable?: boolean;
 }
 
-export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
+export const FilterDateRange: FC<FilterDateRangeProps> = ({
   label,
+  hideLabel = false,
   start = null,
   end = null,
   onChange,
@@ -35,90 +37,125 @@ export const FilterDateRange: React.FC<FilterDateRangeProps> = ({
   const [localEnd, setLocalEnd] = useState<Date | null>(
     end ? new Date(end) : null
   );
+  const [open, setOpen] = useState(false);
 
+  // ----------------------
   // Debounced onChange
+  // ----------------------
   const debouncedChange = useMemo(
     () =>
-      debounce((range: { gte?: string; lte?: string } | null) => { // Changed this line
-        onChange(range);
-      }, debounceMs),
+      debounce((range: { gte?: string; lte?: string } | null) => onChange(range), debounceMs),
     [onChange, debounceMs]
   );
 
-  // Sync external → local
-  useEffect(() => {
-    setLocalStart(start ? new Date(start) : null);
-  }, [start]);
+  // ----------------------
+  // Sync props → state
+  // ----------------------
+  useEffect(() => setLocalStart(start ? new Date(start) : null), [start]);
+  useEffect(() => setLocalEnd(end ? new Date(end) : null), [end]);
 
-  useEffect(() => {
-    setLocalEnd(end ? new Date(end) : null);
-  }, [end]);
-
-  // Convert date to backend-compatible format (start of day for gte, end of day for lte)
-  const normalizeDateForBackend = (date: Date, isEndDate: boolean = false): string => {
-    if (isEndDate) {
-      // For end date, set to end of day
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      return endOfDay.toISOString();
-    }
-    // For start date, set to start of day
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    return startOfDay.toISOString();
+  // ----------------------
+  // Normalize to start/end of day
+  // ----------------------
+  const normalizeDate = (date: Date, isEnd = false) => {
+    const d = new Date(date);
+    if (isEnd) d.setHours(23, 59, 59, 999);
+    else d.setHours(0, 0, 0, 0);
+    return d.toISOString();
   };
 
-  // Build the range filter object
-  const buildRangeFilter = (startDate: Date | null, endDate: Date | null) => {
-    if (!startDate && !endDate) {
-      return null;
-    }
-
-    const rangeFilter: { gte?: string; lte?: string } = {};
-
-    if (startDate) {
-      rangeFilter.gte = normalizeDateForBackend(startDate, false);
-    }
-
-    if (endDate) {
-      rangeFilter.lte = normalizeDateForBackend(endDate, true);
-    }
-
-    return rangeFilter;
+  const handleChange = (startDate: Date | null, endDate: Date | null) => {
+    setLocalStart(startDate);
+    setLocalEnd(endDate);
+    debouncedChange(
+      startDate || endDate
+        ? { gte: startDate ? normalizeDate(startDate) : undefined, lte: endDate ? normalizeDate(endDate, true) : undefined }
+        : null
+    );
   };
 
-  // Local handlers
-  const handleStartChange = (date: Date | null) => {
-    setLocalStart(date);
-    const rangeFilter = buildRangeFilter(date, localEnd);
-    debouncedChange(rangeFilter);
+  const handleRangeChange = (dates: [Date | null, Date | null] | null) => {
+    const [startDate, endDate] = Array.isArray(dates) ? dates : [dates, null];
+    handleChange(startDate, endDate);
   };
 
-  const handleEndChange = (date: Date | null) => {
-    setLocalEnd(date);
-    const rangeFilter = buildRangeFilter(localStart, date);
-    debouncedChange(rangeFilter);
+  const handleClear = () => handleChange(null, null);
+
+  // ----------------------
+  // Format input display
+  // ----------------------
+  const formatRange = (start?: Date | null, end?: Date | null) => {
+    if (!start && !end) return "";
+    if (!start) return `- ${formatShortDate(end)}`;
+    if (!end) return `${formatShortDate(start)} -`;
+    return `${formatShortDate(start)} - ${formatShortDate(end)}`;
   };
-  
+
+  const hasSelection = localStart || localEnd;
+
   return (
-    <div className="flex flex-col w-full gap-2">
-      {label && (
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+    <div className="flex flex-col w-full gap-2 relative">
+      {!hideLabel && label && (
+        <AppText size="label" className={componentTokens.text.primary}>
+          {label}
+        </AppText>
       )}
 
-      <div className="flex gap-2 items-center">
-        <AppDatePicker
-          label="Start"
-          value={localStart}
-          onChange={handleStartChange}
-          disabled={disabled}
-        />
-        <AppDatePicker
-          label="End"
-          value={localEnd}
-          onChange={handleEndChange}
-          disabled={disabled}
-        />
+      <div className={clsx("relative w-full", disabled && "opacity-50 pointer-events-none")}>
+        <div className="relative flex items-center w-full">
+          <input
+            type="text"
+            readOnly
+            className={clsx(
+              componentTokens.input.base,
+              !disabled && componentTokens.input.focus,
+              "w-full",
+              hasSelection ? "text-gray-900" : "text-gray-500"
+            )}
+            placeholder="Select date range"
+            value={formatRange(localStart, localEnd)}
+            onClick={() => !disabled && setOpen((o) => !o)}
+            aria-label={label || "Date range picker"}
+          />
+          <CalendarIcon
+            className="absolute right-2 w-4 h-4 text-gray-500 cursor-pointer"
+            onClick={() => !disabled && setOpen((o) => !o)}
+            aria-hidden="true"
+          />
+        </div>
+
+        {open && (
+          <div className="absolute z-50 mt-1 w-[280px] bg-white border rounded-lg shadow-xl p-2">
+            <ReactDatePicker
+              selected={localStart}
+              onChange={handleRangeChange}
+              selectsRange
+              startDate={localStart}
+              endDate={localEnd}
+              inline
+              showPopperArrow={false}
+              calendarClassName="w-full"
+              dateFormat="dd/MM/yyyy"
+              shouldCloseOnSelect={false}
+            />
+            <div className="flex justify-center space-x-2 pt-1">
+              <button
+                type="button"
+                onClick={handleClear}
+                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}

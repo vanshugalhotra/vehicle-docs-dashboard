@@ -51,12 +51,11 @@ export const driverColumns: ColumnDef<Driver>[] = [
     maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
-  { accessorKey: "phone", header: "Phone", enableSorting: true },
+  { accessorKey: "phone", header: "Phone"},
   {
     accessorKey: "email",
     header: "Email",
     cell: ({ getValue }) => getValue() || "-",
-    enableSorting: true,
   },
   {
     accessorKey: "createdAt",

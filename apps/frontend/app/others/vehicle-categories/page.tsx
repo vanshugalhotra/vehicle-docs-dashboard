@@ -48,6 +48,8 @@ export default function VehicleCategoriesPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<VehicleCategory>(vehicleCategoryCrudConfig);
 
   const handleSubmit = async (values: VehicleCategory) => {
@@ -128,6 +130,8 @@ export default function VehicleCategoriesPage() {
             loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

@@ -37,6 +37,8 @@ export default function OwnersPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<Owner>(ownerCrudConfig);
 
   const handleSubmit = async (values: Owner) => {
@@ -119,6 +121,8 @@ export default function OwnersPage() {
             loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

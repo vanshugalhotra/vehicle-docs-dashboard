@@ -34,7 +34,7 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Name" },
+  { accessorKey: "name", header: "Name", enableSorting: true },
 
   {
     accessorKey: "types",
@@ -46,13 +46,13 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
 export const categoryLayout = {
-  gridColumns: 1
-}
-
+  gridColumns: 1,
+};
 
 export const vehicleCategoryCrudConfig = {
   name: "Vehicle Category",
@@ -63,5 +63,5 @@ export const vehicleCategoryCrudConfig = {
   fields: vehicleCategoryFields,
   columns: vehicleCategoryColumns,
   defaultPageSize: 5,
-  layout: categoryLayout
+  layout: categoryLayout,
 };

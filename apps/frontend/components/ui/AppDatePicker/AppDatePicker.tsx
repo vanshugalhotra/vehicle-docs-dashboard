@@ -11,6 +11,7 @@ interface AppDatePickerProps {
   value?: Date | null;
   onChange: (date: Date | null) => void;
   label?: string;
+  hideLabel?: boolean;
   helperText?: string;
   error?: string;
   placeholder?: string;
@@ -22,6 +23,7 @@ export const AppDatePicker: FC<AppDatePickerProps> = ({
   value,
   onChange,
   label,
+  hideLabel = false, // default false
   error,
   placeholder = "Select date...",
   disabled = false,
@@ -29,7 +31,7 @@ export const AppDatePicker: FC<AppDatePickerProps> = ({
 }) => {
   return (
     <div className="flex flex-col w-full gap-1">
-      {label && (
+      {label && !hideLabel && (
         <AppText size="label" className={componentTokens.text.primary}>
           {label}
         </AppText>

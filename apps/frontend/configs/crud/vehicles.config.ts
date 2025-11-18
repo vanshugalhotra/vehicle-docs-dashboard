@@ -190,9 +190,9 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     size: 40,
   },
   { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
-  { accessorKey: "licensePlate", header: "License Plate", enableSorting: true },
+  { accessorKey: "licensePlate", header: "License Plate"},
   { accessorKey: "typeName", header: "Type" },
-  { accessorKey: "categoryName", header: "Category" },
+  { accessorKey: "categoryName", header: "Category"},
   { accessorKey: "driverName", header: "Driver" },
   { accessorKey: "ownerName", header: "Owner" },
   { accessorKey: "locationName", header: "Location" },
@@ -258,8 +258,8 @@ export const vehicleFiltersConfig: FilterConfig[] = [
 // 🔹 Sort Options
 // =====================
 export const vehicleSortOptions: SortOption[] = [
-  { field: "createdAt", label: "Created Date", default: true },
-  { field: "licensePlate", label: "License Plate" },
+  { field: "createdAt", label: "Created Date"},
+  { field: "updatedAt", label: "Modified Date", default: true },
 ];
 
 // =====================

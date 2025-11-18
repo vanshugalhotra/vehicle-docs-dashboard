@@ -9,10 +9,11 @@ type VehicleDocumentWithRelations = VehicleDocument & {
 export function mapVehicleDocumentToResponse(
   doc: VehicleDocumentWithRelations,
 ): VehicleDocumentResponseDto {
+  const today = new Date();
   const daysRemaining = Math.max(
     0,
     Math.ceil(
-      (new Date(doc.expiryDate).getTime() - new Date(doc.startDate).getTime()) /
+      (new Date(doc.expiryDate).getTime() - today.getTime()) /
         (1000 * 60 * 60 * 24),
     ),
   );
