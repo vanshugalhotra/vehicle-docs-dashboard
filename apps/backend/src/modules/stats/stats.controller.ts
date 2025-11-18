@@ -5,8 +5,8 @@ import {
   OverviewQueryDto,
   VehiclesGroupQueryDto,
   CreatedTrendQueryDto,
-  //   ExpiryDistributionQueryDto,
-  //   ExpiringSoonQueryDto,
+  ExpiryDistributionQueryDto,
+  ExpiringSoonQueryDto,
   //   DocumentsByTypeQueryDto,
   //   RecentActivityQueryDto,
   //   ActivitySummaryQueryDto,
@@ -16,8 +16,8 @@ import {
   OverviewResponseDto,
   CountResponseDto,
   TimeSeriesResponseDto,
-  //   ExpiryBucketResponseDto,
-  //   ExpiringSoonResponseDto,
+  ExpiryBucketResponseDto,
+  ExpiringSoonResponseDto,
   //   RecentActivityResponseDto,
   //   ActivitySummaryResponseDto,
 } from './dto/stats-response.dto';
@@ -74,35 +74,35 @@ export class StatsController {
     return this.statsService.getCreatedTrend(query);
   }
 
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 4. DOCUMENT EXPIRY DISTRIBUTION
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('documents/expiry-distribution')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Document counts grouped by expiry buckets',
-  //     type: [ExpiryBucketResponseDto],
-  //   })
-  //   async getExpiryDistribution(
-  //     @Query() query: ExpiryDistributionQueryDto,
-  //   ): Promise<ExpiryBucketResponseDto[]> {
-  //     return this.statsService.getExpiryDistribution(query);
-  //   }
+  // ─────────────────────────────────────────────────────────────
+  // 4. DOCUMENT EXPIRY DISTRIBUTION
+  // ─────────────────────────────────────────────────────────────
+  @Get('documents/expiry-distribution')
+  @ApiResponse({
+    status: 200,
+    description: 'Document counts grouped by expiry buckets',
+    type: [ExpiryBucketResponseDto],
+  })
+  async getExpiryDistribution(
+    @Query() query: ExpiryDistributionQueryDto,
+  ): Promise<ExpiryBucketResponseDto[]> {
+    return this.statsService.getExpiryDistribution(query);
+  }
 
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 6. EXPIRING SOON DOCUMENTS
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('documents/expiring-soon')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Documents expiring soon with vehicle info',
-  //     type: [ExpiringSoonResponseDto],
-  //   })
-  //   async getExpiringSoon(
-  //     @Query() query: ExpiringSoonQueryDto,
-  //   ): Promise<ExpiringSoonResponseDto[]> {
-  //     return this.statsService.getExpiringSoon(query);
-  //   }
+  // ─────────────────────────────────────────────────────────────
+  // 5. EXPIRING SOON DOCUMENTS
+  // ─────────────────────────────────────────────────────────────
+  @Get('documents/expiring-soon')
+  @ApiResponse({
+    status: 200,
+    description: 'Documents expiring soon with vehicle info',
+    type: [ExpiringSoonResponseDto],
+  })
+  async getExpiringSoon(
+    @Query() query: ExpiringSoonQueryDto,
+  ): Promise<ExpiringSoonResponseDto[]> {
+    return this.statsService.getExpiringSoon(query);
+  }
 
   //   // ─────────────────────────────────────────────────────────────
   //   // 7. DOCUMENTS BY TYPE
@@ -117,35 +117,5 @@ export class StatsController {
   //     @Query() query: DocumentsByTypeQueryDto,
   //   ): Promise<CountResponseDto[]> {
   //     return this.statsService.getDocumentsByType(query);
-  //   }
-
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 8. RECENT ACTIVITY
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('activity/recent')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Recent activity feed (created/updated items)',
-  //     type: [RecentActivityResponseDto],
-  //   })
-  //   async getRecentActivity(
-  //     @Query() query: RecentActivityQueryDto,
-  //   ): Promise<RecentActivityResponseDto[]> {
-  //     return this.statsService.getRecentActivity(query);
-  //   }
-
-  //   // ─────────────────────────────────────────────────────────────
-  //   // 9. ACTIVITY SUMMARY
-  //   // ─────────────────────────────────────────────────────────────
-  //   @Get('activity/summary')
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'Summary counts of activities (e.g. created items)',
-  //     type: ActivitySummaryResponseDto,
-  //   })
-  //   async getActivitySummary(
-  //     @Query() query: ActivitySummaryQueryDto,
-  //   ): Promise<ActivitySummaryResponseDto> {
-  //     return this.statsService.getActivitySummary(query);
   //   }
 }

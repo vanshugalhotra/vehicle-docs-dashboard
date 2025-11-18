@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { VehicleResponseDto } from 'src/modules/vehicle/dto/vehicle-response.dto';
 
 export class VehicleCountByCategory {
   @ApiProperty() categoryId!: string;
@@ -80,4 +81,50 @@ export class TimeSeriesResponseDto {
 
   @ApiProperty({ description: 'Count of vehicles in this bucket' })
   count!: number;
+}
+
+export class ExpiryBucketResponseDto {
+  @ApiProperty({ description: 'Label of the bucket, e.g., "0-30", "31-60"' })
+  bucket!: string;
+
+  @ApiProperty({ description: 'Number of documents in this bucket' })
+  count!: number;
+}
+
+export class ExpiringSoonResponseDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  documentNo: string;
+
+  @ApiProperty()
+  documentTypeId: string;
+
+  @ApiProperty()
+  documentTypeName: string;
+
+  @ApiProperty()
+  startDate: string;
+
+  @ApiProperty()
+  expiryDate: string;
+
+  @ApiProperty({ description: 'Days remaining until expiry' })
+  daysRemaining: number;
+
+  @ApiProperty({ required: false })
+  link?: string | null;
+
+  @ApiProperty({ required: false })
+  notes?: string | null;
+
+  @ApiProperty()
+  createdAt: string;
+
+  @ApiProperty()
+  updatedAt: string;
+
+  @ApiProperty({ type: () => VehicleResponseDto })
+  vehicle: VehicleResponseDto;
 }

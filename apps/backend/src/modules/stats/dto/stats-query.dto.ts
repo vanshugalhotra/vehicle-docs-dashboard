@@ -7,6 +7,7 @@ import {
   IsDateString,
   IsString,
   IsIn,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -105,4 +106,58 @@ export class CreatedTrendQueryDto {
   @IsOptional()
   @IsIn(['day', 'week', 'month'])
   groupBy?: 'day' | 'week' | 'month';
+}
+
+export class ExpiryDistributionQueryDto {
+  @ApiPropertyOptional({
+    description: 'Filter documents with expiryDate >= this ISO date',
+  })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter documents with expiryDate <= this ISO date',
+  })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by vehicle ID (UUID)' })
+  @IsOptional()
+  @IsUUID()
+  vehicleId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by document type ID (UUID)' })
+  @IsOptional()
+  @IsUUID()
+  documentTypeId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Size of each bucket in days (default = 30)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  bucketSize?: number;
+
+  @ApiPropertyOptional({ description: 'Maximum bucket in days (default = 90)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  maxBucket?: number;
+}
+
+export class ExpiringSoonQueryDto {
+  @ApiProperty({
+    description: 'Number of days ahead to check for expiring documents',
+    required: false,
+    default: 30,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  withinDays?: number;
 }

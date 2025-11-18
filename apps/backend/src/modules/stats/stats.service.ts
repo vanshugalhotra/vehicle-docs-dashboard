@@ -4,12 +4,17 @@ import {
   OverviewQueryDto,
   VehiclesGroupQueryDto,
   CreatedTrendQueryDto,
+  ExpiryDistributionQueryDto,
+  ExpiringSoonQueryDto,
 } from './dto/stats-query.dto';
 import {
   OverviewResponseDto,
   CountResponseDto,
   TimeSeriesResponseDto,
+  ExpiryBucketResponseDto,
+  ExpiringSoonResponseDto,
 } from './dto/stats-response.dto';
+import { VehicleResponseDto } from '../vehicle/dto/vehicle-response.dto';
 import { Prisma, VehicleDocument } from '@prisma/client';
 interface TrendRow {
   date: string;
@@ -355,5 +360,144 @@ export class StatsService {
       date: r.date.toISOString(),
       count: r.count,
     }));
+  }
+
+  async getExpiryDistribution(
+    query: ExpiryDistributionQueryDto,
+  ): Promise<ExpiryBucketResponseDto[]> {
+    const {
+      startDate,
+      endDate,
+      vehicleId,
+      documentTypeId,
+      bucketSize = 30,
+      maxBucket = 90,
+    } = query;
+
+    const where: Prisma.VehicleDocumentWhereInput = {
+      ...(startDate && { expiryDate: { gte: new Date(startDate) } }),
+      ...(endDate && { expiryDate: { lte: new Date(endDate) } }),
+      ...(vehicleId && { vehicleId }),
+      ...(documentTypeId && { documentTypeId }),
+    };
+
+    const documents = await this.prisma.vehicleDocument.findMany({
+      where,
+      select: { expiryDate: true },
+    });
+
+    const today = new Date();
+
+    // Initialize buckets
+    const buckets: Record<string, number> = {};
+    for (let i = 0; i < maxBucket; i += bucketSize) {
+      const start = i + 1;
+      const end = Math.min(i + bucketSize, maxBucket);
+      buckets[`${start}-${end}`] = 0;
+    }
+    buckets[`${maxBucket}+`] = 0;
+
+    // Assign documents to buckets
+    for (const doc of documents) {
+      const days = Math.ceil(
+        (doc.expiryDate.getTime() - today.getTime()) / 86400000,
+      );
+
+      if (days <= 0) continue; // expired already, optional: skip or count in 0 bucket
+      if (days > maxBucket) {
+        buckets[`${maxBucket}+`]++;
+      } else {
+        const bucketIndex = Math.floor((days - 1) / bucketSize);
+        const start = bucketIndex * bucketSize + 1;
+        const end = Math.min((bucketIndex + 1) * bucketSize, maxBucket);
+        buckets[`${start}-${end}`]++;
+      }
+    }
+
+    // Convert to DTO array in order
+    const orderedBuckets: ExpiryBucketResponseDto[] = [
+      ...Object.keys(buckets)
+        .filter((b) => b !== `${maxBucket}+`)
+        .sort(
+          (a, b) =>
+            parseInt(a.split('-')[0], 10) - parseInt(b.split('-')[0], 10),
+        )
+        .map((b) => ({ bucket: b, count: buckets[b] })),
+      { bucket: `${maxBucket}+`, count: buckets[`${maxBucket}+`] },
+    ];
+
+    return orderedBuckets;
+  }
+
+  async getExpiringSoon(
+    query: ExpiringSoonQueryDto,
+  ): Promise<ExpiringSoonResponseDto[]> {
+    const withinDays = query.withinDays ?? 30;
+    const today = new Date();
+    const futureDate = new Date(
+      today.getTime() + withinDays * 24 * 60 * 60 * 1000,
+    );
+
+    const documents = await this.prisma.vehicleDocument.findMany({
+      where: {
+        expiryDate: { gte: today, lte: futureDate },
+      },
+      include: {
+        vehicle: {
+          include: {
+            category: true,
+            type: true,
+            owner: true,
+            driver: true,
+            location: true,
+          },
+        },
+        documentType: true,
+      },
+    });
+
+    return documents.map((doc) => {
+      const daysRemaining = Math.ceil(
+        (doc.expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      const vehicle = doc.vehicle;
+      const vehicleDto: VehicleResponseDto = {
+        id: vehicle.id,
+        name: vehicle.name,
+        licensePlate: vehicle.licensePlate,
+        rcNumber: vehicle.rcNumber,
+        chassisNumber: vehicle.chassisNumber,
+        engineNumber: vehicle.engineNumber,
+        notes: vehicle.notes,
+        categoryId: vehicle.categoryId,
+        typeId: vehicle.typeId,
+        ownerId: vehicle.ownerId ?? null,
+        driverId: vehicle.driverId ?? null,
+        locationId: vehicle.locationId ?? null,
+        createdAt: vehicle.createdAt,
+        updatedAt: vehicle.updatedAt,
+        categoryName: vehicle.category?.name ?? null,
+        typeName: vehicle.type?.name ?? null,
+        ownerName: vehicle.owner?.name ?? null,
+        driverName: vehicle.driver?.name ?? null,
+        locationName: vehicle.location?.name ?? null,
+      };
+
+      return {
+        id: doc.id,
+        documentNo: doc.documentNo,
+        documentTypeId: doc.documentTypeId,
+        documentTypeName: doc.documentType?.name ?? '',
+        startDate: doc.startDate.toISOString(),
+        expiryDate: doc.expiryDate.toISOString(),
+        daysRemaining,
+        link: doc.link,
+        notes: doc.notes,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
+        vehicle: vehicleDto,
+      };
+    });
   }
 }
