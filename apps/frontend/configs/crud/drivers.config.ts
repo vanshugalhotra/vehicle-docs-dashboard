@@ -12,7 +12,6 @@ export const driverSchema = z.object({
     .transform((val) => (val === "" || val === null ? undefined : val)),
 });
 
-
 export type Driver = z.infer<typeof driverSchema> & {
   id?: string;
   createdAt?: string;
@@ -51,24 +50,25 @@ export const driverColumns: ColumnDef<Driver>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Name" },
-  { accessorKey: "phone", header: "Phone" },
+  { accessorKey: "name", header: "Name", enableSorting: true },
+  { accessorKey: "phone", header: "Phone", enableSorting: true },
   {
     accessorKey: "email",
     header: "Email",
     cell: ({ getValue }) => getValue() || "-",
+    enableSorting: true,
   },
   {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
 export const driverLayout = {
-  gridColumns: 1
-}
-
+  gridColumns: 1,
+};
 
 export const driverCrudConfig = {
   name: "Driver",

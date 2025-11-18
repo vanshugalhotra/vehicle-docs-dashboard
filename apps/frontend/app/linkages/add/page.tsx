@@ -20,6 +20,7 @@ import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 import { toastUtils } from "@/lib/utils/toastUtils";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { Search } from "lucide-react";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function LinkagePage() {
   // -------------------------------
@@ -99,6 +100,7 @@ export default function LinkagePage() {
     formCtrl.closeForm();
     await refetch();
   };
+  const { formRef, focusForm } = useEditFocus();
 
   // -------------------------------
   // 🔹 Deletion
@@ -171,7 +173,11 @@ export default function LinkagePage() {
             columns={linkageCrudConfig.columns}
             data={data}
             loading={isLoading}
-            onEdit={(record) => formCtrl.openEdit(record)}
+            onEdit={(record) => {
+              formCtrl.openEdit(record);
+              toastUtils.info(`Editing Linkage ${record.documentNo}`);
+              focusForm();
+            }}
             onDelete={handleDelete}
             className="my-4"
           />
@@ -201,7 +207,7 @@ export default function LinkagePage() {
       )}
       {/* Form */}
       {formCtrl.isOpen && (
-        <div className="mt-0">
+        <div className="mt-0" ref={formRef}>
           <FormEmbeddedPanel<LinkageEntity>
             key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
             title={

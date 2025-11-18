@@ -11,6 +11,7 @@ import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Vehicle, vehicleCrudConfig } from "@/configs/crud/vehicles.config";
 import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function VehiclesPage() {
   const formCtrl = useFormStateController<Vehicle>("embedded");
@@ -80,6 +81,12 @@ export default function VehiclesPage() {
       setItemToDelete(null);
     }
   };
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: Vehicle) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing vehicle ${item.licensePlate}`);
+    focusForm();
+  };
 
   return (
     <CRUDPageLayout
@@ -93,18 +100,20 @@ export default function VehiclesPage() {
       layout="stacked"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            isEditMode={formCtrl.isEditing}
-            title={formCtrl.isEditing ? "Edit Vehicle" : "Add Vehicle"}
-            fields={vehicleCrudConfig.fields}
-            schema={vehicleCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={vehicleCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Vehicle" : "Add Vehicle"}
+              fields={vehicleCrudConfig.fields}
+              schema={vehicleCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={vehicleCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -121,7 +130,7 @@ export default function VehiclesPage() {
             columns={vehicleCrudConfig.columns}
             data={vehicles}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             onView={(item) => {
               console.log("View vehicle:", item);

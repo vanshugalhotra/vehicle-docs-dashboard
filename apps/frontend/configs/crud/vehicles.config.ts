@@ -258,7 +258,7 @@ export const vehicleFiltersConfig: FilterConfig[] = [
 // 🔹 Sort Options
 // =====================
 export const vehicleSortOptions: SortOption[] = [
-  { field: "createdAt", label: "Created", default: true },
+  { field: "createdAt", label: "Created Date", default: true },
   { field: "licensePlate", label: "License Plate" },
 ];
 

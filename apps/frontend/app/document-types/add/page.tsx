@@ -13,6 +13,7 @@ import {
   DocumentType,
   documentTypeCrudConfig,
 } from "@/configs/crud/document-types.config";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function DocumentTypesPage() {
   const formCtrl = useFormStateController<DocumentType>("embedded");
@@ -24,6 +25,13 @@ export default function DocumentTypesPage() {
   const handleCancel = () => {
     formCtrl.closeForm();
     setFormKey((k) => k + 1);
+  };
+
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: DocumentType) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing Document ${item.name}`);
+    focusForm();
   };
 
   const {
@@ -96,20 +104,22 @@ export default function DocumentTypesPage() {
       addLabel="Add Document Type"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            isEditMode={formCtrl.isEditing}
-            title={
-              formCtrl.isEditing ? "Edit Document Type" : "Add Document Type"
-            }
-            fields={documentTypeCrudConfig.fields}
-            schema={documentTypeCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={documentTypeCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={
+                formCtrl.isEditing ? "Edit Document Type" : "Add Document Type"
+              }
+              fields={documentTypeCrudConfig.fields}
+              schema={documentTypeCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={documentTypeCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -118,7 +128,7 @@ export default function DocumentTypesPage() {
             columns={documentTypeCrudConfig.columns}
             data={documentTypes}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             sort={sort}
             setSort={setSort}

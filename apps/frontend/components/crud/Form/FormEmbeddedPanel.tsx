@@ -97,7 +97,13 @@ export const FormEmbeddedPanel = <T extends object>({
   };
 
   return (
-    <AppCard className="flex flex-col" hoverable={hoverable}>
+    <AppCard
+      className={`flex flex-col p-4 rounded-2xl transition-all duration-200
+    border border-neutral-200
+    ${isEditMode ? "border-l-8 border-l-blue-500 shadow-sm" : ""}
+  `}
+      hoverable={hoverable}
+    >
       {title && (
         <AppText
           size="heading3"

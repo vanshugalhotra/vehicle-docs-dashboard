@@ -10,6 +10,7 @@ import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { Driver, driverCrudConfig } from "@/configs/crud/drivers.config";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function DriversPage() {
   const formCtrl = useFormStateController<Driver>("embedded");
@@ -21,6 +22,13 @@ export default function DriversPage() {
   const handleCancel = () => {
     formCtrl.closeForm();
     setFormKey((k) => k + 1); // remount form to reset all fields
+  };
+
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: Driver) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing driver ${item.name}`);
+    focusForm();
   };
 
   const {
@@ -37,6 +45,8 @@ export default function DriversPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<Driver>(driverCrudConfig);
 
   // -------------------
@@ -96,18 +106,20 @@ export default function DriversPage() {
       addLabel="Add Driver"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            isEditMode={formCtrl.isEditing}
-            title={formCtrl.isEditing ? "Edit Driver" : "Add Driver"}
-            fields={driverCrudConfig.fields}
-            schema={driverCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={driverCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Driver" : "Add Driver"}
+              fields={driverCrudConfig.fields}
+              schema={driverCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={driverCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -116,8 +128,10 @@ export default function DriversPage() {
             columns={driverCrudConfig.columns}
             data={drivers}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

@@ -14,6 +14,7 @@ import {
   vehicleTypeCrudConfig,
 } from "@/configs/crud/vehicle-types.config";
 import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function VehicleTypesPage() {
   const formCtrl = useFormStateController<VehicleType>("embedded");
@@ -24,6 +25,13 @@ export default function VehicleTypesPage() {
   const handleCancel = () => {
     formCtrl.closeForm();
     setFormKey((k) => k + 1);
+  };
+
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: VehicleType) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing Type ${item.name}`);
+    focusForm();
   };
 
   const {
@@ -95,20 +103,22 @@ export default function VehicleTypesPage() {
       addLabel="Add Vehicle Type"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            isEditMode={formCtrl.isEditing}
-            title={
-              formCtrl.isEditing ? "Edit Vehicle Type" : "Add Vehicle Type"
-            }
-            fields={vehicleTypeCrudConfig.fields}
-            schema={vehicleTypeCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={vehicleTypeCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={
+                formCtrl.isEditing ? "Edit Vehicle Type" : "Add Vehicle Type"
+              }
+              fields={vehicleTypeCrudConfig.fields}
+              schema={vehicleTypeCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={vehicleTypeCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -125,7 +135,7 @@ export default function VehicleTypesPage() {
             columns={vehicleTypeCrudConfig.columns}
             data={types}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
           />
           <PaginationBar

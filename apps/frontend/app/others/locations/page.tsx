@@ -10,6 +10,7 @@ import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Location, locationCrudConfig } from "@/configs/crud/locations.config";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function LocationsPage() {
   const formCtrl = useFormStateController<Location>("embedded");
@@ -21,7 +22,7 @@ export default function LocationsPage() {
 
   const handleCancel = () => {
     formCtrl.closeForm();
-    setFormKey((k) => k + 1); // remount form to reset all fields
+    setFormKey((k) => k + 1);
   };
 
   const {
@@ -41,6 +42,13 @@ export default function LocationsPage() {
     sort,
     setSort,
   } = useCRUDController<Location>(locationCrudConfig);
+
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: Location) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing location ${item.name}`);
+    focusForm();
+  };
 
   const handleSubmit = async (values: Location) => {
     const action =
@@ -93,18 +101,20 @@ export default function LocationsPage() {
       addLabel="Add Location"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            isEditMode={formCtrl.isEditing}
-            title={formCtrl.isEditing ? "Edit Location" : "Add Location"}
-            fields={locationCrudConfig.fields}
-            schema={locationCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={locationCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Location" : "Add Location"}
+              fields={locationCrudConfig.fields}
+              schema={locationCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={locationCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -113,7 +123,7 @@ export default function LocationsPage() {
             columns={locationCrudConfig.columns}
             data={locations}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             sort={sort}
             setSort={setSort}
