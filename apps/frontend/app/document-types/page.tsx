@@ -25,8 +25,10 @@ export default function DocumentTypesPage() {
       await controller.remove(itemToDelete.id);
       await controller.refetch();
       toastUtils.success("Document type deleted successfully");
-    } catch {
-      toastUtils.error("Failed to delete document type");
+    } catch (err) {
+      toastUtils.error(
+        err instanceof Error ? err.message : "Failed to delete document"
+      );
     } finally {
       setDeleteLoading(false);
       setItemToDelete(null);

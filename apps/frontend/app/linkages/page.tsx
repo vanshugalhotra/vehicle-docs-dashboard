@@ -24,8 +24,10 @@ export default function ViewLinkagePage() {
       await controller.remove(itemToDelete.id);
       await controller.refetch();
       toastUtils.success("Document linkage deleted successfully");
-    } catch {
-      toastUtils.error("Failed to delete document linkage");
+    } catch (err) {
+      toastUtils.error(
+        err instanceof Error ? err.message : "Failed to delete linkage"
+      );
     } finally {
       setDeleteLoading(false);
       setItemToDelete(null);

@@ -21,8 +21,10 @@ export default function VehiclesPage() {
       await controller.remove(itemToDelete.id);
       await controller.refetch();
       toastUtils.success("Vehicle deleted successfully");
-    } catch {
-      toastUtils.error("Failed to delete vehicle");
+    } catch (err) {
+      toastUtils.error(
+        err instanceof Error ? err.message : "Failed to delete vehicle"
+      );
     } finally {
       setDeleteLoading(false);
       setItemToDelete(null);
@@ -60,7 +62,7 @@ export default function VehiclesPage() {
       onCancelDelete={() => setItemToDelete(null)}
       onEdit={() => {}}
       onView={() => {}}
-            deleteDescription={(item) =>
+      deleteDescription={(item) =>
         `Are you sure you want to delete this vehicle "${item.name}"?`
       }
     />

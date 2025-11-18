@@ -744,7 +744,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       expect(doc.documentTypeId).toBe(vehicleDocA.documentTypeId);
     });
 
-    it('should handle documents for deleted vehicles gracefully', async () => {
+    it('should show conflict when deleting vehicle with linked docs', async () => {
       // This test verifies the API behavior when underlying relations change
       // Note: Actual cascade behavior depends on your database schema
       const tempVehicleRes = await request(server)
@@ -781,16 +781,15 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
         .delete(
           `/api/v1/vehicles/${(tempVehicleRes.body as VehicleResponse).id}`,
         )
-        .expect(200);
+        .expect(409);
 
-      // Document might still exist depending on cascade settings
-      // This tests the API's resilience to orphaned relations
+      // Document will still exist
       const docRes = await request(server).get(
         `/api/v1/vehicle-documents/${(tempDocRes.body as VehicleResponse).id}`,
       );
 
-      // Either 404 (if cascade delete) or 200 with potentially null vehicle
-      expect([200, 404]).toContain(docRes.status);
+      // document should be there, because vehicle is not deleted
+      expect([200]).toContain(docRes.status);
     });
   });
 });

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -260,6 +264,19 @@ export class VehicleService {
       const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
       if (!vehicle)
         throw new NotFoundException(`Vehicle with id ${id} not found`);
+
+      // Prevent deletion if any vehicle document is linked
+      const linkedDocuments = await this.prisma.vehicleDocument.count({
+        where: { vehicleId: id },
+      });
+      if (linkedDocuments > 0) {
+        this.logger.warn(
+          `Delete failed, Vehicle has ${linkedDocuments} linked vehicle document(s): ${id}`,
+        );
+        throw new ConflictException(
+          `Cannot delete Vehicle "${vehicle.name}" because ${linkedDocuments} vehicle document(s) are linked to it`,
+        );
+      }
 
       await this.prisma.vehicle.delete({ where: { id } });
       this.logger.info(`Deleted vehicle ${vehicle.id} - ${vehicle.name}`);
