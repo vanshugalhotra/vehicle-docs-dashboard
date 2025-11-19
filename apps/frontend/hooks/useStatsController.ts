@@ -59,12 +59,7 @@ const endpointMap: Record<StatsEndpoint, string> = {
 function normalizeOverview(raw: OverviewStats): OverviewStats {
   return {
     ...raw,
-    vehiclesByCategory: raw.vehiclesByCategory ?? [],
-    vehiclesByLocation: raw.vehiclesByLocation ?? [],
-    expiryDistribution: raw.expiryDistribution ?? [],
-    documentsByType: raw.documentsByType ?? [],
     vehicleCreatedTrend: raw.vehicleCreatedTrend ?? [],
-    documentExpiryTrend: raw.documentExpiryTrend ?? [],
   };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppAsyncSelect } from "@/components/ui/AppSelect/AppAsyncSelect";
 import { AppText } from "@/components/ui/AppText";
@@ -17,29 +17,15 @@ export interface FieldDefinition {
 export type EntitySelectorVariant = "detailed" | "simple";
 
 export interface EntitySelectorProps<T extends { id: string }> {
-  /** Display label for the select */
   label?: string;
-
-  /** Endpoint for fetching list and detail (should return T[]) */
   endpoint: string;
-
-  /** Transforms fetched list items into select options */
   transformOption: (data: T[]) => { label: string; value: string }[];
-
-  /** Defines what fields to show when item is selected (for detailed variant) */
   renderFields?: (item: T) => FieldDefinition[];
-
-  /** Render function for simple variant: returns the prominent value text */
   simpleValue?: (item: T) => string;
-
-  /** Variant: 'detailed' for grid fields or 'simple' for single prominent value */
   variant?: EntitySelectorVariant;
-
-  /** Placeholder text for the select */
   placeholder?: string;
-
-  /** Optional callback when item is selected or cleared */
   onSelect?: (item: T | null) => void;
+  value?: string;
 }
 
 export const EntitySelector = <T extends { id: string }>({
@@ -51,9 +37,22 @@ export const EntitySelector = <T extends { id: string }>({
   variant = "detailed",
   placeholder = "Select....",
   onSelect,
+  value,
 }: EntitySelectorProps<T>) => {
   const [selectedId, setSelectedId] = useState<string>("");
   const [selectedItem, setSelectedItem] = useState<T | null>(null);
+
+  const selectedIdRef = useRef(selectedId);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (value && value !== selectedIdRef.current) {
+      setSelectedId(value);
+    }
+  }, [value]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -93,7 +92,11 @@ export const EntitySelector = <T extends { id: string }>({
       />
 
       {selectedItem ? (
-        <AppCard bordered hoverable className={componentTokens.card.interactive}>
+        <AppCard
+          bordered
+          hoverable
+          className={componentTokens.card.interactive}
+        >
           {isSimple ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <AppText size="heading1" variant="primary" className="font-bold">
@@ -129,9 +132,11 @@ const EntityField = ({
   value?: string | null;
   icon?: React.ReactNode;
 }) => (
-  <div className={clsx(
-    "space-y-0.5 rounded-md p-2 border border-border-subtle/80 hover:bg-primary/10 transition-all duration-150"
-  )}>
+  <div
+    className={clsx(
+      "space-y-0.5 rounded-md p-2 border border-border-subtle/80 hover:bg-primary/10 transition-all duration-150"
+    )}
+  >
     <AppText size="label" variant="secondary">
       {label}
     </AppText>
@@ -144,7 +149,13 @@ const EntityField = ({
   </div>
 );
 
-const EmptyState = ({ label, variant }: { label?: string; variant?: EntitySelectorVariant }) => (
+const EmptyState = ({
+  label,
+  variant,
+}: {
+  label?: string;
+  variant?: EntitySelectorVariant;
+}) => (
   <AppCard className={componentTokens.card.base}>
     <div className="flex flex-col items-center justify-center p-4 bg-surface-subtle text-center rounded-lg">
       <div className="bg-primary-light/80 p-2 rounded-full mb-2">
@@ -156,8 +167,7 @@ const EmptyState = ({ label, variant }: { label?: string; variant?: EntitySelect
       <AppText size="body" variant="secondary">
         {variant === "simple"
           ? `Select to view.`
-          : `Select a record to view its details.`
-        }
+          : `Select a record to view its details.`}
       </AppText>
     </div>
   </AppCard>

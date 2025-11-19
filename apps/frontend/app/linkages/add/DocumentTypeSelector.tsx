@@ -6,18 +6,23 @@ import { apiRoutes } from "@/lib/apiRoutes";
 import { DocumentTypeResponse } from "@/lib/types/document-type.types";
 
 interface DocumentTypeSelectorProps {
+  value?: DocumentTypeResponse | null;
   onSelect?: (documentType: DocumentTypeResponse | null) => void;
 }
 
-export default function DocumentTypeSelector({ onSelect }: DocumentTypeSelectorProps) {
+export default function DocumentTypeSelector({
+  value,
+  onSelect,
+}: DocumentTypeSelectorProps) {
   return (
     <EntitySelector<DocumentTypeResponse>
       label="Document"
       endpoint={apiRoutes.document_types.list}
+      value={value?.id} // <-- controlled
+      onSelect={onSelect}
       placeholder="Select a document..."
       variant="simple"
       simpleValue={(d) => d.name}
-      onSelect={onSelect}
       transformOption={(data) =>
         data.map((d) => ({
           label: d.name,

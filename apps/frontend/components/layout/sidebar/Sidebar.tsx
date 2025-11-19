@@ -6,7 +6,7 @@ import { useSidebar } from "@/hooks/useSidebar";
 import { componentTokens } from "@/styles/design-system";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { sidebarConfig } from "@/configs/sidebar.config";
-import { LucideArrowLeft, LucideArrowRight } from "lucide-react";
+import { LucideArrowLeft, LucideArrowRight, Heart } from "lucide-react";
 import { AppText } from "@/components/ui/AppText";
 
 export const Sidebar: React.FC = () => {
@@ -18,7 +18,9 @@ export const Sidebar: React.FC = () => {
     <aside
       className={clsx(
         componentTokens.sidebar.base,
-        isCollapsed ? componentTokens.sidebar.collapsed : componentTokens.sidebar.expanded
+        isCollapsed
+          ? componentTokens.sidebar.collapsed
+          : componentTokens.sidebar.expanded
       )}
     >
       {/* Header */}
@@ -46,13 +48,10 @@ export const Sidebar: React.FC = () => {
       <nav className={componentTokens.sidebar.nav}>
         {sidebarConfig
           .filter((item) => item.type !== "brand")
-          .map((item, ) => (
+          .map((item) => (
             <React.Fragment key={item.label}>
               {item.children ? (
-                <SidebarNavItem
-                  label={item.label}
-                  icon={item.icon}
-                >
+                <SidebarNavItem label={item.label} icon={item.icon}>
                   {!isCollapsed &&
                     item.children.map((child) => (
                       <SidebarNavItem
@@ -76,11 +75,28 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer */}
-      <div className={componentTokens.sidebar.footer}>
-        {!isCollapsed && (
-          <span className={componentTokens.sidebar.footerVersion}>
-            © helpmefolks
-          </span>
+      <div
+        className={clsx(
+          componentTokens.sidebar.footer,
+          "pt-4 border-t border-border-subtle/50 space-y-2"
+        )}
+      >
+        {!isCollapsed ? (
+          <div className="text-xs space-y-1 text-text-tertiary/80">
+            <AppText size="caption" className="font-medium">
+              © 2025 Yash Group.
+            </AppText>
+            <div className="flex items-center gap-1">
+              <Heart className="w-3 h-3 text-red-500 fill-current" />
+              <AppText size="caption" className="font-normal">
+                Made by HelpMeFolks
+              </AppText>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center p-2">
+            <Heart className="w-4 h-4 text-red-500 fill-current" />
+          </div>
         )}
       </div>
     </aside>

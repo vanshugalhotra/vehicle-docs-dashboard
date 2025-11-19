@@ -12,6 +12,7 @@ import { useFormStateController } from "@/hooks/useFormStateController";
 import { Vehicle, vehicleCrudConfig } from "@/configs/crud/vehicles.config";
 import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useEditFromQuery } from "@/hooks/useEditFormQuery";
 
 export default function VehiclesPage() {
   const formCtrl = useFormStateController<Vehicle>("embedded");
@@ -87,6 +88,12 @@ export default function VehiclesPage() {
     toastUtils.info(`Editing vehicle ${item.licensePlate}`);
     focusForm();
   };
+
+  useEditFromQuery<Vehicle>(
+    vehicleCrudConfig.baseUrl,
+    (record) => formCtrl.openEdit(record),
+    () => focusForm()
+  );
 
   return (
     <CRUDPageLayout

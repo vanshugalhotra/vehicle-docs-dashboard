@@ -4,23 +4,28 @@ import { Building2, Hash, Key, MapPin, User } from "lucide-react";
 import type { VehicleResponse } from "@/lib/types/vehicle.types";
 
 interface VehicleSelectorProps {
+  value?: VehicleResponse | null;
   onSelect?: (vehicle: VehicleResponse | null) => void;
 }
 
-export default function VehicleSelector({ onSelect }: VehicleSelectorProps) {
+export default function VehicleSelector({
+  value,
+  onSelect,
+}: VehicleSelectorProps) {
   return (
     <EntitySelector<VehicleResponse>
       label="Vehicle"
       endpoint={apiRoutes.vehicles.list}
+      value={value?.id} 
+      onSelect={onSelect}
+      variant="detailed"
+      placeholder="Select a Vehicle..."
       transformOption={(data) =>
         data.map((v) => ({
-          label: `${v.name}`,
+          label: v.name,
           value: v.id,
         }))
       }
-      variant="detailed"
-      placeholder="Select a Vehicle...."
-      onSelect={onSelect}
       renderFields={(v) => [
         {
           label: "Category",

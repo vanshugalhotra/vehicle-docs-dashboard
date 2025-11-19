@@ -21,6 +21,10 @@ import { toastUtils } from "@/lib/utils/toastUtils";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { Search } from "lucide-react";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useEditFromQuery } from "@/hooks/useEditFormQuery";
+import { fetchWithAuth } from "@/lib/utils/fetchWithAuth";
+import { apiRoutes } from "@/lib/apiRoutes";
+import { DocumentTypeResponse } from "@/lib/types/document-type.types";
 
 export default function LinkagePage() {
   // -------------------------------
@@ -32,10 +36,8 @@ export default function LinkagePage() {
   // -------------------------------
   // 🔹 Selected Document Type
   // -------------------------------
-  const [selectedDocumentType, setSelectedDocumentType] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
+  const [selectedDocumentType, setSelectedDocumentType] =
+    useState<DocumentTypeResponse | null>(null);
 
   // -------------------------------
   // 🔹 CRUD Controller
@@ -104,6 +106,15 @@ export default function LinkagePage() {
   };
   const { formRef, focusForm } = useEditFocus();
 
+  useEditFromQuery<LinkageEntity>(
+    linkageCrudConfig.baseUrl,
+    async (record) => {
+      await loadVehicleAndDocumentType(record);
+      formCtrl.openEdit(record);
+    },
+    () => focusForm()
+  );
+
   // -------------------------------
   // 🔹 Deletion
   // -------------------------------
@@ -139,6 +150,30 @@ export default function LinkagePage() {
     }
   }, [selectedVehicle, setFilters, refetch]);
 
+  async function loadVehicleAndDocumentType(record: LinkageEntity) {
+    // --- Load full vehicle (required for VehicleSelector) ---
+    if (record.vehicleId && record.documentTypeId) {
+      try {
+        const vehicle = await fetchWithAuth<VehicleResponse>(
+          apiRoutes.vehicles.detail(record.vehicleId)
+        );
+        const document_type = await fetchWithAuth<DocumentTypeResponse>(
+          apiRoutes.document_types.detail(record.documentTypeId)
+        );
+
+        if (vehicle) {
+          setSelectedVehicle(vehicle);
+        }
+
+        if (document_type) {
+          setSelectedDocumentType(document_type);
+        }
+      } catch (err) {
+        console.error("Failed to load vehicle for edit:", err);
+      }
+    }
+  }
+
   // -------------------------------
   // 🔹 Render
   // -------------------------------
@@ -150,12 +185,18 @@ export default function LinkagePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <div className="lg:col-span-2 flex flex-col space-y-4">
           <AppCard bordered hoverable padded className="flex-1">
-            <VehicleSelector onSelect={setSelectedVehicle} />
+            <VehicleSelector
+              onSelect={setSelectedVehicle}
+              value={selectedVehicle}
+            />
           </AppCard>
         </div>
         <div className="flex flex-col space-y-4">
           <AppCard bordered hoverable padded className="flex-1">
-            <DocumentTypeSelector onSelect={setSelectedDocumentType} />
+            <DocumentTypeSelector
+              onSelect={setSelectedDocumentType}
+              value={selectedDocumentType}
+            />
           </AppCard>
         </div>
       </div>
@@ -203,7 +244,8 @@ export default function LinkagePage() {
             columns={linkageCrudConfig.columns}
             data={data}
             loading={isLoading}
-            onEdit={(record) => {
+            onEdit={async (record) => {
+              await loadVehicleAndDocumentType(record);
               formCtrl.openEdit(record);
               toastUtils.info(`Editing Linkage ${record.documentNo}`);
               focusForm();

@@ -14,6 +14,7 @@ import {
   documentTypeCrudConfig,
 } from "@/configs/crud/document-types.config";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useEditFromQuery } from "@/hooks/useEditFormQuery";
 
 export default function DocumentTypesPage() {
   const formCtrl = useFormStateController<DocumentType>("embedded");
@@ -26,6 +27,12 @@ export default function DocumentTypesPage() {
     formCtrl.closeForm();
     setFormKey((k) => k + 1);
   };
+
+  useEditFromQuery<DocumentType>(
+    documentTypeCrudConfig.baseUrl,
+    (record) => formCtrl.openEdit(record),
+    () => focusForm()
+  );
 
   const { formRef, focusForm } = useEditFocus();
   const handleEdit = (item: DocumentType) => {

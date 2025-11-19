@@ -61,7 +61,7 @@ export default function ViewLinkagePage() {
       itemToDelete={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onAdd={() => router.push("/linkages/add")}
-      onEdit={() => {}}
+      onEdit={(item) => router.push(`/linkages/add?editId=${item.id}`)}
       onView={() => {}}
       onExport={() => console.log("Export Linkages clicked")}
       deleteDescription={(item) =>

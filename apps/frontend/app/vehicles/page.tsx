@@ -60,7 +60,7 @@ export default function VehiclesPage() {
       deleteLoading={deleteLoading}
       itemToDelete={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
-      onEdit={() => {}}
+      onEdit={(item) => router.push(`/vehicles/add?editId=${item.id}`)}
       onView={() => {}}
       deleteDescription={(item) =>
         `Are you sure you want to delete this vehicle "${item.name}"?`
