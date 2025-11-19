@@ -64,8 +64,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   );
 
   const selectedSort = useMemo(
-    () =>
-      sortOptions.find((opt) => opt.field === sort.field) ?? null,
+    () => sortOptions.find((opt) => opt.field === sort.field) ?? null,
     [sortOptions, sort.field]
   );
 
@@ -91,7 +90,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
 
   return (
     <div
-      className={`w-full flex flex-col gap-3 bg-surface p-3 rounded-xl ${
+      className={`w-full hover:border-border-hover hover:shadow-md transition-all duration-150 flex flex-col gap-3 bg-surface p-3 border border-border rounded-lg shadow-sm ${
         compact ? "md:flex-row md:items-end md:justify-between" : ""
       }`}
     >

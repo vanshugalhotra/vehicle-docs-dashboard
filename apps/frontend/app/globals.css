@@ -7,7 +7,8 @@
   /* ============================================ */
 
   /* Backgrounds & Surfaces */
-  --color-background: #f3f3f9;
+  /* --color-background: #f3f3f9; */
+  --color-background: #f8f9fb;
   --color-surface: #ffffff;
   --color-surface-hover: #f9fafb;
   --color-surface-subtle: #f3f4f6;
@@ -181,7 +182,7 @@ body {
 
 [data-ripple] {
   position: absolute;
-  border-radius: inherit; 
+  border-radius: inherit;
   background: currentColor;
   opacity: 0.3;
   transform: scale(0);
@@ -192,4 +193,12 @@ body {
 button:active [data-ripple],
 button:focus-visible [data-ripple] {
   animation-play-state: running;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
