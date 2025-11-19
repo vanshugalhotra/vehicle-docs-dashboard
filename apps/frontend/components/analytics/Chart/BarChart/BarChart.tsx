@@ -17,7 +17,7 @@ import { chartTheme } from "../core/ChartTheme";
 import { DefaultTooltip, TooltipProps } from "../core/ChartToolTip";
 import { VerticalGradient } from "../core/ChartGradient";
 
-interface BarChartProps<T extends Record<string, string | number>> {
+interface BarChartProps<T> {
   data: T[];
   xKey: keyof T;
   yKey: keyof T;
@@ -37,7 +37,7 @@ interface BarChartProps<T extends Record<string, string | number>> {
   customTooltip?: (props: TooltipProps) => React.ReactNode;
 }
 
-export const BarChart = <T extends Record<string, string | number>>({
+export const BarChart = <T,>({
   data,
   xKey,
   yKey,
@@ -57,17 +57,13 @@ export const BarChart = <T extends Record<string, string | number>>({
 }: BarChartProps<T>) => {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
-  // --------------------------
-  // Properly typed content prop
-  // --------------------------
   const tooltipContent = React.useCallback(
-    (props: RechartsTooltipProps<number, string>) => {
-      return customTooltip ? (
+    (props: RechartsTooltipProps<number, string>) =>
+      customTooltip ? (
         customTooltip(props as TooltipProps)
       ) : (
         <DefaultTooltip {...(props as TooltipProps)} />
-      );
-    },
+      ),
     [customTooltip]
   );
 
@@ -103,14 +99,13 @@ export const BarChart = <T extends Record<string, string | number>>({
             tickLine={false}
             axisLine={{ stroke: chartTheme.axis.stroke, strokeWidth: 1 }}
           />
-
           <YAxis
             stroke={chartTheme.axis.stroke}
             tick={chartTheme.axis.tick}
             tickLine={false}
             axisLine={{ stroke: chartTheme.axis.stroke, strokeWidth: 1 }}
-            tickFormatter={(value) =>
-              typeof value === "number" ? value.toLocaleString() : String(value)
+            tickFormatter={(v) =>
+              typeof v === "number" ? v.toLocaleString() : String(v)
             }
           />
 
@@ -120,7 +115,6 @@ export const BarChart = <T extends Record<string, string | number>>({
               cursor={{ fill: barColor, opacity: 0.05, radius: 8 }}
             />
           )}
-
           {legend && (
             <Legend
               verticalAlign="top"

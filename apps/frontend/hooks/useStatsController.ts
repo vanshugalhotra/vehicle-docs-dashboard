@@ -107,8 +107,14 @@ type StatsResponseMap = {
 /* ---------------------------------------------
    Hook
 ----------------------------------------------*/
-export function useStatsController<E extends StatsEndpoint>(endpoint: E) {
-  const [params, setParams] = useState<StatsParams>({});
+/* ---------------------------------------------
+   Hook
+----------------------------------------------*/
+export function useStatsController<E extends StatsEndpoint>(
+  endpoint: E,
+  initialParams?: StatsParams // <-- new
+) {
+  const [params, setParams] = useState<StatsParams>(initialParams || {});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 

@@ -1,19 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { BarChart } from './BarChart';
 
+type SalesData = {
+  month: string;
+  revenue: number;
+};
+
 const meta = {
   title: 'Charts/BarChart',
-  component: BarChart,
+  component: BarChart as typeof BarChart<SalesData>,
   parameters: {
     layout: 'centered',
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof BarChart>;
+} satisfies Meta<typeof BarChart<SalesData>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const salesData = [
+const salesData: SalesData[] = [
   { month: 'Jan', revenue: 4000 },
   { month: 'Feb', revenue: 3000 },
   { month: 'Mar', revenue: 5000 },

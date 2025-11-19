@@ -52,17 +52,13 @@ export const LineChart = <T extends Record<string, string | number>>({
   animate = true,
   customTooltip,
 }: LineChartProps<T>) => {
-  // -------------------------------------------------------------------
-  // Properly typed tooltip renderer compatible with Recharts' signature
-  // -------------------------------------------------------------------
   const tooltipContent = React.useCallback(
-    (props: RechartsTooltipProps<number, string>) => {
-      return customTooltip ? (
+    (props: RechartsTooltipProps<number, string>) =>
+      customTooltip ? (
         customTooltip(props as TooltipProps)
       ) : (
         <DefaultTooltip {...(props as TooltipProps)} />
-      );
-    },
+      ),
     [customTooltip]
   );
 
@@ -73,12 +69,10 @@ export const LineChart = <T extends Record<string, string | number>>({
           data={data}
           margin={{ top: 20, right: legend ? 30 : 20, left: 20, bottom: 20 }}
         >
-          {/* Gradient */}
           <defs>
             {gradient && <VerticalGradient id="lineGradient" color={lineColor} />}
           </defs>
 
-          {/* Grid */}
           {grid && (
             <CartesianGrid
               strokeDasharray={chartTheme.grid.strokeDasharray}
@@ -88,7 +82,6 @@ export const LineChart = <T extends Record<string, string | number>>({
             />
           )}
 
-          {/* X Axis */}
           <XAxis
             dataKey={xKey as string}
             stroke={chartTheme.axis.stroke}
@@ -96,27 +89,17 @@ export const LineChart = <T extends Record<string, string | number>>({
             tickLine={false}
             axisLine={{ stroke: chartTheme.axis.stroke, strokeWidth: 1 }}
           />
-
-          {/* Y Axis */}
           <YAxis
             stroke={chartTheme.axis.stroke}
             tick={chartTheme.axis.tick}
             tickLine={false}
             axisLine={{ stroke: chartTheme.axis.stroke, strokeWidth: 1 }}
-            tickFormatter={(value) =>
-              typeof value === "number" ? value.toLocaleString() : String(value)
-            }
+            tickFormatter={(v) => (typeof v === "number" ? v.toLocaleString() : String(v))}
           />
 
-          {/* Tooltip */}
           {tooltip && (
-            <Tooltip
-              content={tooltipContent}
-              cursor={{ stroke: lineColor, strokeWidth: 1, opacity: 0.2 }}
-            />
+            <Tooltip content={tooltipContent} cursor={{ stroke: lineColor, strokeWidth: 1, opacity: 0.2 }} />
           )}
-
-          {/* Legend */}
           {legend && (
             <Legend
               verticalAlign="top"
@@ -127,7 +110,6 @@ export const LineChart = <T extends Record<string, string | number>>({
             />
           )}
 
-          {/* Line */}
           <Line
             type="monotone"
             dataKey={yKey as string}
