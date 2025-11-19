@@ -2,6 +2,8 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { FilterConfig, SortOption } from "@/lib/types/filter.types";
+import { Option } from "@/components/ui/AppSelect";
 
 export const vehicleTypeSchema = z.object({
   name: z.string().min(1, "Type name is required"),
@@ -61,7 +63,7 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Type Name" },
+  { accessorKey: "name", header: "Type Name", enableSorting: true },
   {
     accessorKey: "categoryName",
     header: "Category",
@@ -71,13 +73,33 @@ export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
 export const typeLayout = {
-  gridColumns: 1
-}
+  gridColumns: 1,
+};
 
+export const vehicleTypeFiltersConfig: FilterConfig[] = [
+  {
+    key: "categoryId",
+    label: "Category",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicle_categories.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+];
+
+export const vehicleTypeSortOptions: SortOption[] = [
+  { field: "name", label: "Type Name" },
+  { field: "createdAt", label: "Created Date" },
+  { field: "updatedAt", label: "Modified Date", default: true },
+];
 
 export const vehicleTypeCrudConfig = {
   name: "Vehicle Type",
@@ -89,4 +111,6 @@ export const vehicleTypeCrudConfig = {
   columns: vehicleTypeColumns,
   defaultPageSize: 5,
   layout: typeLayout,
+  filters: vehicleTypeFiltersConfig,
+  sortOptions: vehicleTypeSortOptions,
 };

@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoggerService } from 'src/common/logger/logger.service';
@@ -148,7 +148,7 @@ export class DocumentTypesService {
         this.logger.warn(
           `Delete failed, document type has ${linkedDocuments} linked vehicle document(s): ${id}`,
         );
-        throw new BadRequestException(
+        throw new ConflictException(
           `Cannot delete document type "${documentType.name}" because ${linkedDocuments} vehicle document(s) are linked to it`,
         );
       }

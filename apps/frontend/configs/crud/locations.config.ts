@@ -32,18 +32,18 @@ export const locationColumns: ColumnDef<Location>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Name" },
+  { accessorKey: "name", header: "Name", enableSorting: true },
   {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 
 export const locationLayout = {
-  gridColumns: 1
-}
-
+  gridColumns: 1,
+};
 
 export const locationCrudConfig = {
   name: "Location",
@@ -54,5 +54,5 @@ export const locationCrudConfig = {
   fields: locationFields,
   columns: locationColumns,
   defaultPageSize: 5,
-  layout: locationLayout
+  layout: locationLayout,
 };

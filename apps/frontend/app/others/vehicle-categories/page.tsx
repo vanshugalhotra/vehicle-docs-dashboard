@@ -9,7 +9,11 @@ import { useCRUDController } from "@/hooks/useCRUDController";
 import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
-import { VehicleCategory, vehicleCategoryCrudConfig } from "@/configs/crud/vehicle-categories.config";
+import {
+  VehicleCategory,
+  vehicleCategoryCrudConfig,
+} from "@/configs/crud/vehicle-categories.config";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function VehicleCategoriesPage() {
   const formCtrl = useFormStateController<VehicleCategory>("embedded");
@@ -21,9 +25,16 @@ export default function VehicleCategoriesPage() {
   const handleCancel = () => {
     formCtrl.closeForm();
     setFormKey((k) => k + 1); // reset form
-};
+  };
 
-const {
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: VehicleCategory) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing Category ${item.name}`);
+    focusForm();
+  };
+
+  const {
     data: categories,
     isLoading,
     create,
@@ -37,24 +48,28 @@ const {
     page,
     setPage,
     total,
-} = useCRUDController<VehicleCategory>(vehicleCategoryCrudConfig);
+    sort,
+    setSort,
+  } = useCRUDController<VehicleCategory>(vehicleCategoryCrudConfig);
 
-const handleSubmit = async (values: VehicleCategory) => {
+  const handleSubmit = async (values: VehicleCategory) => {
     const action =
-    formCtrl.isEditing && formCtrl.selectedItem?.id
-    ? update({ id: formCtrl.selectedItem.id, data: values })
-    : create(values);
-    
+      formCtrl.isEditing && formCtrl.selectedItem?.id
+        ? update({ id: formCtrl.selectedItem.id, data: values })
+        : create(values);
+
     toastUtils.promise(action, {
-        loading: formCtrl.isEditing ? "Updating category..." : "Adding category...",
-        success: formCtrl.isEditing
+      loading: formCtrl.isEditing
+        ? "Updating category..."
+        : "Adding category...",
+      success: formCtrl.isEditing
         ? "Category updated successfully"
         : "Category added successfully",
-        error: (err) =>
-            (err instanceof Error && err.message) ||
+      error: (err) =>
+        (err instanceof Error && err.message) ||
         (typeof err === "string" ? err : "Operation failed"),
     });
-    
+
     setFormKey((k) => k + 1); // reset form
     formCtrl.closeForm();
     await refetch();
@@ -91,17 +106,20 @@ const handleSubmit = async (values: VehicleCategory) => {
       addLabel="Add Category"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            title={formCtrl.isEditing ? "Edit Category" : "Add Category"}
-            fields={vehicleCategoryCrudConfig.fields}
-            schema={vehicleCategoryCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={vehicleCategoryCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Category" : "Add Category"}
+              fields={vehicleCategoryCrudConfig.fields}
+              schema={vehicleCategoryCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={vehicleCategoryCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -110,8 +128,10 @@ const handleSubmit = async (values: VehicleCategory) => {
             columns={vehicleCategoryCrudConfig.columns}
             data={categories}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

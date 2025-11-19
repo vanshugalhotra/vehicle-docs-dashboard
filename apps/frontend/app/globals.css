@@ -7,7 +7,8 @@
   /* ============================================ */
 
   /* Backgrounds & Surfaces */
-  --color-background: #f4f7fa;
+  /* --color-background: #f3f3f9; */
+  --color-background: #f8f9fb;
   --color-surface: #ffffff;
   --color-surface-hover: #f9fafb;
   --color-surface-subtle: #f3f4f6;
@@ -38,29 +39,29 @@
   /* Success */
   --color-success: #16a34a;
   --color-success-hover: #15803d;
-  --color-success-light: #f0fdf4;
-  --color-success-light-hover: #dcfce7;
+  --color-success-light: #c4f7d4;
+  --color-success-light-hover: #b0f8c9;
   --color-success-text: #15803d;
 
   /* Warning */
   --color-warning: #d97706;
   --color-warning-hover: #b45309;
-  --color-warning-light: #fffbeb;
-  --color-warning-light-hover: #fef3c7;
+  --color-warning-light: #fff1b9;
+  --color-warning-light-hover: #fde99a;
   --color-warning-text: #b45309;
 
   /* Danger */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
-  --color-danger-light: #fef2f2;
-  --color-danger-light-hover: #fee2e2;
+  --color-danger-light: #fac3c3;
+  --color-danger-light-hover: #fcb3b3;
   --color-danger-text: #b91c1c;
 
   /* Info */
   --color-info: #0284c7;
   --color-info-hover: #0369a1;
-  --color-info-light: #dcedf8;
-  --color-info-light-hover: #e0f2fe;
+  --color-info-light: #b5d8f0;
+  --color-info-light-hover: #b1defc;
   --color-info-text: #0369a1;
 
   /* Special States */
@@ -170,4 +171,34 @@ body {
 .thin-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
+}
+
+@keyframes button-ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+[data-ripple] {
+  position: absolute;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0.3;
+  transform: scale(0);
+  animation: button-ripple 0.6s linear;
+  pointer-events: none;
+}
+
+button:active [data-ripple],
+button:focus-visible [data-ripple] {
+  animation-play-state: running;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }

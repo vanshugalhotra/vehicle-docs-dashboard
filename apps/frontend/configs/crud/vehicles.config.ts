@@ -3,16 +3,22 @@ import { ColumnDef } from "@tanstack/react-table";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { driverFields, driverSchema } from "./drivers.config";
-import { vehicleCategoryFields, vehicleCategorySchema } from "./vehicle-categories.config";
+import {
+  vehicleCategoryFields,
+  vehicleCategorySchema,
+} from "./vehicle-categories.config";
 import { vehicleTypeFields, vehicleTypeSchema } from "./vehicle-types.config";
 import { ownerFields, ownerSchema } from "./owners.config";
 import { locationFields, locationSchema } from "./locations.config";
+import { FilterConfig, SortOption } from "@/lib/types/filter.types";
+import { Option } from "@/components/ui/AppSelect";
 
 // =====================
 // 🔹 Schema
 // =====================
 const optionalString = () =>
-  z.union([z.string(), z.literal(""), z.null()])
+  z
+    .union([z.string(), z.literal(""), z.null()])
     .optional()
     .transform((val) => (val === "" || val === null ? undefined : val));
 
@@ -70,6 +76,8 @@ export const vehicleFields = [
     endpoint: apiRoutes.vehicle_types.base,
     labelField: "name",
     valueField: "id",
+    dependsOn: "categoryId",
+    filterKey: "categoryId",
     inlineConfig: {
       title: "Add Vehicle Type",
       endpoint: apiRoutes.vehicle_types.base,
@@ -169,9 +177,9 @@ export const vehicleFields = [
 export const vehicleLayout = {
   gridColumns: 3,
   fieldSpans: {
-    notes: 3
-  }
-}
+    notes: 3,
+  },
+};
 
 // =====================
 // 🔹 Table Columns
@@ -183,7 +191,7 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     cell: ({ row }) => row.index + 1,
     size: 40,
   },
-  { accessorKey: "name", header: "Vehicle Name" },
+  { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
   { accessorKey: "licensePlate", header: "License Plate" },
   { accessorKey: "typeName", header: "Type" },
   { accessorKey: "categoryName", header: "Category" },
@@ -194,7 +202,66 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
+];
+
+// =====================
+// 🔹 Filter Config
+// =====================
+
+export const vehicleFiltersConfig: FilterConfig[] = [
+  {
+    key: "categoryId",
+    label: "Category",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicle_categories.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "typeId",
+    label: "Type",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicle_types.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "driverId",
+    label: "Driver",
+    type: "async-select",
+    asyncSource: apiRoutes.drivers.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+  {
+    key: "locationId",
+    label: "Location",
+    type: "async-select",
+    asyncSource: apiRoutes.locations.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
+];
+// =====================
+// 🔹 Sort Options
+// =====================
+export const vehicleSortOptions: SortOption[] = [
+  { field: "createdAt", label: "Created Date" },
+  { field: "updatedAt", label: "Modified Date", default: true },
 ];
 
 // =====================
@@ -209,5 +276,7 @@ export const vehicleCrudConfig = {
   fields: vehicleFields,
   columns: vehicleColumns,
   defaultPageSize: 10,
-  layout: vehicleLayout
+  layout: vehicleLayout,
+  filters: vehicleFiltersConfig,
+  sortOptions: vehicleSortOptions,
 };

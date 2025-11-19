@@ -28,7 +28,7 @@ export const AppCard: FC<AppCardProps> = ({
   return (
     <div
       className={clsx(
-        "flex flex-col bg-white", // Base flex layout
+        "flex flex-col bg-white",
         componentTokens.card.base,
         bordered && "border border-border",
         hoverable && componentTokens.card.hover,
@@ -56,7 +56,7 @@ export const AppCard: FC<AppCardProps> = ({
             )}
           </div>
           {actions && (
-            <div className="flex-shrink-0">{actions}</div>
+            <div className="shrink-0">{actions}</div>
           )}
         </div>
       )}

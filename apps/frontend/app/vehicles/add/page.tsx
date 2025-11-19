@@ -10,6 +10,9 @@ import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Vehicle, vehicleCrudConfig } from "@/configs/crud/vehicles.config";
+import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
+import { useEditFocus } from "@/hooks/useEditFocus";
+import { useEditFromQuery } from "@/hooks/useEditFormQuery";
 
 export default function VehiclesPage() {
   const formCtrl = useFormStateController<Vehicle>("embedded");
@@ -36,6 +39,8 @@ export default function VehiclesPage() {
     page,
     setPage,
     total,
+    setSort,
+    sort,
   } = useCRUDController<Vehicle>(vehicleCrudConfig);
 
   const handleSubmit = async (values: Vehicle) => {
@@ -77,6 +82,18 @@ export default function VehiclesPage() {
       setItemToDelete(null);
     }
   };
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: Vehicle) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing vehicle ${item.licensePlate}`);
+    focusForm();
+  };
+
+  useEditFromQuery<Vehicle>(
+    vehicleCrudConfig.baseUrl,
+    (record) => formCtrl.openEdit(record),
+    () => focusForm()
+  );
 
   return (
     <CRUDPageLayout
@@ -90,30 +107,43 @@ export default function VehiclesPage() {
       layout="stacked"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            title={formCtrl.isEditing ? "Edit Vehicle" : "Add Vehicle"}
-            fields={vehicleCrudConfig.fields}
-            schema={vehicleCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={vehicleCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Vehicle" : "Add Vehicle"}
+              fields={vehicleCrudConfig.fields}
+              schema={vehicleCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={vehicleCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
         <div className="flex flex-col gap-4">
+          <TableToolbar
+            filtersConfig={vehicleCrudConfig.filters}
+            sortOptions={vehicleCrudConfig.sortOptions}
+            filters={filters}
+            setFilters={setFilters}
+            sort={sort}
+            setSort={setSort}
+          />
           <DataTable
             columns={vehicleCrudConfig.columns}
             data={vehicles}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             onView={(item) => {
               console.log("View vehicle:", item);
             }}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

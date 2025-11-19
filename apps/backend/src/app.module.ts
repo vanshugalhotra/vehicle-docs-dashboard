@@ -13,6 +13,7 @@ import { LocationsModule } from './modules/location/locations.module';
 import { DocumentTypesModule } from './modules/document-type/document-types.module';
 import { VehicleDocumentsModule } from './modules/vehicle-document/vehicle-documents.module';
 import { ValidationModule } from './common/validation/validation.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ValidationModule } from './common/validation/validation.module';
     LocationsModule,
     DocumentTypesModule,
     VehicleDocumentsModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

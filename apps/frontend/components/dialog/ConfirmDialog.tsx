@@ -35,18 +35,23 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
       onClose={onCancel}
       size={size}
       title={
-        <div className="flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-warning" />
-          <span>{title}</span>
+        <div className="flex flex-col items-center gap-4 mb-4 animate-fade-in-down">
+          <div className="p-3 bg-warning/10 rounded-full border border-warning/20">
+            <AlertCircle className="h-6 w-6 text-warning" aria-hidden="true" />
+          </div>
+          <AppText size="heading2" className="font-bold text-text-primary text-center leading-tight">
+            {title}
+          </AppText>
         </div>
       }
       footer={
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex justify-end gap-3 pt-6">
           <AppButton
             variant="outline"
             onClick={onCancel}
             disabled={loading}
             size="sm"
+            className="px-4 py-2 transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]"
           >
             {cancelText}
           </AppButton>
@@ -56,14 +61,15 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
             loading={loading}
             size="sm"
             disabled={loading}
+            className="px-4 py-2 transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02]"
           >
             {confirmText}
           </AppButton>
         </div>
       }
     >
-      <div className="space-y-2 text-center">
-        <AppText size="body" variant="secondary">
+      <div className="py-6 text-center space-y-4 bg-surface-subtle/30 rounded-lg border border-border-subtle/50 animate-fade-in-up">
+        <AppText size="body" variant="secondary" className="max-w-sm mx-auto leading-relaxed px-4">
           {description}
         </AppText>
       </div>

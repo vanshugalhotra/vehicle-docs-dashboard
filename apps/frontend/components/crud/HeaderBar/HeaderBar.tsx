@@ -6,7 +6,8 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { AppInput } from "@/components/ui/AppInput";
 import { componentTokens } from "@/styles/design-system/componentTokens";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
+import clsx from "clsx";
 
 interface HeaderBarProps {
   title: string;
@@ -53,18 +54,25 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     return () => clearTimeout(handler);
   }, [localSearch, debounceMs, onSearchChange, search]);
 
+  const hasSearch = !!onSearchChange;
+  const showCancelEdit = isEditing && onCancelEdit;
+
   return (
     <div className={componentTokens.layout.pageHeader}>
       {/* Left Section — Title & Edit Badge */}
-      <div className="flex items-center gap-4">
-        <AppText size="heading2" variant="primary">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <AppText 
+          size="heading2" 
+          variant="primary" 
+          className="truncate font-bold bg-linear-to-r from-primary to-primary/80 bg-clip-text text-transparent"
+        >
           {title}
         </AppText>
 
         {isEditing && (
-          <AppBadge variant="info">
-            <AppText size="caption" variant="secondary">
-              Editing Mode
+          <AppBadge variant="info" size="sm" className="animate-pulse">
+            <AppText size="caption" variant="secondary" className="font-medium">
+              Editing
             </AppText>
           </AppBadge>
         )}
@@ -74,32 +82,54 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       </div>
 
       {/* Right Section — Actions */}
-      <div className="flex items-center gap-3">
+      <div className={clsx(
+        "flex items-center gap-3 shrink-0",
+        hasSearch && "gap-2"
+      )}>
         {/* Optional Search Input */}
-        {onSearchChange && (
-          <AppInput
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder={`Search ${title.toLowerCase()}...`}
-            className="w-lg max-w-lg"
-            prefixIcon={<Search size={18} />}
-          />
+        {hasSearch && (
+          <div className="relative group">
+            <AppInput
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder={`Search ${title.toLowerCase()}...`}
+              className="w-64 pr-10 transition-all duration-200 group-focus-within:w-72"
+              prefixIcon={<Search size={18} className="text-text-tertiary group-focus-within:text-primary" />}
+              suffixIcon={
+                localSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalSearch("");
+                      onSearchChange?.("");
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-tertiary hover:text-primary transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                )
+              }
+            />
+          </div>
         )}
 
         {/* Cancel Edit Button */}
-        {isEditing && onCancelEdit && (
+        {showCancelEdit && (
           <AppButton
             onClick={onCancelEdit}
             size="sm"
-            variant="secondary"
-            className="px-6"
+            variant="outline"
+            className="px-4 py-2 transition-all duration-200 hover:scale-105 shadow-sm"
           >
-            Cancel Edit
+            <X size={16} className="mr-1" />
+            Cancel
           </AppButton>
         )}
 
         {/* Right-side Actions */}
-        {rightActions}
+        <div className="flex items-center gap-2">
+          {rightActions}
+        </div>
       </div>
     </div>
   );

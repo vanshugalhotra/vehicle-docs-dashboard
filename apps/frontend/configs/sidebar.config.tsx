@@ -14,7 +14,9 @@ import {
   Truck,
   Layers2,
   Type,
-  MapPin
+  MapPin,
+  ClipboardPlus,
+  NotebookText
 } from "lucide-react";
 
 export type SidebarSize = "expanded" | "collapsed";
@@ -57,7 +59,11 @@ export const sidebarConfig: SidebarItemConfig[] = [
   {
     label: "Documents",
     icon: <FileText size={24} />,
-    path: "/document-types"
+    path: "/document-types",
+    children: [
+      { label: "Add Document", path: "/document-types/add", icon: <ClipboardPlus size={20} /> },
+      { label: "View Documents", path: "/document-types", icon: <NotebookText size={20} /> },
+    ],
   },
   {
     label: "Linkages",

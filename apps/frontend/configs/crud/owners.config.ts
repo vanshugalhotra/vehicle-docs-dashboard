@@ -24,8 +24,8 @@ export const ownerFields = [
 ];
 
 export const ownerLayout = {
-  gridColumns: 1
-}
+  gridColumns: 1,
+};
 
 export const ownerColumns: ColumnDef<Owner>[] = [
   {
@@ -36,11 +36,12 @@ export const ownerColumns: ColumnDef<Owner>[] = [
     minSize: 40,
     maxSize: 60,
   },
-  { accessorKey: "name", header: "Name" },
+  { accessorKey: "name", header: "Name", enableSorting: true },
   {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => formatReadableDate(getValue() as string | Date),
+    enableSorting: true,
   },
 ];
 

@@ -43,7 +43,10 @@ export class DriverService {
       this.logger.info(`Driver created: ${driver.id}`);
       return mapDriverToResponse(driver);
     } catch (error) {
-      handlePrismaError(error, 'Driver');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Driver');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -75,7 +78,10 @@ export class DriverService {
         total,
       };
     } catch (error) {
-      handlePrismaError(error, 'Driver');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Driver');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
   async findOne(id: string): Promise<DriverResponse> {
@@ -88,7 +94,10 @@ export class DriverService {
       }
       return mapDriverToResponse(driver);
     } catch (error) {
-      handlePrismaError(error, 'Driver');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Driver');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -113,7 +122,10 @@ export class DriverService {
       this.logger.info(`Driver updated: ${updated.id}`);
       return mapDriverToResponse(updated);
     } catch (error) {
-      handlePrismaError(error, 'Driver');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Driver');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 
@@ -143,7 +155,10 @@ export class DriverService {
       this.logger.info(`Driver deleted: ${id}`);
       return { success: true };
     } catch (error) {
-      handlePrismaError(error, 'Driver');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'Driver');
+      }
+      throw error; // Re-throw NestJS exceptions
     }
   }
 }

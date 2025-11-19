@@ -32,7 +32,7 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
     ref: Ref<HTMLInputElement>
   ) => {
     return (
-      <div className="flex flex-col w-full gap-1">
+      <div className="flex flex-col gap-1">
         {label && (
           <AppText
             as="label"

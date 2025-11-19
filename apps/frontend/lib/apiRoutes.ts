@@ -1,4 +1,5 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3333";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3333";
 const PREFIX = "api/v1";
 
 const API_URL = `${BASE_URL}/${PREFIX}`;
@@ -38,5 +39,17 @@ export const apiRoutes = {
     base: `${API_URL}/document-types`,
     list: `${API_URL}/document-types`,
     detail: (id: string) => `${API_URL}/document-types/${id}`,
+  },
+  vehicle_documents: {
+    base: `${API_URL}/vehicle-documents`,
+    list: `${API_URL}/vehicle-documents`,
+    detail: (id: string) => `${API_URL}/vehicle-documents/${id}`,
+  },
+  stats: {
+    overview: `${API_URL}/stats/overview`,
+    vehiclesGrouped: `${API_URL}/stats/vehicles/grouped`,
+    vehiclesCreatedTrend: `${API_URL}/stats/vehicles/created-trend`,
+    documentsExpiryDistribution: `${API_URL}/stats/documents/expiry-distribution`,
+    documentsExpiringSoon: `${API_URL}/stats/documents/expiring-soon`,
   },
 };

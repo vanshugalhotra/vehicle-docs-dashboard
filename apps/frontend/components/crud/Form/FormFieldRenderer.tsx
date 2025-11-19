@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Controller, Control, FieldErrors, FieldValues } from "react-hook-form";
+import {
+  Controller,
+  Control,
+  FieldErrors,
+  FieldValues,
+  useWatch,
+} from "react-hook-form";
 import { EntityField } from "./EntityFieldTypes";
 import { AppInput } from "../../ui/AppInput";
 import { AppTextArea } from "../../ui/AppTextArea";
@@ -31,6 +37,11 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
     </AppText>
   );
 
+  const dependsOnValue = useWatch({
+    control,
+    name: field.dependsOn as string,
+  });
+
   switch (field.type) {
     case "text":
     case "number":
@@ -47,9 +58,12 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 type={field.type}
                 placeholder={field.placeholder}
                 error={errorMessage}
+                disabled={field.disabled}
                 className="w-full"
                 aria-invalid={!!errorMessage}
-                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+                aria-describedby={
+                  errorMessage ? `${field.key}-error` : undefined
+                }
               />
             </div>
           )}
@@ -72,7 +86,9 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 error={errorMessage}
                 className="w-full"
                 aria-invalid={!!errorMessage}
-                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+                aria-describedby={
+                  errorMessage ? `${field.key}-error` : undefined
+                }
               />
               {errorMessage && (
                 <AppText size="caption" variant="error" className="mt-1">
@@ -90,8 +106,13 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
           name={field.key}
           control={control}
           render={({ field: f }) => {
-            const selectedOption = field.options?.find((o) => o.value === f.value);
-            const placeholderOption = { label: field.placeholder || "Select...", value: "" };
+            const selectedOption = field.options?.find(
+              (o) => o.value === f.value
+            );
+            const placeholderOption = {
+              label: field.placeholder || "Select...",
+              value: "",
+            };
             const displayOptions = field.placeholder
               ? [placeholderOption, ...(field.options ?? [])]
               : field.options ?? [];
@@ -102,11 +123,15 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 <AppSelect
                   options={displayOptions}
                   value={selectedOption || placeholderOption}
-                  onChange={(opt) => f.onChange(opt.value === "" ? undefined : opt.value)}
+                  onChange={(opt) =>
+                    f.onChange(opt.value === "" ? undefined : opt.value)
+                  }
                   label=""
                   error={errorMessage}
                   aria-invalid={!!errorMessage}
-                  aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+                  aria-describedby={
+                    errorMessage ? `${field.key}-error` : undefined
+                  }
                 />
                 {errorMessage && (
                   <AppText size="caption" variant="error" className="mt-1">
@@ -133,6 +158,17 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 onChange={f.onChange}
                 placeholder={field.placeholder}
                 error={errorMessage}
+                filterBy={
+                  field.dependsOn
+                    ? {
+                        key: field.filterKey!,
+                        value: dependsOnValue
+                          ? String(dependsOnValue)
+                          : undefined,
+                      }
+                    : undefined
+                }
+                disabled={Boolean(field.dependsOn && !dependsOnValue)}
               />
               {errorMessage && (
                 <AppText size="caption" variant="error" className="mt-1">
@@ -158,8 +194,11 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
                 label=""
                 placeholder={field.placeholder}
                 error={errorMessage}
+                className="w-full"
                 aria-invalid={!!errorMessage}
-                aria-describedby={errorMessage ? `${field.key}-error` : undefined}
+                aria-describedby={
+                  errorMessage ? `${field.key}-error` : undefined
+                }
               />
               {errorMessage && (
                 <AppText size="caption" variant="error" className="mt-1">

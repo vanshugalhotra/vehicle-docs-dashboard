@@ -10,6 +10,7 @@ import { CRUDPageLayout } from "@/components/crud/CRUDPageLayout";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Owner, ownerCrudConfig } from "@/configs/crud/owners.config";
+import { useEditFocus } from "@/hooks/useEditFocus";
 
 export default function OwnersPage() {
   const formCtrl = useFormStateController<Owner>("embedded");
@@ -36,6 +37,8 @@ export default function OwnersPage() {
     page,
     setPage,
     total,
+    sort,
+    setSort,
   } = useCRUDController<Owner>(ownerCrudConfig);
 
   const handleSubmit = async (values: Owner) => {
@@ -76,6 +79,13 @@ export default function OwnersPage() {
     }
   };
 
+  const { formRef, focusForm } = useEditFocus();
+  const handleEdit = (item: Owner) => {
+    formCtrl.openEdit(item);
+    toastUtils.info(`Editing Owner ${item.name}`);
+    focusForm();
+  };
+
   return (
     <CRUDPageLayout
       title="Owners"
@@ -87,17 +97,20 @@ export default function OwnersPage() {
       addLabel="Add Owner"
       form={
         formCtrl.isOpen && (
-          <FormEmbeddedPanel
-            key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
-            title={formCtrl.isEditing ? "Edit Owner" : "Add Owner"}
-            fields={ownerCrudConfig.fields}
-            schema={ownerCrudConfig.schema}
-            selectedRecord={formCtrl.selectedItem}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={isLoading}
-            layout={ownerCrudConfig.layout}
-          />
+          <div ref={formRef}>
+            <FormEmbeddedPanel
+              key={`${formKey}-${formCtrl.selectedItem?.id ?? "new"}`}
+              isEditMode={formCtrl.isEditing}
+              title={formCtrl.isEditing ? "Edit Owner" : "Add Owner"}
+              fields={ownerCrudConfig.fields}
+              schema={ownerCrudConfig.schema}
+              selectedRecord={formCtrl.selectedItem}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={isLoading}
+              layout={ownerCrudConfig.layout}
+            />
+          </div>
         )
       }
       table={
@@ -106,8 +119,10 @@ export default function OwnersPage() {
             columns={ownerCrudConfig.columns}
             data={owners}
             loading={isLoading}
-            onEdit={formCtrl.openEdit}
+            onEdit={handleEdit}
             onDelete={handleDelete}
+            sort={sort}
+            setSort={setSort}
           />
           <PaginationBar
             page={page}

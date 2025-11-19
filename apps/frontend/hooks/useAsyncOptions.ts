@@ -39,8 +39,10 @@ export function useAsyncOptions<T = unknown>({
   const queryParams = useMemo(() => {
     const qp = new URLSearchParams();
     if (debouncedSearch) qp.append("search", debouncedSearch);
-    if (filterBy?.key && filterBy?.value)
-      qp.append(filterBy.key, filterBy.value);
+    if (filterBy?.key && filterBy?.value) {
+      qp.append("filters", JSON.stringify({ [filterBy.key]: filterBy.value }));
+    }
+
     if (extraParams) {
       Object.entries(extraParams).forEach(([key, val]) =>
         qp.append(key, String(val))
