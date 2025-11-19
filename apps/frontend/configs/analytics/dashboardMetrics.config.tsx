@@ -1,4 +1,12 @@
-import { Truck, CheckCircle, FileWarning, AlertTriangle } from "lucide-react";
+import {
+  Truck,
+  CheckCircle,
+  FileWarning,
+  Clock,
+  Eye,
+  XCircle,
+  ShieldCheck,
+} from "lucide-react";
 import { OverviewStats } from "@/lib/types/stats.types";
 
 export interface DashboardMetricConfig<
@@ -15,33 +23,33 @@ export const dashboardMetricsConfig: DashboardMetricConfig[] = [
   {
     key: "totalVehicles",
     title: "Total Vehicles",
-    icon: <Truck className="w-5 h-5" />,
+    icon: <Truck className="w-5 h-5 text-gray-700" />,
   },
-
   {
-    key: "newVehicles",
-    title: "New Vehicles",
-    icon: <CheckCircle className="w-5 h-5 text-green-600" />,
-  },
-
-  {
-    key: "totalDocuments",
+    key: "totalLinkages",
     title: "Total Linkages",
-    icon: <CheckCircle className="w-5 h-5 text-blue-600" />,
+    icon: <ShieldCheck className="w-5 h-5 text-blue-600" />,
   },
-
   {
-    key: "documentsExpiringSoon",
+    key: "activeLinkages",
+    title: "Active Linkages",
+    icon: <Eye className="w-5 h-5 text-emerald-600" />,
+  },
+  {
+    key: "expiringSoon",
     title: "Expiring Soon",
-    icon: <AlertTriangle className="w-5 h-5 text-yellow-600" />,
+    icon: <Clock className="w-5 h-5 text-yellow-600" />,
   },
-
   {
-    key: "documentsExpired",
+    key: "expired",
     title: "Expired Documents",
     icon: <FileWarning className="w-5 h-5 text-red-600" />,
   },
-
+  {
+    key: "unassignedVehicles",
+    title: "Unassigned Vehicles",
+    icon: <XCircle className="w-5 h-5 text-orange-600" />,
+  },
   {
     key: "complianceRate",
     title: "Compliance Rate",

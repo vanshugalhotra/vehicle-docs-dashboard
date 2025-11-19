@@ -52,21 +52,12 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
 
           // Determine real trend based on metric key
           let trend;
-          if (cfg.key === "totalVehicles" || cfg.key === "newVehicles") {
+          if (cfg.key === "totalVehicles") {
             trend = calculateTrendFromApi(
               data?.vehicleCreatedTrend,
               trendPeriod
             );
-          } else if (
-            cfg.key === "documentsExpiringSoon" ||
-            cfg.key === "documentsExpired"
-          ) {
-            trend = calculateTrendFromApi(
-              data?.documentExpiryTrend,
-              trendPeriod
-            );
           }
-
           return (
             <MetricCard
               key={cfg.key}

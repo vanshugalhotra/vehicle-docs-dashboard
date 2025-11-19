@@ -157,39 +157,31 @@ export class StatsService {
   }
 
   async getOverview(query: OverviewQueryDto): Promise<OverviewResponseDto> {
-    const { startDate, endDate, expiringDays = 30 } = query;
-    const fallbackStart: Date = new Date(Date.now() - 30 * 86400000);
-    const start: Date = this.parseDate(startDate, fallbackStart);
-    const end: Date = this.parseDate(endDate, new Date());
+    const { expiringDays = 30 } = query;
+
     const now = new Date();
     const soon = new Date(now.getTime() + expiringDays * 86400000);
 
     const vehicleFilter = this.buildVehicleFilter(query);
     const documentFilter = this.buildDocumentFilter(vehicleFilter);
 
-    // PARALLEL QUERIES
+    // VEHICLES WITH NO DOCUMENTS
+    const unassignedVehiclesPromise = this.prisma.vehicle.count({
+      where: {
+        ...vehicleFilter,
+        documents: { none: {} },
+      },
+    });
+
     const [
       totalVehicles,
-      vehiclesByCategoryRaw,
-      vehiclesByLocationRaw,
-      newVehicles,
-      totalDocuments,
-      documentsExpiringSoon,
-      documentsExpired,
-      documentsByTypeRaw,
-      expiryDistribution,
-      activitySummary,
+      totalLinkages,
+      expiringSoon,
+      expired,
       vehicleCreatedTrend,
-      documentExpiryTrend,
+      unassignedVehicles,
     ] = await Promise.all([
       this.prisma.vehicle.count({ where: vehicleFilter }),
-
-      this.getCountsByField('categoryId', vehicleFilter),
-      this.getCountsByField('locationId', vehicleFilter),
-
-      this.prisma.vehicle.count({
-        where: { createdAt: { gte: start, lte: end }, ...vehicleFilter },
-      }),
 
       this.prisma.vehicleDocument.count({ where: documentFilter }),
 
@@ -201,52 +193,26 @@ export class StatsService {
         where: { ...documentFilter, expiryDate: { lt: now } },
       }),
 
-      this.prisma.vehicleDocument.groupBy({
-        by: ['documentTypeId'],
-        where: documentFilter,
-        _count: { id: true },
-      }),
-
-      this.computeExpiryDistribution(documentFilter),
-      this.getActivitySummary(),
       this.computeVehicleCreatedTrend(),
-      this.computeDocumentExpiryTrend(),
+      unassignedVehiclesPromise,
     ]);
 
-    const recentActivityCount =
-      activitySummary.created +
-      activitySummary.updated +
-      activitySummary.deleted;
+    const activeLinkages = totalLinkages - expired;
 
     const complianceRate =
-      totalDocuments === 0
+      totalLinkages === 0
         ? 100
-        : Math.round(
-            ((totalDocuments - documentsExpired) / totalDocuments) * 100 * 100,
-          ) / 100;
+        : Math.round((activeLinkages / totalLinkages) * 100 * 100) / 100;
 
     return {
       totalVehicles,
-      vehiclesByCategory: this.mapToVehicleCountByCategory(
-        vehiclesByCategoryRaw,
-      ),
-      vehiclesByLocation: this.mapToVehicleCountByLocation(
-        vehiclesByLocationRaw,
-      ),
-      newVehicles,
-      totalDocuments,
-      documentsExpiringSoon,
-      documentsExpired,
-      documentsByType: documentsByTypeRaw.map((d) => ({
-        documentTypeId: d.documentTypeId,
-        count: d._count.id,
-      })),
+      totalLinkages,
+      activeLinkages,
+      expiringSoon,
+      expired,
+      unassignedVehicles,
       complianceRate,
-      expiryDistribution,
-      recentActivityCount,
-      activitySummary,
       vehicleCreatedTrend,
-      documentExpiryTrend,
     };
   }
 

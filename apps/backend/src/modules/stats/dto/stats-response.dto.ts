@@ -43,36 +43,20 @@ export class ActivitySummaryDto {
 export class OverviewResponseDto {
   @ApiProperty() totalVehicles!: number;
 
-  @ApiProperty({ type: [VehicleCountByCategory] })
-  vehiclesByCategory!: VehicleCountByCategory[];
+  @ApiProperty() totalLinkages!: number;
 
-  @ApiProperty({ type: [VehicleCountByLocation] })
-  vehiclesByLocation!: VehicleCountByLocation[];
+  @ApiProperty() activeLinkages!: number;
 
-  @ApiProperty() newVehicles!: number;
+  @ApiProperty() expiringSoon!: number;
 
-  @ApiProperty() totalDocuments!: number;
-  @ApiProperty() documentsExpiringSoon!: number;
-  @ApiProperty() documentsExpired!: number;
+  @ApiProperty() expired!: number;
 
-  @ApiProperty({ type: [DocumentCountByType] })
-  documentsByType!: DocumentCountByType[];
+  @ApiProperty() unassignedVehicles!: number;
 
   @ApiProperty() complianceRate!: number;
 
-  @ApiProperty({ type: [BucketCount] })
-  expiryDistribution!: BucketCount[];
-
-  @ApiProperty() recentActivityCount!: number;
-
-  @ApiProperty({ type: ActivitySummaryDto })
-  activitySummary!: ActivitySummaryDto;
-
   @ApiProperty({ type: [TrendRowDto] })
   vehicleCreatedTrend!: TrendRowDto[];
-
-  @ApiProperty({ type: [TrendRowDto] })
-  documentExpiryTrend!: TrendRowDto[];
 }
 
 export class TimeSeriesResponseDto {

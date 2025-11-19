@@ -37,45 +37,16 @@ export interface BucketPoint {
 
 export interface OverviewStats {
   totalVehicles: number;
+  totalLinkages: number;
+  activeLinkages: number;
+  expiringSoon: number;
+  expired: number;
+  unassignedVehicles: number;
+  complianceRate: number;
 
-  vehiclesByCategory: Array<{
-    count: number;
-    label: string;
-    categoryId: string;
-  }>;
-
-  vehiclesByLocation: Array<{
-    count: number;
-    label: string;
-    locationId: string;
-  }>;
-
-  newVehicles: number;
-
-  totalDocuments: number;
-  documentsExpiringSoon: number;
-  documentsExpired: number;
-
-  documentsByType: Array<{
-    documentTypeId: string;
-    count: number;
-    label?: string;
-  }>;
-
-  complianceRate?: number;
-
-  expiryDistribution: BucketPoint[];
-
-  recentActivityCount?: number;
-  activitySummary?: {
-    created?: number;
-    updated?: number;
-    deleted?: number;
-  };
-
-  vehicleCreatedTrend?: Array<{ date: string; count: number }>;
-  documentExpiryTrend?: Array<{ date: string; count: number }>;
+  vehicleCreatedTrend: Array<{ date: string; count: number }>;
 }
+
 
 /* ----------------------------------------------------
  * Expiring Documents Detailed Item
