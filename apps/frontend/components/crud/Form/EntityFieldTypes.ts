@@ -18,6 +18,8 @@ export interface EntityField {
   options?: { label: string; value: string }[];
   placeholder?: string;
   inlineConfig?: InlineDropdownCreateConfig;
+  dependsOn?: string; // the key of the parent field to watch
+  filterKey?: string; // the query param to filter by (passed to AppAsyncSelect)
 }
 export interface FormLayoutConfig {
   gridColumns?: number;

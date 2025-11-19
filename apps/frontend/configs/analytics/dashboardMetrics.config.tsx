@@ -42,7 +42,7 @@ export const dashboardMetricsConfig: DashboardMetricConfig[] = [
   },
   {
     key: "expired",
-    title: "Expired Documents",
+    title: "Expired Linkages",
     icon: <FileWarning className="w-5 h-5 text-red-600" />,
   },
   {

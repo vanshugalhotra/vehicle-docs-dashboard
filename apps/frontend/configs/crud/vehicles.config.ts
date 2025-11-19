@@ -76,6 +76,8 @@ export const vehicleFields = [
     endpoint: apiRoutes.vehicle_types.base,
     labelField: "name",
     valueField: "id",
+    dependsOn: "categoryId",
+    filterKey: "categoryId",
     inlineConfig: {
       title: "Add Vehicle Type",
       endpoint: apiRoutes.vehicle_types.base,
@@ -190,9 +192,9 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
     size: 40,
   },
   { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
-  { accessorKey: "licensePlate", header: "License Plate"},
+  { accessorKey: "licensePlate", header: "License Plate" },
   { accessorKey: "typeName", header: "Type" },
-  { accessorKey: "categoryName", header: "Category"},
+  { accessorKey: "categoryName", header: "Category" },
   { accessorKey: "driverName", header: "Driver" },
   { accessorKey: "ownerName", header: "Owner" },
   { accessorKey: "locationName", header: "Location" },
@@ -252,13 +254,13 @@ export const vehicleFiltersConfig: FilterConfig[] = [
         label: item.name,
         value: String(item.id),
       })),
-  }
+  },
 ];
 // =====================
 // 🔹 Sort Options
 // =====================
 export const vehicleSortOptions: SortOption[] = [
-  { field: "createdAt", label: "Created Date"},
+  { field: "createdAt", label: "Created Date" },
   { field: "updatedAt", label: "Modified Date", default: true },
 ];
 

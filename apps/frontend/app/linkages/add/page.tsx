@@ -222,6 +222,9 @@ export default function LinkagePage() {
                 selectedDocumentType?.name ||
                 formCtrl.selectedItem?.documentTypeName ||
                 "—",
+              startDate: formCtrl.isEditing
+                ? formCtrl.selectedItem?.startDate
+                : new Date(),
             }}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
