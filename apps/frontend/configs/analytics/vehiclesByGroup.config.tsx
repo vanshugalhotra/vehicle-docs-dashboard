@@ -96,11 +96,6 @@ const renderTop3Cards = (
           title={item.label}
           value={item.count}
           icon={icon}
-          trend={{
-            rate: index === 0 ? 12.5 : index === 1 ? 8.2 : -2.1,
-            label:
-              index === 0 ? "from last month" : index === 1 ? "YoY" : "today",
-          }}
           variant={index === 0 ? "gradient" : variant}
           loading={false}
         />

@@ -221,7 +221,9 @@ export class StatsService {
     const complianceRate =
       totalDocuments === 0
         ? 100
-        : ((totalDocuments - documentsExpired) / totalDocuments) * 100;
+        : Math.round(
+            ((totalDocuments - documentsExpired) / totalDocuments) * 100 * 100,
+          ) / 100;
 
     return {
       totalVehicles,

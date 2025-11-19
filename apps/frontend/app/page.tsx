@@ -20,26 +20,40 @@ export default function HomePage() {
   } = useStatsController("overview");
 
   // Fetch grouped vehicles data separately per groupBy
-  const categoryStats = useStatsController("vehicles-grouped", { groupBy: "category" });
-  const locationStats = useStatsController("vehicles-grouped", { groupBy: "location" });
-  const ownerStats = useStatsController("vehicles-grouped", { groupBy: "owner" });
-  const driverStats = useStatsController("vehicles-grouped", { groupBy: "driver" });
+  const categoryStats = useStatsController("vehicles-grouped", {
+    groupBy: "category",
+  });
+  const locationStats = useStatsController("vehicles-grouped", {
+    groupBy: "location",
+  });
+  const ownerStats = useStatsController("vehicles-grouped", {
+    groupBy: "owner",
+  });
+  const driverStats = useStatsController("vehicles-grouped", {
+    groupBy: "driver",
+  });
 
   // Combine them for the tabs
-  const groupedDataByKey: Record<VehiclesGroupBy, GroupedPoint[]> = useMemo(() => ({
-    category: categoryStats.data || [],
-    location: locationStats.data || [],
-    owner: ownerStats.data || [],
-    driver: driverStats.data || [],
-  }), [
-    categoryStats.data,
-    locationStats.data,
-    ownerStats.data,
-    driverStats.data,
-  ]);
+  const groupedDataByKey: Record<VehiclesGroupBy, GroupedPoint[]> = useMemo(
+    () => ({
+      category: categoryStats.data || [],
+      location: locationStats.data || [],
+      owner: ownerStats.data || [],
+      driver: driverStats.data || [],
+    }),
+    [categoryStats.data, locationStats.data, ownerStats.data, driverStats.data]
+  );
 
-  const isGroupedLoading = categoryStats.isLoading || locationStats.isLoading || ownerStats.isLoading || driverStats.isLoading;
-  const groupedError = categoryStats.error || locationStats.error || ownerStats.error || driverStats.error;
+  const isGroupedLoading =
+    categoryStats.isLoading ||
+    locationStats.isLoading ||
+    ownerStats.isLoading ||
+    driverStats.isLoading;
+  const groupedError =
+    categoryStats.error ||
+    locationStats.error ||
+    ownerStats.error ||
+    driverStats.error;
 
   const now = new Date();
   const formattedDate = now.toLocaleDateString("en-US", {
@@ -65,7 +79,7 @@ export default function HomePage() {
       />
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-0 py-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-0 py-6 space-y-4">
         {/* ERROR BLOCK */}
         {(overviewError || groupedError) && (
           <div className="flex items-start gap-3 p-4 bg-danger-light border border-danger/30 rounded-xl shadow-sm">
@@ -89,10 +103,17 @@ export default function HomePage() {
         )}
 
         {/* KEY METRICS */}
-        <KeyMetricsSection data={overviewData} isLoading={isOverviewLoading} />
+        <KeyMetricsSection
+          data={overviewData}
+          isLoading={isOverviewLoading}
+          trendPeriod="day"
+        />
 
         {/* VEHICLES BY GROUP */}
-        <VehiclesByGroupSection data={groupedDataByKey} isLoading={isGroupedLoading} />
+        <VehiclesByGroupSection
+          data={groupedDataByKey}
+          isLoading={isGroupedLoading}
+        />
       </div>
     </div>
   );

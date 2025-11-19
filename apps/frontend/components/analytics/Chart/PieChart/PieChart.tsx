@@ -60,33 +60,52 @@ export const PieChart = <T extends Record<string, string | number>>({
   animate = true,
   hoverEffect = true,
   innerRadius = 60,
-
   customTooltip,
 }: PieChartProps<T>) => {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
-  // Unified tooltip renderer (same style as Line & Bar)
   const tooltipContent = React.useCallback(
-    (props: RechartsTooltipProps<number, string>) =>
-      customTooltip ? (
-        customTooltip(props as TooltipProps)
+    (props: RechartsTooltipProps<number, string>) => {
+      const p = props as TooltipProps;
+      if (!p.active || !p.payload || !p.payload.length) return null;
+
+      const total = data.reduce(
+        (sum, entry) => sum + Number(entry[valueKey]),
+        0
+      );
+      const item = p.payload[0];
+      const value = Number(item.value);
+      const percent = total ? ((value / total) * 100).toFixed(1) : "0";
+
+      // Create updated payload with percentage value
+      const updatedProps = {
+        ...p,
+        payload: [
+          {
+            ...item,
+            value: `${percent}%`,
+            payload: item.payload,
+            dataKey: item.dataKey,
+          },
+        ],
+      };
+
+      return customTooltip ? (
+        customTooltip(updatedProps)
       ) : (
-        <DefaultTooltip {...(props as TooltipProps)} />
-      ),
-    [customTooltip]
+        <DefaultTooltip {...updatedProps} />
+      );
+    },
+    [data, valueKey, customTooltip]
   );
 
-  const hoverOpacity =
-    chartTheme.pie?.hoverOpacity ?? 0.6;
+  const hoverOpacity = chartTheme.pie?.hoverOpacity ?? 0.6;
 
-  const transition =
-    chartTheme.pie?.transition ?? "opacity 0.25s ease";
+  const transition = chartTheme.pie?.transition ?? "opacity 0.25s ease";
 
-  const legendIconSize =
-    chartTheme.pie?.legend?.iconSize ?? 10;
+  const legendIconSize = chartTheme.pie?.legend?.iconSize ?? 10;
 
-  const legendPadding =
-    chartTheme.pie?.legend?.topPadding ?? 12;
+  const legendPadding = chartTheme.pie?.legend?.topPadding ?? 12;
 
   return (
     <ChartContainer
@@ -141,12 +160,20 @@ export const PieChart = <T extends Record<string, string | number>>({
             paddingAngle={2}
             cornerRadius={8}
             animationDuration={animate ? 900 : 0}
+            label={({ value }) => {
+              const total = data.reduce(
+                (sum, entry) => sum + Number(entry[valueKey]),
+                0
+              );
+              const percent = total
+                ? ((Number(value) / total) * 100).toFixed(0)
+                : "0";
+              return `${percent}%`;
+            }}
           >
             {data.map((_, index) => {
               const color = colors[index % colors.length];
-              const fill = gradient
-                ? `url(#pieGradient-${index})`
-                : color;
+              const fill = gradient ? `url(#pieGradient-${index})` : color;
 
               return (
                 <Cell

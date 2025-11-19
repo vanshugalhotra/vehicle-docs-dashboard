@@ -8,15 +8,18 @@ import { AppText } from "@/components/ui/AppText";
 import { TrendingUp } from "lucide-react";
 import { dashboardMetricsConfig } from "@/configs/analytics/dashboardMetrics.config";
 import { OverviewStats } from "@/lib/types/stats.types";
+import { calculateTrendFromApi, TrendPeriod } from "@/lib/utils/calculateTrend";
 
 interface KeyMetricsSectionProps {
   data?: OverviewStats;
   isLoading?: boolean;
+  trendPeriod?: TrendPeriod; // day | week | month
 }
 
 export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
   data,
   isLoading = false,
+  trendPeriod = "week",
 }) => {
   return (
     <StatsSection
@@ -38,14 +41,31 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
 
           if (cfg.formatter && rawValue !== undefined) {
             value = cfg.formatter(rawValue);
-          } else if (typeof rawValue === "number" || typeof rawValue === "string") {
+          } else if (
+            typeof rawValue === "number" ||
+            typeof rawValue === "string"
+          ) {
             value = rawValue;
           } else if (Array.isArray(rawValue)) {
             value = rawValue.length;
           }
 
-          const mockTrend =
-            Math.random() > 0.5 ? { rate: 12, label: "vs last month" } : { rate: -5, label: "vs last week" };
+          // Determine real trend based on metric key
+          let trend;
+          if (cfg.key === "totalVehicles" || cfg.key === "newVehicles") {
+            trend = calculateTrendFromApi(
+              data?.vehicleCreatedTrend,
+              trendPeriod
+            );
+          } else if (
+            cfg.key === "documentsExpiringSoon" ||
+            cfg.key === "documentsExpired"
+          ) {
+            trend = calculateTrendFromApi(
+              data?.documentExpiryTrend,
+              trendPeriod
+            );
+          }
 
           return (
             <MetricCard
@@ -55,7 +75,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
               loading={isLoading}
               icon={cfg.icon}
               variant={cfg.variant ?? "default"}
-              trend={mockTrend}
+              trend={trend}
             />
           );
         })}

@@ -26,7 +26,7 @@ export const dashboardMetricsConfig: DashboardMetricConfig[] = [
 
   {
     key: "totalDocuments",
-    title: "Total Documents",
+    title: "Total Linkages",
     icon: <CheckCircle className="w-5 h-5 text-blue-600" />,
   },
 
