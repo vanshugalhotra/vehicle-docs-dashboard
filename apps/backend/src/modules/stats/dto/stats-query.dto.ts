@@ -149,15 +149,3 @@ export class ExpiryDistributionQueryDto {
   @Min(1)
   maxBucket?: number;
 }
-
-export class ExpiringSoonQueryDto {
-  @ApiProperty({
-    description: 'Number of days ahead to check for expiring documents',
-    required: false,
-    default: 30,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  withinDays?: number;
-}
