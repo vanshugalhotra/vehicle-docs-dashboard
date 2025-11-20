@@ -18,6 +18,11 @@ export interface VehicleDocumentResponse {
   documentType?: DocumentTypeResponse;
 }
 
-export const DOCUMENT_ALLOWED_BUSINESS_FILTERS = {
-  status: ['expired', 'active', 'expiringSoon'],
+export const LINKAGE_ALLOWED_BUSINESS_FILTERS = {
+  status: [
+    'expired',
+    'active',
+    'expiringSoon',
+    // indicate object form is allowed — handled in parser
+  ] as const,
 } as const;

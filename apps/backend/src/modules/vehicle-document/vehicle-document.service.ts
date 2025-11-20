@@ -10,9 +10,12 @@ import {
 } from './dto/vehicle-document-response.dto';
 import { mapVehicleDocumentToResponse } from './vehicle-document.mapper';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
-import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { Prisma } from '@prisma/client';
 import { VehicleDocumentValidationService } from './validation/vehicle-document-validation.service';
+import { parseBusinessFilters } from 'src/common/business-filters/parser';
+import { createLinkageBusinessEngine } from './business-resolver/business-engine.factory';
+import { LINKAGE_ALLOWED_BUSINESS_FILTERS } from 'src/common/types';
+import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
 
 @Injectable()
 export class VehicleDocumentService {
@@ -73,7 +76,7 @@ export class VehicleDocumentService {
   // FIND ALL
   // -----------------------
   async findAll(
-    query: QueryOptionsDto,
+    query: QueryWithBusinessDto,
   ): Promise<PaginatedVehicleDocumentResponseDto> {
     this.logger.info(
       `Fetching vehicle documents (skip=${query.skip ?? 0}, take=${query.take ?? 20}, search=${query.search ?? ''})`,
@@ -105,6 +108,17 @@ export class VehicleDocumentService {
         }),
       };
 
+      // -------------------------------------------
+      // 1) Parse business filters
+      // -------------------------------------------
+      const parsedBusinessFilters = parseBusinessFilters(
+        query.businessFilters,
+        LINKAGE_ALLOWED_BUSINESS_FILTERS,
+      );
+
+      // 2) Create engine for vehicle documents
+      const engine = createLinkageBusinessEngine();
+
       const [docs, total] = await Promise.all([
         this.prisma.vehicleDocument.findMany({
           where: extendedWhere,
@@ -117,9 +131,18 @@ export class VehicleDocumentService {
       ]);
 
       this.logger.info(`Fetched ${docs.length} of ${total} vehicle documents`);
+
+      // ---------------------------------------------------------------------
+      // 3) Map → Business filters → Return
+      // ---------------------------------------------------------------------
+      const dtoList = docs.map(mapVehicleDocumentToResponse);
+
+      // Apply business filter resolvers (e.g., status with withinDays)
+      const finalList = engine.apply(dtoList, parsedBusinessFilters);
+
       return {
-        items: docs.map(mapVehicleDocumentToResponse),
-        total,
+        items: finalList,
+        total: finalList.length,
       };
     } catch (error) {
       // Only handle Prisma errors, let NestJS exceptions pass through

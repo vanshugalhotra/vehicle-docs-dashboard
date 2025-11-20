@@ -19,7 +19,7 @@ import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { VehicleValidationService } from './validation/vehicle-validation.service';
 import { generateVehicleName } from 'src/common/utils/vehicleUtils';
 import { parseBusinessFilters } from 'src/common/business-filters/parser';
-import { createVehicleBusinessEngine } from './business-resolvers/business-engine.factor';
+import { createVehicleBusinessEngine } from './business-resolvers/business-engine.factory';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
 
 @Injectable()
