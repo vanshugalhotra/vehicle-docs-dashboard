@@ -146,60 +146,106 @@ describe('VehicleTypeService', () => {
     const updateDto = { name: 'SUV' };
 
     it('should update vehicle type successfully', async () => {
-      // NOTE: validateUpdate mock (in beforeEach) handles existence and uniqueness.
-      // Remove prisma.vehicleType.findUnique/findFirst mocks.
+      // Mock validation service
+      mockVehicleTypeValidationService.validateUpdate.mockResolvedValueOnce({
+        vehicleType: {
+          ...mockVehicleType,
+          id: '1',
+          name: 'Sedan',
+          categoryId: 'cat1',
+        },
+      } as any);
+
+      // Mock vehicle type update
       prisma.vehicleType.update.mockResolvedValue({
-        ...mockVehicleType,
         id: '1',
         name: 'SUV',
+        categoryId: 'cat1',
+        category: { name: 'Truck' }, // needed by generateVehicleName
       });
+
+      // Mock vehicles of this type for name regeneration
+      prisma.vehicle.findMany.mockResolvedValue([
+        {
+          id: 'v1',
+          licensePlate: 'ABC123',
+          category: { name: 'Truck' },
+        },
+        {
+          id: 'v2',
+          licensePlate: 'XYZ789',
+          category: { name: 'Truck' },
+        },
+      ]);
+
+      // Mock vehicle updates
+      prisma.vehicle.update.mockImplementation(
+        async ({
+          where,
+          data,
+        }: {
+          where: { id: string };
+          data: { name: string };
+        }) => Promise.resolve({ id: where.id, name: data.name }),
+      );
 
       const result = await service.update('1', updateDto);
 
+      // Validation service called correctly
       expect(
         mockVehicleTypeValidationService.validateUpdate,
-      ).toHaveBeenCalledWith(
-        '1',
-        updateDto.name,
-        undefined, // categoryId is undefined in DTO
-      );
+      ).toHaveBeenCalledWith('1', updateDto.name, undefined);
+
+      // VehicleType updated with include.category
+      expect(prisma.vehicleType.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: { name: updateDto.name, categoryId: 'cat1' },
+        include: { category: true },
+      });
+
+      // Vehicles fetched for name regeneration
+      expect(prisma.vehicle.findMany).toHaveBeenCalledWith({
+        where: { typeId: '1' },
+        include: { category: true },
+      });
+
+      // All vehicles updated
+      expect(prisma.vehicle.update).toHaveBeenCalledTimes(2);
+
       expect(result.name).toBe('SUV');
     });
 
     it('should throw ConflictException if duplicate name exists', async () => {
-      // ⚠️ FIX: Mock the validation service to throw ConflictException
       mockVehicleTypeValidationService.validateUpdate.mockRejectedValueOnce(
         new ConflictException(
           'Vehicle type "SUV" already exists under this category',
         ),
       );
-      // Remove prisma.vehicleType.findUnique/findFirst mocks
 
       await expect(service.update('1', updateDto)).rejects.toThrow(
         ConflictException,
       );
+
       expect(
         mockVehicleTypeValidationService.validateUpdate,
       ).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if vehicle type not found', async () => {
-      // ⚠️ FIX: Mock the validation service to throw NotFoundException
       mockVehicleTypeValidationService.validateUpdate.mockRejectedValueOnce(
         new NotFoundException('Vehicle type with id "404" not found'),
       );
-      // Remove prisma.vehicleType.findUnique mock
 
       await expect(service.update('404', updateDto)).rejects.toThrow(
         NotFoundException,
       );
+
       expect(
         mockVehicleTypeValidationService.validateUpdate,
       ).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if new category not found', async () => {
-      // ⚠️ FIX: Mock the validation service to throw NotFoundException
       mockVehicleTypeValidationService.validateUpdate.mockRejectedValueOnce(
         new NotFoundException('Vehicle category with id "catX" not found'),
       );
@@ -207,6 +253,7 @@ describe('VehicleTypeService', () => {
       await expect(service.update('1', { categoryId: 'catX' })).rejects.toThrow(
         NotFoundException,
       );
+
       expect(
         mockVehicleTypeValidationService.validateUpdate,
       ).toHaveBeenCalled();

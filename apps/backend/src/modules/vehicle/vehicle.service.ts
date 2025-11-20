@@ -15,6 +15,7 @@ import { PaginatedVehicleResponseDto } from './dto/vehicle-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { VehicleValidationService } from './validation/vehicle-validation.service';
+import { generateVehicleName } from 'src/common/utils/vehicleUtils';
 
 @Injectable()
 export class VehicleService {
@@ -54,8 +55,12 @@ export class VehicleService {
         where: { id: dto.typeId },
       });
 
-      // Generate name: "Category (Type) - LicensePlate"
-      const vehicleName = `${category!.name} (${type!.name}) - ${normalized.licensePlate}`;
+      // Generate name
+      const vehicleName = generateVehicleName(
+        category!.name,
+        type!.name,
+        normalized.licensePlate,
+      );
 
       const vehicle = await this.prisma.vehicle.create({
         data: {
@@ -238,7 +243,11 @@ export class VehicleService {
             where: { id: dto.typeId ?? vehicle.typeId },
           }));
 
-        updatedData.name = `${finalCategory!.name} (${finalType!.name}) - ${finalLicensePlate}`;
+        updatedData.name = generateVehicleName(
+          finalCategory!.name,
+          finalType!.name,
+          finalLicensePlate,
+        );
       }
       const updated = await this.prisma.vehicle.update({
         where: { id },
