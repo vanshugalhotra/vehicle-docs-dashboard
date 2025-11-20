@@ -67,6 +67,9 @@ export class VehicleResponseDto {
 
   @ApiProperty({ example: 'Main Garage', required: false })
   locationName?: string | null;
+
+  @ApiProperty({ type: [String], required: false })
+  documents?: string[];
 }
 
 export class PaginatedVehicleResponseDto {

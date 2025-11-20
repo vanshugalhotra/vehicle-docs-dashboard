@@ -99,15 +99,20 @@ export class VehicleService {
         ['licensePlate', 'name', 'rcNumber', 'chassisNumber', 'engineNumber'], // handled automatically
       );
 
-    const include = query.includeRelations
-      ? {
-          category: true,
-          type: true,
-          owner: true,
-          driver: true,
-          location: true,
-        }
-      : undefined;
+    const include: Prisma.VehicleInclude = {
+      category: true,
+      type: true,
+      owner: true,
+      driver: true,
+      location: true,
+      ...(query.includeRelations && {
+        documents: {
+          select: {
+            id: true,
+          },
+        },
+      }),
+    };
 
     const search = query.search;
 
