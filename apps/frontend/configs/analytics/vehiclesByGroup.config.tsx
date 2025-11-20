@@ -38,33 +38,34 @@ const defaultPieProps = {
 /* -----------------------------------------------------
  * CENTRALIZED PALETTES & ICONS
  * ----------------------------------------------------*/
+const variant: "default" | "linear" | "minimal" = "default";
 const groupConfig = {
   category: {
     barColor: "#10b981", // Primary green for bar
     colors: ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"], // Green, Blue, Orange, Red - high contrast for categories
     icon: <Car />,
-    metricVariant: "default" as const,
+    metricVariant: variant,
     label: "Category",
   },
   location: {
     barColor: "#3b82f6", // Primary blue for bar
     colors: ["#3b82f6", "#8b5cf6", "#ec4899", "#f97316"], // Blue, Purple, Pink, Orange - varied for locations
     icon: <MapPin />,
-    metricVariant: "gradient" as const,
+    metricVariant: variant,
     label: "Location",
   },
   owner: {
     barColor: "#8b5cf6", // Primary purple for bar
     colors: ["#8b5cf6", "#06b6d4", "#10b981", "#84cc16"], // Purple, Cyan, Green, Lime - cool/warm mix for owners
     icon: <User />,
-    metricVariant: "minimal" as const,
+    metricVariant: variant,
     label: "Owner",
   },
   driver: {
     barColor: "#ef4444", // Primary red for bar
     colors: ["#ef4444", "#f59e0b", "#eab308", "#d97706"], // Red, Orange, Yellow, Amber - warm spectrum for drivers
     icon: <UserCheck />,
-    metricVariant: "default" as const,
+    metricVariant: variant,
     label: "Driver",
   },
 };
@@ -75,7 +76,7 @@ const groupConfig = {
 const renderTop3Cards = (
   data: GroupedPoint[],
   icon: React.ReactNode,
-  variant: "default" | "gradient" | "minimal",
+  variant: "default" | "linear" | "minimal",
   groupLabel?: string
 ) => {
   const top3 = data.sort((a, b) => b.count - a.count).slice(0, 3);
@@ -96,7 +97,7 @@ const renderTop3Cards = (
           title={item.label}
           value={item.count}
           icon={icon}
-          variant={index === 0 ? "gradient" : variant}
+          variant={index === 0 ? "linear" : variant}
           loading={false}
         />
       ))}

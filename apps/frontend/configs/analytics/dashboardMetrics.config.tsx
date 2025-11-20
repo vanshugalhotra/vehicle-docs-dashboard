@@ -16,44 +16,54 @@ export interface DashboardMetricConfig<
   title: string;
   icon: React.ReactNode;
   formatter?: (value: OverviewStats[K]) => string | number;
-  variant?: "default" | "gradient" | "minimal";
+  variant?: "default" | "linear" | "minimal";
 }
+
+const iconSize = 22;
+const variant = "linear";
 
 export const dashboardMetricsConfig: DashboardMetricConfig[] = [
   {
     key: "totalVehicles",
     title: "Total Vehicles",
-    icon: <Truck className="w-5 h-5 text-gray-700" />,
+    icon: <Truck className="text-gray-700" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "totalLinkages",
     title: "Total Linkages",
-    icon: <ShieldCheck className="w-5 h-5 text-blue-600" />,
+    icon: <ShieldCheck className="text-blue-600" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "activeLinkages",
     title: "Active Linkages",
-    icon: <Eye className="w-5 h-5 text-emerald-600" />,
+    icon: <Eye className="text-emerald-600" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "expiringSoon",
     title: "Expiring Soon",
-    icon: <Clock className="w-5 h-5 text-yellow-600" />,
+    icon: <Clock className="text-yellow-600" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "expired",
     title: "Expired Linkages",
-    icon: <FileWarning className="w-5 h-5 text-red-600" />,
+    icon: <FileWarning className="text-red-600" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "unassignedVehicles",
     title: "Unassigned Vehicles",
-    icon: <XCircle className="w-5 h-5 text-orange-600" />,
+    icon: <XCircle className="text-orange-600" size={iconSize} />,
+    variant: variant,
   },
   {
     key: "complianceRate",
     title: "Compliance Rate",
-    icon: <CheckCircle className="w-5 h-5 text-emerald-600" />,
+    icon: <CheckCircle className="text-emerald-600" size={iconSize} />,
     formatter: (v) => `${v}%`,
+    variant: variant,
   },
 ];

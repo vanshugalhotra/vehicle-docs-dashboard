@@ -110,7 +110,6 @@ export const linkageColumns: ColumnDef<LinkageEntity>[] = [
   {
     accessorKey: "vehicleName",
     header: "Vehicle",
-    enableSorting: true,
     minSize: 250,
     maxSize: 350,
   },
