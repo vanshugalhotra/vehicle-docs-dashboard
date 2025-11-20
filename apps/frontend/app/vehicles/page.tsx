@@ -40,6 +40,9 @@ export default function VehiclesPage() {
       filtersConfig={vehicleCrudConfig.filters}
       filters={controller.filters}
       onFiltersChange={controller.setFilters}
+      businessFiltersConfig={vehicleCrudConfig.businessFilters}
+      businessFilters={controller.businessFilters}
+      onBusinessFiltersChange={controller.setBusinessFilters}
       sortOptions={vehicleCrudConfig.sortOptions}
       sort={controller.sort}
       onSortChange={controller.setSort}

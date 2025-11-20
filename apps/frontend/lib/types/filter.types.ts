@@ -4,7 +4,7 @@ import { Option } from "@/components/ui/AppSelect";
 
 export interface FilterOption {
   label: string;
-  value: string;
+  value: string | boolean;
 }
 
 export type FilterControlType = "text" | "select" | "async-select" | "dateRange";

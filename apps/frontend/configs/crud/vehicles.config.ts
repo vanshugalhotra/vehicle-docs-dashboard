@@ -264,6 +264,19 @@ export const vehicleSortOptions: SortOption[] = [
   { field: "updatedAt", label: "Modified Date", default: true },
 ];
 
+export const vehicleBusinessFiltersConfig: FilterConfig[] = [
+  {
+    key: "unassigned",
+    label: "Assignment Status",
+    type: "select",
+    options: [
+      { label: "All", value: "" },
+      { label: "Assigned", value: false },
+      { label: "Unassigned", value: true },
+    ],
+  },
+];
+
 // =====================
 // 🔹 CRUD Config
 // =====================
@@ -279,4 +292,5 @@ export const vehicleCrudConfig = {
   layout: vehicleLayout,
   filters: vehicleFiltersConfig,
   sortOptions: vehicleSortOptions,
+  businessFilters: vehicleBusinessFiltersConfig,
 };

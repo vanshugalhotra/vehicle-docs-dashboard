@@ -12,6 +12,7 @@ export interface CRUDControllerConfigBase {
   queryKey: string;
   defaultPageSize?: number;
   defaultFilters?: FiltersObject;
+  defaultBusinessFilters?: FiltersObject;
 }
 
 export function useCRUDController<
@@ -23,6 +24,10 @@ export function useCRUDController<
   const [filters, setFilters] = useState<FiltersObject>(
     config.defaultFilters ?? {}
   );
+  const [businessFilters, setBusinessFilters] = useState<FiltersObject>(
+    config.defaultBusinessFilters ?? {}
+  );
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(config.defaultPageSize ?? 5);
   const [sort, setSort] = useState<{ field?: string; order?: "asc" | "desc" }>(
@@ -33,7 +38,7 @@ export function useCRUDController<
   // FETCH LIST
   // -------------------
   const listQuery = useQuery({
-    queryKey: [config.queryKey, filters, page, pageSize, sort],
+    queryKey: [config.queryKey, filters, businessFilters, page, pageSize, sort],
     queryFn: async () => {
       const skip = (page - 1) * pageSize;
       const take = pageSize;
@@ -56,16 +61,23 @@ export function useCRUDController<
         params.set("order", sort.order ?? "desc");
       }
 
-      // safely serialize filters to match backend expectations
+      // -------------------
+      // Serialize normal filters
+      // -------------------
       const { search: searchTerm, ...otherFilters } = filters;
-
-      // Serialize filters WITHOUT search
       const serializedFilters = serializeFilters(otherFilters);
       if (serializedFilters) {
         params.set("filters", serializedFilters);
       }
 
-      // Add search as separate parameter if it exists
+      // -------------------
+      // Serialize business filters
+      // -------------------
+      if (businessFilters && Object.keys(businessFilters).length > 0) {
+        params.set("businessFilters", JSON.stringify(businessFilters));
+      }
+
+      // Add search separately
       if (
         searchTerm &&
         typeof searchTerm === "string" &&
@@ -152,6 +164,8 @@ export function useCRUDController<
 
     filters,
     setFilters,
+    businessFilters,
+    setBusinessFilters,
     sort,
     setSort,
 
