@@ -74,7 +74,17 @@ export function useCRUDController<
       // Serialize business filters
       // -------------------
       if (businessFilters && Object.keys(businessFilters).length > 0) {
-        params.set("businessFilters", JSON.stringify(businessFilters));
+        const normalizedBusinessFilters = Object.fromEntries(
+          Object.entries(businessFilters).map(([k, v]) => [
+            k,
+            v === "true" ? true : v === "false" ? false : v,
+          ])
+        );
+
+        params.set(
+          "businessFilters",
+          JSON.stringify(normalizedBusinessFilters)
+        );
       }
 
       // Add search separately

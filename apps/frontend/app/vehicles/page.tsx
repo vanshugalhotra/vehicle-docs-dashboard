@@ -5,11 +5,21 @@ import { EntityViewPage } from "@/components/crud/EntityViewPage";
 import { useCRUDController } from "@/hooks/useCRUDController";
 import { vehicleCrudConfig, Vehicle } from "@/configs/crud/vehicles.config";
 import { toastUtils } from "@/lib/utils/toastUtils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function VehiclesPage() {
-  const controller = useCRUDController<Vehicle>(vehicleCrudConfig);
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const initialBusinessFilters = searchParams.has("businessFilters")
+    ? JSON.parse(searchParams.get("businessFilters")!)
+    : {};
+
+  const controller = useCRUDController<Vehicle>({
+    ...vehicleCrudConfig,
+    defaultBusinessFilters: initialBusinessFilters,
+  });
 
   const [itemToDelete, setItemToDelete] = useState<Vehicle | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);

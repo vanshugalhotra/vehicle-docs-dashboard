@@ -9,6 +9,7 @@ import { TrendingUp } from "lucide-react";
 import { dashboardMetricsConfig } from "@/configs/analytics/dashboardMetrics.config";
 import { OverviewStats } from "@/lib/types/stats.types";
 import { calculateTrendFromApi, TrendPeriod } from "@/lib/utils/calculateTrend";
+import { useRouter } from "next/navigation";
 
 interface KeyMetricsSectionProps {
   data?: OverviewStats;
@@ -21,6 +22,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
   isLoading = false,
   trendPeriod = "week",
 }) => {
+  const router = useRouter();
   return (
     <StatsSection
       title="Key Metrics"
@@ -67,6 +69,9 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({
               icon={cfg.icon}
               variant={cfg.variant ?? "default"}
               trend={trend}
+              onClick={() => {
+                router.push(cfg.link ?? "/");
+              }}
             />
           );
         })}

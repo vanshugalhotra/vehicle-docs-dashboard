@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import { OverviewStats } from "@/lib/types/stats.types";
 
+// --------------------------------------------------
+// Shared types
+// --------------------------------------------------
+
 export interface DashboardMetricConfig<
   K extends keyof OverviewStats = keyof OverviewStats
 > {
@@ -17,53 +21,92 @@ export interface DashboardMetricConfig<
   icon: React.ReactNode;
   formatter?: (value: OverviewStats[K]) => string | number;
   variant?: "default" | "linear" | "minimal";
+  link?: string;
 }
 
-const iconSize = 22;
-const variant = "linear";
+// --------------------------------------------------
+// Constants
+// --------------------------------------------------
+
+const ICON_SIZE = 22;
+const VARIANT: DashboardMetricConfig["variant"] = "linear";
+
+// --------------------------------------------------
+// Small helpers to remove all redundancy
+// --------------------------------------------------
+
+// Build a filter link
+const buildFilterLink = (base: string, filter: object) =>
+  `${base}?businessFilters=${encodeURIComponent(JSON.stringify(filter))}`;
+
+// Build icons with color + shared size
+const makeIcon = (Icon: React.ElementType, color: string) => (
+  <Icon className={color} size={ICON_SIZE} />
+);
+
+// --------------------------------------------------
+// Filters & links
+// --------------------------------------------------
+
+const links = {
+  unassigned: buildFilterLink("/vehicles", { unassigned: true }),
+  active: buildFilterLink("/linkages", { status: "active" }),
+  expired: buildFilterLink("/linkages", { status: "expired" }),
+  expiringSoon: buildFilterLink("/linkages", { status: "expiringSoon" }),
+};
+
+// --------------------------------------------------
+// Final metrics config (super clean now)
+// --------------------------------------------------
 
 export const dashboardMetricsConfig: DashboardMetricConfig[] = [
   {
     key: "totalVehicles",
     title: "Total Vehicles",
-    icon: <Truck className="text-gray-700" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(Truck, "text-gray-700"),
+    variant: VARIANT,
+    link: "/vehicles",
   },
   {
     key: "totalLinkages",
     title: "Total Linkages",
-    icon: <ShieldCheck className="text-blue-600" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(ShieldCheck, "text-blue-600"),
+    variant: VARIANT,
+    link: "/linkages",
   },
   {
     key: "activeLinkages",
     title: "Active Linkages",
-    icon: <Eye className="text-emerald-600" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(Eye, "text-emerald-600"),
+    variant: VARIANT,
+    link: links.active,
   },
   {
     key: "expiringSoon",
     title: "Expiring Soon",
-    icon: <Clock className="text-yellow-600" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(Clock, "text-yellow-600"),
+    variant: VARIANT,
+    link: links.expiringSoon,
   },
   {
     key: "expired",
     title: "Expired Linkages",
-    icon: <FileWarning className="text-red-600" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(FileWarning, "text-red-600"),
+    variant: VARIANT,
+    link: links.expired,
   },
   {
     key: "unassignedVehicles",
     title: "Unassigned Vehicles",
-    icon: <XCircle className="text-orange-600" size={iconSize} />,
-    variant: variant,
+    icon: makeIcon(XCircle, "text-orange-600"),
+    variant: VARIANT,
+    link: links.unassigned,
   },
   {
     key: "complianceRate",
     title: "Compliance Rate",
-    icon: <CheckCircle className="text-emerald-600" size={iconSize} />,
+    icon: makeIcon(CheckCircle, "text-emerald-600"),
     formatter: (v) => `${v}%`,
-    variant: variant,
+    variant: VARIANT,
   },
 ];
