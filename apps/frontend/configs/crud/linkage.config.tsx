@@ -210,6 +210,20 @@ export const linkageSortOptions: SortOption[] = [
   { field: "documentNo", label: "Document No" },
 ];
 
+export const linkageBusinessFiltersConfig: FilterConfig[] = [
+  {
+    key: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { label: "All", value: "" },
+      { label: "Active", value: "active" },
+      { label: "Expiring Soon (30 days)", value: "expiringSoon" },
+      { label: "Expired", value: "expired" },
+    ],
+  },
+];
+
 // =====================
 // 🔹 CRUD Config
 // =====================
@@ -224,5 +238,6 @@ export const linkageCrudConfig = {
   layout: linkageLayout,
   defaultPageSize: 10,
   filters: linkageFiltersConfig,
+  businessFilters: linkageBusinessFiltersConfig,
   sortOptions: linkageSortOptions,
 };

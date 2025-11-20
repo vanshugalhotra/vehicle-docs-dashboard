@@ -142,7 +142,7 @@ export class VehicleDocumentService {
 
       return {
         items: finalList,
-        total: finalList.length,
+        total: total,
       };
     } catch (error) {
       // Only handle Prisma errors, let NestJS exceptions pass through

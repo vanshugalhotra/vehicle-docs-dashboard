@@ -186,7 +186,7 @@ export class VehicleService {
 
       return {
         items: finalList,
-        total: finalList.length,
+        total: total,
       };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {

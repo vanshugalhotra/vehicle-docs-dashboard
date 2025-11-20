@@ -43,6 +43,9 @@ export default function ViewLinkagePage() {
       filtersConfig={linkageCrudConfig.filters}
       filters={controller.filters}
       onFiltersChange={controller.setFilters}
+      businessFiltersConfig={linkageCrudConfig.businessFilters}
+      businessFilters={controller.businessFilters}
+      onBusinessFiltersChange={controller.setBusinessFilters}
       sortOptions={linkageCrudConfig.sortOptions}
       sort={controller.sort}
       onSortChange={controller.setSort}

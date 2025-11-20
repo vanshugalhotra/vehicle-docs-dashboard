@@ -87,7 +87,6 @@ export function useCRUDController<
       }
 
       base.search = params.toString();
-
       const res = await fetchWithAuth(base.toString());
       return res;
     },
