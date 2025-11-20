@@ -109,6 +109,11 @@ export class VehicleService {
         documents: {
           select: {
             id: true,
+            documentType: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       }),

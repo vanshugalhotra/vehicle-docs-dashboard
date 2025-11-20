@@ -20,7 +20,10 @@ export interface VehicleResponse {
   ownerName?: string | null;
   driverName?: string | null;
   locationName?: string | null;
-  documents?: string[];
+  documents?: {
+    id: string;
+    documentTypeName: string | null;
+  }[];
 }
 
 export const VEHICLE_ALLOWED_BUSINESS_FILTERS = {
