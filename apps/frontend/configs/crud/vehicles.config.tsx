@@ -12,6 +12,7 @@ import { ownerFields, ownerSchema } from "./owners.config";
 import { locationFields, locationSchema } from "./locations.config";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
+import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
 
 // =====================
 // 🔹 Schema
@@ -34,6 +35,12 @@ export const vehicleSchema = z.object({
   driverId: optionalString(),
   notes: optionalString(),
 });
+
+interface DocumentItem {
+  id: string;
+  documentTypeName: string;
+}
+
 export type Vehicle = z.infer<typeof vehicleSchema> & {
   id?: string;
   name?: string;
@@ -44,6 +51,7 @@ export type Vehicle = z.infer<typeof vehicleSchema> & {
   locationName?: string;
   createdAt?: string;
   updatedAt?: string;
+  documents?: DocumentItem[];
 };
 
 // =====================
@@ -195,6 +203,19 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
   { accessorKey: "licensePlate", header: "License Plate" },
   { accessorKey: "typeName", header: "Type" },
   { accessorKey: "categoryName", header: "Category" },
+  {
+    accessorKey: "documents",
+    header: "Linked Documents",
+    cell: ({ row }) => {
+      const docs = row.original.documents?.map((d) => ({
+        id: d.id,
+        name: d.documentTypeName ?? "Unknown",
+      }));
+
+      return <BadgeCell items={docs} badgeVariant="success" />;
+    },
+  },
+
   { accessorKey: "driverName", header: "Driver" },
   { accessorKey: "ownerName", header: "Owner" },
   { accessorKey: "locationName", header: "Location" },

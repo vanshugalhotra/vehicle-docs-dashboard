@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
-import { CategoryTypesCell } from "@/components/table-cells/CategoryTypeCell";
+import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
 
 export const vehicleCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -39,7 +39,7 @@ export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
   {
     accessorKey: "types",
     header: "Types",
-    cell: ({ row }) => <CategoryTypesCell types={row.original.types} />,
+    cell: ({ row }) => <BadgeCell items={row.original.types} />,
   },
 
   {
