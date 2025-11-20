@@ -8,14 +8,19 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { mapVehicleToResponse } from './vehicle.mapper';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { VehicleResponse } from 'src/common/types';
+import {
+  VehicleResponse,
+  VEHICLE_ALLOWED_BUSINESS_FILTERS,
+} from 'src/common/types';
 import { Prisma } from '@prisma/client';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { PaginatedVehicleResponseDto } from './dto/vehicle-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
-import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { VehicleValidationService } from './validation/vehicle-validation.service';
 import { generateVehicleName } from 'src/common/utils/vehicleUtils';
+import { parseBusinessFilters } from 'src/common/business-filters/parser';
+import { createVehicleBusinessEngine } from './business-resolvers/business-engine.factor';
+import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
 
 @Injectable()
 export class VehicleService {
@@ -92,12 +97,17 @@ export class VehicleService {
    * Retrieve a paginated, searchable, and filterable list of vehicles.
    * Supports full-text search, relation includes, and dynamic filters.
    */
-  async findAll(query: QueryOptionsDto): Promise<PaginatedVehicleResponseDto> {
+  async findAll(
+    query: QueryWithBusinessDto,
+  ): Promise<PaginatedVehicleResponseDto> {
     const { skip, take, where, orderBy } =
-      buildQueryArgs<Prisma.VehicleWhereInput>(
-        query,
-        ['licensePlate', 'name', 'rcNumber', 'chassisNumber', 'engineNumber'], // handled automatically
-      );
+      buildQueryArgs<Prisma.VehicleWhereInput>(query, [
+        'licensePlate',
+        'name',
+        'rcNumber',
+        'chassisNumber',
+        'engineNumber',
+      ]);
 
     const include: Prisma.VehicleInclude = {
       category: true,
@@ -110,9 +120,7 @@ export class VehicleService {
           select: {
             id: true,
             documentType: {
-              select: {
-                name: true,
-              },
+              select: { name: true },
             },
           },
         },
@@ -121,19 +129,30 @@ export class VehicleService {
 
     const search = query.search;
 
+    // -------------------------------------------
+    // 1) Parse business filters
+    // -------------------------------------------
+    const parsedBusinessFilters = parseBusinessFilters(
+      query.businessFilters,
+      VEHICLE_ALLOWED_BUSINESS_FILTERS,
+    );
+
+    // 2) Create engine
+    const engine = createVehicleBusinessEngine();
+
     this.logger.info(
       `Fetching vehicles: skip=${skip}, take=${take}, search="${search ?? ''}", includeRelations=${query.includeRelations}`,
     );
 
     try {
-      // Extend where with relational searches only (avoid duplication)
+      // Extend where for relation search
       const extendedWhere: Prisma.VehicleWhereInput = {
         ...where,
         ...(search && {
           OR: [
             ...(Array.isArray(where?.OR)
               ? (where.OR as Prisma.VehicleWhereInput[])
-              : []), // preserve base OR from buildQueryArgs
+              : []),
             { category: { name: { contains: search, mode: 'insensitive' } } },
             { type: { name: { contains: search, mode: 'insensitive' } } },
             { owner: { name: { contains: search, mode: 'insensitive' } } },
@@ -157,15 +176,23 @@ export class VehicleService {
         `Fetched ${vehicles.length} of ${total} vehicles successfully.`,
       );
 
+      // ---------------------------------------------------------------------
+      // 3) Map → Business filters → Return
+      // ---------------------------------------------------------------------
+      const dtoList = vehicles.map(mapVehicleToResponse);
+
+      // Apply your resolvers (unassigned, missingDocs, ...)
+      const finalList = engine.apply(dtoList, parsedBusinessFilters);
+
       return {
-        items: vehicles.map(mapVehicleToResponse),
-        total,
+        items: finalList,
+        total: finalList.length,
       };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, 'Vehicle');
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 

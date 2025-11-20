@@ -8,7 +8,7 @@ interface MissingDocsRule {
 type AllowedKeyRule =
   | 'boolean'
   | 'string[]'
-  | { list: 'string[]'; mode: ['AND', 'OR'] };
+  | { list: 'string[]'; mode: readonly ['AND', 'OR'] };
 
 export function parseBusinessFilters(
   input: unknown,
