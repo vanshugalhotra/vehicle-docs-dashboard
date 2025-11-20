@@ -17,3 +17,7 @@ export interface VehicleDocumentResponse {
   vehicle?: VehicleResponse;
   documentType?: DocumentTypeResponse;
 }
+
+export const DOCUMENT_ALLOWED_BUSINESS_FILTERS = {
+  status: ['expired', 'active', 'expiringSoon'],
+} as const;

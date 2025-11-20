@@ -21,3 +21,11 @@ export interface VehicleResponse {
   driverName?: string | null;
   locationName?: string | null;
 }
+
+export const VEHICLE_ALLOWED_BUSINESS_FILTERS = {
+  unassigned: 'boolean',
+  missingDocs: {
+    list: 'string[]', // required
+    mode: ['AND', 'OR'], // enum
+  },
+} as const;
