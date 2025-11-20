@@ -202,3 +202,16 @@ button:focus-visible [data-ripple] {
     background-position: 200% 0;
   }
 }
+
+#nprogress .bar {
+  background: var(--color-primary) !important;
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--color-primary), 0 0 5px var(--color-primary) !important;
+}
+
+#nprogress .bar {
+  border-radius: 0 4px 4px 0;
+}
