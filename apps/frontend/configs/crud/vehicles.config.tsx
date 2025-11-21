@@ -192,11 +192,14 @@ export const vehicleLayout = {
 // =====================
 // 🔹 Table Columns
 // =====================
-export const vehicleColumns: ColumnDef<Vehicle>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<Vehicle>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
   },
   { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
@@ -215,7 +218,6 @@ export const vehicleColumns: ColumnDef<Vehicle>[] = [
       return <BadgeCell items={docs} badgeVariant="success" />;
     },
   },
-
   { accessorKey: "driverName", header: "Driver" },
   { accessorKey: "ownerName", header: "Owner" },
   { accessorKey: "locationName", header: "Location" },
@@ -308,7 +310,7 @@ export const vehicleCrudConfig = {
   queryKey: "vehicles",
   schema: vehicleSchema,
   fields: vehicleFields,
-  columns: vehicleColumns,
+  columns: getColumns,
   defaultPageSize: 10,
   layout: vehicleLayout,
   filters: vehicleFiltersConfig,

@@ -134,7 +134,7 @@ export default function VehiclesPage() {
             setSort={setSort}
           />
           <DataTable
-            columns={vehicleCrudConfig.columns}
+            columns={vehicleCrudConfig.columns(page, pageSize)}
             data={vehicles}
             loading={isLoading}
             onEdit={handleEdit}

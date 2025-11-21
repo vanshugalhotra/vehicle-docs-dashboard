@@ -47,7 +47,7 @@ export default function ViewLinkagePage() {
   return (
     <EntityViewPage<LinkageEntity>
       title="Linkages"
-      columns={linkageCrudConfig.columns}
+      columns={linkageCrudConfig.columns(controller.page, controller.pageSize)}
       data={controller.data}
       loading={controller.isLoading}
       filtersConfig={linkageCrudConfig.filters}

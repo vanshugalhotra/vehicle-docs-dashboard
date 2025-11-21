@@ -100,11 +100,14 @@ export const linkageLayout = {
 // =====================
 // 🔹 Table Columns
 // =====================
-export const linkageColumns: ColumnDef<LinkageEntity>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<LinkageEntity>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
   },
   {
@@ -234,7 +237,7 @@ export const linkageCrudConfig = {
   queryKey: "vehicle-documents",
   schema: linkageSchema,
   fields: linkageFields,
-  columns: linkageColumns,
+  columns: getColumns,
   layout: linkageLayout,
   defaultPageSize: 10,
   filters: linkageFiltersConfig,

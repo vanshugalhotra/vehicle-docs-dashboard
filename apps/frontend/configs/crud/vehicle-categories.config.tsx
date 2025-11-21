@@ -25,14 +25,15 @@ export const vehicleCategoryFields = [
   },
 ];
 
-export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<VehicleCategory>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
 
@@ -61,7 +62,7 @@ export const vehicleCategoryCrudConfig = {
   queryKey: "vehicle-categories",
   schema: vehicleCategorySchema,
   fields: vehicleCategoryFields,
-  columns: vehicleCategoryColumns,
+  columns: getColumns,
   defaultPageSize: 5,
   layout: categoryLayout,
 };

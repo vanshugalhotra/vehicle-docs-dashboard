@@ -27,14 +27,15 @@ export const ownerLayout = {
   gridColumns: 1,
 };
 
-export const ownerColumns: ColumnDef<Owner>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<Owner>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
   {
@@ -52,7 +53,7 @@ export const ownerCrudConfig = {
   queryKey: "owners",
   schema: ownerSchema,
   fields: ownerFields,
-  columns: ownerColumns,
+  columns: getColumns,
   layout: ownerLayout,
   defaultPageSize: 5,
 };

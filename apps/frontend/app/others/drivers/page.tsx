@@ -125,7 +125,7 @@ export default function DriversPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={driverCrudConfig.columns}
+            columns={driverCrudConfig.columns(page, pageSize)}
             data={drivers}
             loading={isLoading}
             onEdit={handleEdit}

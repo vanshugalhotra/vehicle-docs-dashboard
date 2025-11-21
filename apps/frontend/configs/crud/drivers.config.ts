@@ -41,17 +41,18 @@ export const driverFields = [
   },
 ];
 
-export const driverColumns: ColumnDef<Driver>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<Driver>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
-  { accessorKey: "phone", header: "Phone"},
+  { accessorKey: "phone", header: "Phone" },
   {
     accessorKey: "email",
     header: "Email",
@@ -76,7 +77,7 @@ export const driverCrudConfig = {
   queryKey: "drivers",
   schema: driverSchema,
   fields: driverFields,
-  columns: driverColumns,
+  columns: getColumns,
   layout: driverLayout,
   defaultPageSize: 5,
 };

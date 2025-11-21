@@ -44,7 +44,7 @@ export default function VehiclesPage() {
   return (
     <EntityViewPage<Vehicle>
       title="Vehicles"
-      columns={vehicleCrudConfig.columns}
+      columns={vehicleCrudConfig.columns(controller.page, controller.pageSize)}
       data={controller.data}
       loading={controller.isLoading}
       filtersConfig={vehicleCrudConfig.filters}

@@ -120,7 +120,7 @@ export default function LocationsPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={locationCrudConfig.columns}
+            columns={locationCrudConfig.columns(page, pageSize)}
             data={locations}
             loading={isLoading}
             onEdit={handleEdit}
