@@ -1,3 +1,5 @@
+"use client";
+
 import { EntitySelector } from "@/components/ui/EntitySelector/EntitySelector";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { Building2, Hash, Key, MapPin, User } from "lucide-react";
