@@ -5,6 +5,7 @@ import {
   Owner,
   Driver,
   Location,
+  VehicleDocument,
 } from '@prisma/client';
 
 import { VehicleResponse } from 'src/common/types';
@@ -15,6 +16,9 @@ type VehicleWithRelations = Vehicle & {
   owner?: Owner | null;
   driver?: Driver | null;
   location?: Location | null;
+  documents?: (VehicleDocument & {
+    documentType?: { name: string } | null;
+  })[];
 };
 
 export function mapVehicleToResponse(
@@ -42,5 +46,10 @@ export function mapVehicleToResponse(
     ownerName: vehicle.owner?.name ?? null,
     driverName: vehicle.driver?.name ?? null,
     locationName: vehicle.location?.name ?? null,
+    documents:
+      vehicle.documents?.map((d) => ({
+        id: d.id,
+        documentTypeName: d.documentType?.name ?? null,
+      })) ?? [],
   };
 }

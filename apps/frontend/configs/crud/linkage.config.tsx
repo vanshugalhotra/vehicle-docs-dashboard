@@ -100,17 +100,19 @@ export const linkageLayout = {
 // =====================
 // 🔹 Table Columns
 // =====================
-export const linkageColumns: ColumnDef<LinkageEntity>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<LinkageEntity>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
   },
   {
     accessorKey: "vehicleName",
     header: "Vehicle",
-    enableSorting: true,
     minSize: 250,
     maxSize: 350,
   },
@@ -211,6 +213,20 @@ export const linkageSortOptions: SortOption[] = [
   { field: "documentNo", label: "Document No" },
 ];
 
+export const linkageBusinessFiltersConfig: FilterConfig[] = [
+  {
+    key: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { label: "All", value: "" },
+      { label: "Active", value: "active" },
+      { label: "Expiring Soon (30 days)", value: "expiringSoon" },
+      { label: "Expired", value: "expired" },
+    ],
+  },
+];
+
 // =====================
 // 🔹 CRUD Config
 // =====================
@@ -221,9 +237,10 @@ export const linkageCrudConfig = {
   queryKey: "vehicle-documents",
   schema: linkageSchema,
   fields: linkageFields,
-  columns: linkageColumns,
+  columns: getColumns,
   layout: linkageLayout,
   defaultPageSize: 10,
   filters: linkageFiltersConfig,
+  businessFilters: linkageBusinessFiltersConfig,
   sortOptions: linkageSortOptions,
 };

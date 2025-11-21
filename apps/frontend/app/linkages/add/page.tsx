@@ -244,7 +244,7 @@ export default function LinkagePage() {
 
           {/* Table */}
           <DataTable<LinkageEntity>
-            columns={linkageCrudConfig.columns}
+            columns={linkageCrudConfig.columns(page, pageSize)}
             data={data}
             loading={isLoading}
             onEdit={async (record) => {

@@ -116,7 +116,7 @@ export default function OwnersPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={ownerCrudConfig.columns}
+            columns={ownerCrudConfig.columns(page, pageSize)}
             data={owners}
             loading={isLoading}
             onEdit={handleEdit}

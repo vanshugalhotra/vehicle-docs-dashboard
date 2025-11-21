@@ -63,11 +63,6 @@ export default function HomePage() {
     day: "numeric",
   });
 
-  const formattedTime = now.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
     <div className="min-h-screen bg-background">
       {/* HERO SECTION */}
@@ -75,7 +70,6 @@ export default function HomePage() {
         title="Yash Group Dashboard"
         subtitle="Real-time Vehicle Management Overview"
         date={formattedDate}
-        time={formattedTime}
       />
 
       {/* MAIN CONTENT */}

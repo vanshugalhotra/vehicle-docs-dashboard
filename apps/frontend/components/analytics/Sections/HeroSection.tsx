@@ -7,10 +7,9 @@ interface HeroSectionProps {
   title: string;
   subtitle: string;
   date: string;
-  time: string;
 }
 
-export function HeroSection({ title, subtitle, date, time }: HeroSectionProps) {
+export function HeroSection({ title, subtitle, date}: HeroSectionProps) {
   return (
     <div className="relative overflow-hidden bg-linear-to-br from-primary/5 via-surface to-primary/5 border-b border-border">
       {/* Floating Blur Background Circles */}
@@ -49,10 +48,6 @@ export function HeroSection({ title, subtitle, date, time }: HeroSectionProps) {
               <div className="flex items-center gap-2 px-3 py-1.5 bg-surface/80 backdrop-blur-sm rounded-lg border border-border-subtle">
                 <Clock className="w-4 h-4 text-primary" />
                 <span className="font-medium">{date}</span>
-              </div>
-
-              <div className="px-3 py-1.5 bg-surface/80 backdrop-blur-sm rounded-lg border border-border-subtle">
-                <span className="font-mono font-medium">{time}</span>
               </div>
             </div>
           </div>

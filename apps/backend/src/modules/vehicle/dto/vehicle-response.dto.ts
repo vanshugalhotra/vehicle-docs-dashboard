@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class VehicleDocumentItemDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty({ nullable: true })
+  documentTypeName: string | null;
+}
+
 export class VehicleResponseDto {
   @ApiProperty({ example: 'b1f3a2c4-1234-5678-9abc-1234567890ab' })
   id: string;
@@ -67,6 +75,9 @@ export class VehicleResponseDto {
 
   @ApiProperty({ example: 'Main Garage', required: false })
   locationName?: string | null;
+
+  @ApiProperty({ type: [VehicleDocumentItemDto], required: false })
+  documents?: VehicleDocumentItemDto[];
 }
 
 export class PaginatedVehicleResponseDto {

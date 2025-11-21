@@ -15,6 +15,7 @@ import { PaginatedTypeResponseDto } from './dto/vehicle-type-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { VehicleTypeValidationService } from './validation/vehicle-type-validation.service';
+import { generateVehicleName } from 'src/common/utils/vehicleUtils';
 
 @Injectable()
 export class VehicleTypeService {
@@ -106,23 +107,68 @@ export class VehicleTypeService {
     dto: UpdateVehicleTypeDto,
   ): Promise<VehicleTypeResponse> {
     this.logger.info(`Updating vehicle type: ${id}`);
+
     try {
+      // Validate the update
       const { vehicleType } = await this.validationService.validateUpdate(
         id,
         dto.name,
         dto.categoryId,
       );
+
       const targetCategoryId = dto.categoryId ?? vehicleType.categoryId;
       const targetName = dto.name ?? vehicleType.name;
 
-      const updated = await this.prisma.vehicleType.update({
+      // Update the type
+      const updatedType = await this.prisma.vehicleType.update({
         where: { id },
         data: { name: targetName, categoryId: targetCategoryId },
         include: { category: true },
       });
 
-      this.logger.info(`Vehicle type updated: ${updated.id}`);
-      return mapTypeToResponse(updated);
+      this.logger.info(`Vehicle type updated: ${updatedType.id}`);
+
+      // Fetch all vehicles of this type for name regeneration
+      const vehicles = await this.prisma.vehicle.findMany({
+        where: { typeId: updatedType.id },
+        include: { category: true }, // need category.name
+      });
+
+      // Update vehicle names safely
+      const updatePromises = vehicles.map(async (v) => {
+        try {
+          let newName: string;
+
+          // Generate new vehicle name
+          try {
+            newName = generateVehicleName(
+              v.category.name,
+              updatedType.name,
+              v.licensePlate,
+            );
+          } catch (err) {
+            this.logger.error(
+              `Failed to generate name for vehicle ${v.id}: ${(err as Error).message}`,
+            );
+            return null; // skip this vehicle
+          }
+
+          // Update vehicle name
+          return await this.prisma.vehicle.update({
+            where: { id: v.id },
+            data: { name: newName },
+          });
+        } catch (err) {
+          this.logger.error(
+            `Failed to update vehicle ${v.id}: ${(err as Error).message}`,
+          );
+          return null; // skip on Prisma errors
+        }
+      });
+
+      await Promise.all(updatePromises);
+
+      return mapTypeToResponse(updatedType);
     } catch (error) {
       handlePrismaError(error, 'Vehicle type');
     }

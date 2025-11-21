@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
-import { CategoryTypesCell } from "@/components/table-cells/CategoryTypeCell";
+import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
 
 export const vehicleCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -25,21 +25,22 @@ export const vehicleCategoryFields = [
   },
 ];
 
-export const vehicleCategoryColumns: ColumnDef<VehicleCategory>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<VehicleCategory>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
 
   {
     accessorKey: "types",
     header: "Types",
-    cell: ({ row }) => <CategoryTypesCell types={row.original.types} />,
+    cell: ({ row }) => <BadgeCell items={row.original.types} />,
   },
 
   {
@@ -61,7 +62,7 @@ export const vehicleCategoryCrudConfig = {
   queryKey: "vehicle-categories",
   schema: vehicleCategorySchema,
   fields: vehicleCategoryFields,
-  columns: vehicleCategoryColumns,
+  columns: getColumns,
   defaultPageSize: 5,
   layout: categoryLayout,
 };

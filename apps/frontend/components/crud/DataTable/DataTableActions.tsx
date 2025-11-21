@@ -17,6 +17,7 @@ export function DataTableActions<T>({
   onDelete,
 }: DataTableActionsProps<T>) {
   if (!onView && !onEdit && !onDelete) return null;
+  const size = 18;
 
   return (
     <div className="flex justify-center gap-1 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
@@ -27,7 +28,7 @@ export function DataTableActions<T>({
           onClick={() => onView(item)}
           className="p-1.5! hover:bg-accent/15 hover:scale-110 transition-all duration-200"
         >
-          <Eye size={16} className="text-accent" />
+          <Eye size={size} className="text-accent" />
           <span className="sr-only">View</span>
         </AppButton>
       )}
@@ -38,7 +39,7 @@ export function DataTableActions<T>({
           onClick={() => onEdit(item)}
           className="p-1.5! hover:bg-primary/15 hover:scale-110 transition-all duration-200"
         >
-          <Edit size={16} className="text-primary" />
+          <Edit size={size} className="text-primary" />
           <span className="sr-only">Edit</span>
         </AppButton>
       )}
@@ -49,7 +50,7 @@ export function DataTableActions<T>({
           onClick={() => onDelete(item)}
           className="p-1.5! hover:bg-danger/15 hover:scale-110 transition-all duration-200"
         >
-          <Trash2 size={16} className="text-danger" />
+          <Trash2 size={size} className="text-danger" />
           <span className="sr-only">Delete</span>
         </AppButton>
       )}

@@ -54,14 +54,15 @@ export const vehicleTypeFields = [
   },
 ];
 
-export const vehicleTypeColumns: ColumnDef<VehicleType>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<VehicleType>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Type Name", enableSorting: true },
   {
@@ -108,7 +109,7 @@ export const vehicleTypeCrudConfig = {
   queryKey: "vehicle-types",
   schema: vehicleTypeSchema,
   fields: vehicleTypeFields,
-  columns: vehicleTypeColumns,
+  columns: getColumns,
   defaultPageSize: 5,
   layout: typeLayout,
   filters: vehicleTypeFiltersConfig,

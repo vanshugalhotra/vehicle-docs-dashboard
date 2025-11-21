@@ -125,7 +125,7 @@ export default function VehicleCategoriesPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={vehicleCategoryCrudConfig.columns}
+            columns={vehicleCategoryCrudConfig.columns(page, pageSize)}
             data={categories}
             loading={isLoading}
             onEdit={handleEdit}

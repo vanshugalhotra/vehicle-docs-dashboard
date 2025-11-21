@@ -66,7 +66,6 @@ describe('VehicleCategoryService', () => {
   // ────────────────────────────────────────────────
   describe('create', () => {
     it('should create category', async () => {
-      // ⚠️ FIX: Remove Prisma findFirst mock
       prisma.vehicleCategory.create.mockResolvedValue({
         id: '1',
         name: 'Car',
@@ -143,8 +142,7 @@ describe('VehicleCategoryService', () => {
     const updateDto = { name: 'Truck' };
 
     it('should update successfully', async () => {
-      // ⚠️ FIX: The validation mock handles existence and checks for uniqueness.
-      // We ensure validateUpdate returns the original entity data used for the update.
+      // Mock validation service
       mockVehicleCategoryValidationService.validateUpdate.mockResolvedValueOnce(
         {
           ...mockCategory,
@@ -152,27 +150,64 @@ describe('VehicleCategoryService', () => {
           name: 'Car',
         } as VehicleCategory,
       );
-      // Remove prisma.vehicleCategory.findUnique/findFirst mocks
 
+      // Mock category update
       prisma.vehicleCategory.update.mockResolvedValue({
         id: '1',
         name: 'Truck',
       } as VehicleCategory);
+
+      // ✅ Mock vehicles in this category for name regeneration
+      prisma.vehicle.findMany.mockResolvedValue([
+        {
+          id: 'v1',
+          licensePlate: 'ABC123',
+          type: { name: 'Sedan' },
+        },
+        {
+          id: 'v2',
+          licensePlate: 'XYZ789',
+          type: { name: 'SUV' },
+        },
+      ]);
+
+      prisma.vehicle.update.mockImplementation(
+        ({
+          where,
+          data,
+        }: {
+          where: { id: string };
+          data: { name: string };
+        }) => {
+          return { id: where.id, name: data.name };
+        },
+      );
 
       const result = await service.update('1', updateDto);
 
       expect(
         mockVehicleCategoryValidationService.validateUpdate,
       ).toHaveBeenCalledWith('1', updateDto.name);
+
+      expect(prisma.vehicleCategory.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: { name: updateDto.name },
+      });
+
+      expect(prisma.vehicle.findMany).toHaveBeenCalledWith({
+        where: { categoryId: '1' },
+        include: { type: true },
+      });
+
+      expect(prisma.vehicle.update).toHaveBeenCalledTimes(2);
+
       expect(result.name).toBe('Truck');
     });
 
     it('should throw NotFoundException if category not found', async () => {
-      // ⚠️ FIX: Mock the validation service to throw NotFoundException
       mockVehicleCategoryValidationService.validateUpdate.mockRejectedValueOnce(
         new NotFoundException('Vehicle category with id "X" not found'),
       );
-      // Remove prisma.vehicleCategory.findUnique mock
 
       await expect(service.update('X', updateDto)).rejects.toThrow(
         NotFoundException,
@@ -183,13 +218,11 @@ describe('VehicleCategoryService', () => {
     });
 
     it('should throw ConflictException if duplicate name exists', async () => {
-      // ⚠️ FIX: Mock the validation service to throw ConflictException
       mockVehicleCategoryValidationService.validateUpdate.mockRejectedValueOnce(
         new ConflictException(
           'Vehicle category with name "Truck" already exists',
         ),
       );
-      // Remove prisma.vehicleCategory.findUnique/findFirst mocks
 
       await expect(service.update('1', updateDto)).rejects.toThrow(
         ConflictException,

@@ -38,7 +38,7 @@ export default function DocumentTypesPage() {
   return (
     <EntityViewPage<DocumentType>
       title="Document Types"
-      columns={documentTypeCrudConfig.columns}
+      columns={documentTypeCrudConfig.columns(controller.page, controller.pageSize)}
       data={controller.data}
       loading={controller.isLoading}
       /* ---- Filters ---- */

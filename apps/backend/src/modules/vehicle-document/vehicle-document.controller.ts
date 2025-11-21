@@ -17,7 +17,7 @@ import {
   VehicleDocumentResponseDto,
   PaginatedVehicleDocumentResponseDto,
 } from './dto/vehicle-document-response.dto';
-import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
 
 @ApiTags('Vehicle Documents')
 @Controller({ path: 'vehicle-documents', version: '1' })
@@ -59,7 +59,7 @@ export class VehicleDocumentController {
     type: PaginatedVehicleDocumentResponseDto,
   })
   async findAll(
-    @Query() query: QueryOptionsDto,
+    @Query() query: QueryWithBusinessDto,
   ): Promise<PaginatedVehicleDocumentResponseDto> {
     return this.vehicleDocumentsService.findAll(query);
   }

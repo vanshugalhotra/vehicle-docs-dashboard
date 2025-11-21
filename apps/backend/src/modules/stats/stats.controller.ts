@@ -6,7 +6,6 @@ import {
   VehiclesGroupQueryDto,
   CreatedTrendQueryDto,
   ExpiryDistributionQueryDto,
-  ExpiringSoonQueryDto,
 } from './dto/stats-query.dto';
 
 import {
@@ -14,7 +13,6 @@ import {
   CountResponseDto,
   TimeSeriesResponseDto,
   ExpiryBucketResponseDto,
-  ExpiringSoonResponseDto,
 } from './dto/stats-response.dto';
 
 import { StatsService } from './stats.service';
@@ -82,20 +80,5 @@ export class StatsController {
     @Query() query: ExpiryDistributionQueryDto,
   ): Promise<ExpiryBucketResponseDto[]> {
     return this.statsService.getExpiryDistribution(query);
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // 5. EXPIRING SOON DOCUMENTS
-  // ─────────────────────────────────────────────────────────────
-  @Get('documents/expiring-soon')
-  @ApiResponse({
-    status: 200,
-    description: 'Documents expiring soon with vehicle info',
-    type: [ExpiringSoonResponseDto],
-  })
-  async getExpiringSoon(
-    @Query() query: ExpiringSoonQueryDto,
-  ): Promise<ExpiringSoonResponseDto[]> {
-    return this.statsService.getExpiringSoon(query);
   }
 }

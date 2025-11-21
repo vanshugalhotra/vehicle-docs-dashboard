@@ -23,14 +23,15 @@ export const locationFields = [
   },
 ];
 
-export const locationColumns: ColumnDef<Location>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<Location>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
   {
@@ -52,7 +53,7 @@ export const locationCrudConfig = {
   queryKey: "locations",
   schema: locationSchema,
   fields: locationFields,
-  columns: locationColumns,
+  columns: getColumns,
   defaultPageSize: 5,
   layout: locationLayout,
 };

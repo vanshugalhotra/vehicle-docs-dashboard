@@ -20,4 +20,16 @@ export interface VehicleResponse {
   ownerName?: string | null;
   driverName?: string | null;
   locationName?: string | null;
+  documents?: {
+    id: string;
+    documentTypeName: string | null;
+  }[];
 }
+
+export const VEHICLE_ALLOWED_BUSINESS_FILTERS = {
+  unassigned: 'boolean',
+  missingDocs: {
+    list: 'string[]', // required
+    mode: ['AND', 'OR'], // enum
+  },
+} as const;

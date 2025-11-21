@@ -12,6 +12,7 @@ import { ownerFields, ownerSchema } from "./owners.config";
 import { locationFields, locationSchema } from "./locations.config";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
+import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
 
 // =====================
 // 🔹 Schema
@@ -34,6 +35,12 @@ export const vehicleSchema = z.object({
   driverId: optionalString(),
   notes: optionalString(),
 });
+
+interface DocumentItem {
+  id: string;
+  documentTypeName: string;
+}
+
 export type Vehicle = z.infer<typeof vehicleSchema> & {
   id?: string;
   name?: string;
@@ -44,6 +51,7 @@ export type Vehicle = z.infer<typeof vehicleSchema> & {
   locationName?: string;
   createdAt?: string;
   updatedAt?: string;
+  documents?: DocumentItem[];
 };
 
 // =====================
@@ -184,17 +192,32 @@ export const vehicleLayout = {
 // =====================
 // 🔹 Table Columns
 // =====================
-export const vehicleColumns: ColumnDef<Vehicle>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<Vehicle>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
   },
   { accessorKey: "name", header: "Vehicle Name", enableSorting: true },
   { accessorKey: "licensePlate", header: "License Plate" },
   { accessorKey: "typeName", header: "Type" },
   { accessorKey: "categoryName", header: "Category" },
+  {
+    accessorKey: "documents",
+    header: "Linked Documents",
+    cell: ({ row }) => {
+      const docs = row.original.documents?.map((d) => ({
+        id: d.id,
+        name: d.documentTypeName ?? "Unknown",
+      }));
+
+      return <BadgeCell items={docs} badgeVariant="success" />;
+    },
+  },
   { accessorKey: "driverName", header: "Driver" },
   { accessorKey: "ownerName", header: "Owner" },
   { accessorKey: "locationName", header: "Location" },
@@ -264,6 +287,19 @@ export const vehicleSortOptions: SortOption[] = [
   { field: "updatedAt", label: "Modified Date", default: true },
 ];
 
+export const vehicleBusinessFiltersConfig: FilterConfig[] = [
+  {
+    key: "unassigned",
+    label: "Assignment Status",
+    type: "select",
+    options: [
+      { label: "All", value: "" },
+      { label: "Assigned", value: "false" },
+      { label: "Unassigned", value: "true" },
+    ],
+  },
+];
+
 // =====================
 // 🔹 CRUD Config
 // =====================
@@ -274,9 +310,10 @@ export const vehicleCrudConfig = {
   queryKey: "vehicles",
   schema: vehicleSchema,
   fields: vehicleFields,
-  columns: vehicleColumns,
+  columns: getColumns,
   defaultPageSize: 10,
   layout: vehicleLayout,
   filters: vehicleFiltersConfig,
   sortOptions: vehicleSortOptions,
+  businessFilters: vehicleBusinessFiltersConfig,
 };

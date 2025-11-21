@@ -46,6 +46,8 @@ export const DataTable = <T extends object>({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const hasActions = onEdit || onDelete || onView;
+
   return (
     <div
       className={clsx("relative z-0", className, componentTokens.table.content)}
@@ -58,11 +60,11 @@ export const DataTable = <T extends object>({
       >
         <div className="overflow-x-auto thin-scrollbar">
           <table className="w-full min-w-full">
-            <thead className="bg-disabled sticky top-0 z-10 backdrop-blur-sm">
+            <thead className="sticky top-0 z-10 backdrop-blur-sm">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
-                  className="border-b border-border-subtle/50"
+                  className="border-b border-border-subtle/50 bg-primary/8"
                 >
                   {headerGroup.headers.map((header) => {
                     const colDef = header.column.columnDef as ColumnDef<T, unknown>;
@@ -73,10 +75,9 @@ export const DataTable = <T extends object>({
                       <th
                         key={header.id}
                         className={clsx(
-                          "text-left px-6 py-4",
-                          "font-medium text-text-secondary tracking-wide",
-                          "border-r border-border-subtle/30 last:border-r-0",
-                          "transition-all duration-200 hover:bg-primary/5"
+                          "text-left px-6 py-3.5",
+                          "font-semibold text-text-secondary text-xs uppercase tracking-wider",
+                          "transition-colors duration-200"
                         )}
                         style={{
                           width: header.getSize(),
@@ -107,9 +108,12 @@ export const DataTable = <T extends object>({
                       </th>
                     );
                   })}
-                  {(onEdit || onDelete) && (
+                  {hasActions && (
                     <th
-                      className="px-6 py-4 text-center border-r border-border-subtle/30 last:border-r-0"
+                      className={clsx(
+                        "px-6 py-3.5 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider",
+                        "sticky right-0 z-30 bg-white border-l border-border-subtle/50"
+                      )}
                       style={{ width: 120, minWidth: 120 }}
                     >
                       <AppText
@@ -117,7 +121,7 @@ export const DataTable = <T extends object>({
                         variant="secondary"
                         className={clsx(
                           componentTokens.text.sizes.label,
-                          "font-medium tracking-wide"
+                          "font-semibold tracking-wider"
                         )}
                       >
                         Actions
@@ -132,23 +136,22 @@ export const DataTable = <T extends object>({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
-                    className="text-center py-12"
+                    colSpan={columns.length + (hasActions ? 1 : 0)}
+                    className="text-center py-16"
                   >
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-3">
                       <div className="relative">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary"></div>
-                        <div className="absolute inset-0 rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary animate-ping"></div>
+                        <div className="animate-spin rounded-full h-10 w-10 border-3 border-primary/20 border-t-primary"></div>
                       </div>
                       <AppText
                         size="body"
                         variant="muted"
                         className={clsx(
                           componentTokens.text.muted,
-                          "font-medium"
+                          "font-medium text-sm"
                         )}
                       >
-                        Loading your data...
+                        Loading data...
                       </AppText>
                     </div>
                   </td>
@@ -156,7 +159,7 @@ export const DataTable = <T extends object>({
               ) : data.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                    colSpan={columns.length + (hasActions ? 1 : 0)}
                     className="text-center py-12"
                   >
                     <DataTableEmptyState />
@@ -169,7 +172,7 @@ export const DataTable = <T extends object>({
                     className={clsx(
                       "transition-all duration-300 ease-out",
                       "group relative border-l-4 border-transparent",
-                      index % 2 === 0 ? "bg-surface/50" : "",
+                      index % 2 === 0 ? "bg-gray-50" : "bg-white",
                       "hover:bg-linear-to-r hover:from-primary/5 hover:to-primary/2",
                       "hover:border-l-primary/20 hover:shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.05)]",
                       "hover:translate-y-px"
@@ -180,9 +183,9 @@ export const DataTable = <T extends object>({
                         key={cell.id}
                         className={clsx(
                           "px-6 py-4",
-                          "border-r border-border-subtle/20 last:border-r-0",
                           "transition-colors duration-200",
                           componentTokens.text.bodySecondary,
+                          "text-sm",
                           "group-hover:text-text-primary/90"
                         )}
                       >
@@ -195,8 +198,14 @@ export const DataTable = <T extends object>({
                       </td>
                     ))}
 
-                    {(onEdit || onDelete) && (
-                      <td className="px-6 py-4 border-r border-border-subtle/20 last:border-r-0">
+                    {hasActions && (
+                      <td
+                        className={clsx(
+                          "px-6 py-4",
+                          "sticky right-0 z-20 border-l border-border-subtle/20",
+                          index % 2 === 0 ? "bg-gray-50" : "bg-white",
+                        )}
+                      >
                         <DataTableActions
                           item={row.original}
                           onEdit={onEdit}

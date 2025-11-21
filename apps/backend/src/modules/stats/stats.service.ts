@@ -5,19 +5,14 @@ import {
   VehiclesGroupQueryDto,
   CreatedTrendQueryDto,
   ExpiryDistributionQueryDto,
-  ExpiringSoonQueryDto,
 } from './dto/stats-query.dto';
 import {
   OverviewResponseDto,
   CountResponseDto,
   TimeSeriesResponseDto,
   ExpiryBucketResponseDto,
-  ExpiringSoonResponseDto,
-  VehicleCountByCategory,
-  VehicleCountByLocation,
 } from './dto/stats-response.dto';
-import { VehicleResponseDto } from '../vehicle/dto/vehicle-response.dto';
-import { Prisma, VehicleDocument } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 interface TrendRow {
   date: string;
@@ -27,12 +22,6 @@ interface TrendRow {
 @Injectable()
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
-
-  private parseDate(dateString: string | undefined, fallback: Date): Date {
-    if (!dateString) return fallback;
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? fallback : date;
-  }
 
   private buildVehicleFilter(query: {
     categoryId?: string;
@@ -216,70 +205,6 @@ export class StatsService {
     };
   }
 
-  private mapToVehicleCountByCategory(
-    items: CountResponseDto[],
-  ): VehicleCountByCategory[] {
-    return items.map((item) => ({
-      categoryId: item.label, // or you can extract ID from somewhere if needed
-      count: item.count,
-      label: item.label,
-    }));
-  }
-
-  private mapToVehicleCountByLocation(
-    items: CountResponseDto[],
-  ): VehicleCountByLocation[] {
-    return items.map((item) => ({
-      locationId: item.label, // or you can extract ID from somewhere if needed
-      count: item.count,
-      label: item.label,
-    }));
-  }
-
-  private async computeExpiryDistribution(
-    filter: Prisma.VehicleDocumentWhereInput,
-  ): Promise<{ bucket: string; count: number }[]> {
-    const docs: Pick<VehicleDocument, 'expiryDate'>[] =
-      await this.prisma.vehicleDocument.findMany({
-        where: filter,
-        select: { expiryDate: true },
-      });
-
-    const now = new Date();
-
-    const bucketMap = {
-      '0-30': 0,
-      '31-60': 0,
-      '61-90': 0,
-      '90+': 0,
-    };
-
-    for (const doc of docs) {
-      const days =
-        (new Date(doc.expiryDate).getTime() - now.getTime()) / 86400000;
-
-      if (days <= 30) bucketMap['0-30']++;
-      else if (days <= 60) bucketMap['31-60']++;
-      else if (days <= 90) bucketMap['61-90']++;
-      else bucketMap['90+']++;
-    }
-
-    return Object.entries(bucketMap).map(([bucket, count]) => ({
-      bucket,
-      count,
-    }));
-  }
-
-  private async getActivitySummary() {
-    const [created, updated, deleted] = await Promise.all([
-      this.prisma.auditLog.count({ where: { action: 'CREATE' } }),
-      this.prisma.auditLog.count({ where: { action: 'UPDATE' } }),
-      this.prisma.auditLog.count({ where: { action: 'DELETE' } }),
-    ]);
-
-    return { created, updated, deleted };
-  }
-
   private async computeVehicleCreatedTrend(): Promise<TrendRow[]> {
     return this.prisma.$queryRaw<TrendRow[]>`
       SELECT date("createdAt") AS date, COUNT(*)::int AS count
@@ -287,16 +212,6 @@ export class StatsService {
       WHERE "createdAt" >= now() - INTERVAL '7 days'
       GROUP BY date("createdAt")
       ORDER BY date("createdAt");
-    `;
-  }
-
-  private async computeDocumentExpiryTrend(): Promise<TrendRow[]> {
-    return this.prisma.$queryRaw<TrendRow[]>`
-      SELECT date("expiryDate") AS date, COUNT(*)::int AS count
-      FROM "vehicle_documents"
-      WHERE "expiryDate" >= now()
-      GROUP BY date("expiryDate")
-      ORDER BY date("expiryDate");
     `;
   }
 
@@ -424,77 +339,5 @@ export class StatsService {
     ];
 
     return orderedBuckets;
-  }
-
-  async getExpiringSoon(
-    query: ExpiringSoonQueryDto,
-  ): Promise<ExpiringSoonResponseDto[]> {
-    const withinDays = query.withinDays ?? 30;
-    const today = new Date();
-    const futureDate = new Date(
-      today.getTime() + withinDays * 24 * 60 * 60 * 1000,
-    );
-
-    const documents = await this.prisma.vehicleDocument.findMany({
-      where: {
-        expiryDate: { gte: today, lte: futureDate },
-      },
-      include: {
-        vehicle: {
-          include: {
-            category: true,
-            type: true,
-            owner: true,
-            driver: true,
-            location: true,
-          },
-        },
-        documentType: true,
-      },
-    });
-
-    return documents.map((doc) => {
-      const daysRemaining = Math.ceil(
-        (doc.expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-      );
-
-      const vehicle = doc.vehicle;
-      const vehicleDto: VehicleResponseDto = {
-        id: vehicle.id,
-        name: vehicle.name,
-        licensePlate: vehicle.licensePlate,
-        rcNumber: vehicle.rcNumber,
-        chassisNumber: vehicle.chassisNumber,
-        engineNumber: vehicle.engineNumber,
-        notes: vehicle.notes,
-        categoryId: vehicle.categoryId,
-        typeId: vehicle.typeId,
-        ownerId: vehicle.ownerId ?? null,
-        driverId: vehicle.driverId ?? null,
-        locationId: vehicle.locationId ?? null,
-        createdAt: vehicle.createdAt,
-        updatedAt: vehicle.updatedAt,
-        categoryName: vehicle.category?.name ?? null,
-        typeName: vehicle.type?.name ?? null,
-        ownerName: vehicle.owner?.name ?? null,
-        driverName: vehicle.driver?.name ?? null,
-        locationName: vehicle.location?.name ?? null,
-      };
-
-      return {
-        id: doc.id,
-        documentNo: doc.documentNo,
-        documentTypeId: doc.documentTypeId,
-        documentTypeName: doc.documentType?.name ?? '',
-        startDate: doc.startDate.toISOString(),
-        expiryDate: doc.expiryDate.toISOString(),
-        daysRemaining,
-        link: doc.link,
-        notes: doc.notes,
-        createdAt: doc.createdAt.toISOString(),
-        updatedAt: doc.updatedAt.toISOString(),
-        vehicle: vehicleDto,
-      };
-    });
   }
 }

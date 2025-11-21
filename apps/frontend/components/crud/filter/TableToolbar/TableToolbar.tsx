@@ -24,6 +24,11 @@ interface TableToolbarProps {
   filters: FiltersObject;
   setFilters: (filters: FiltersObject) => void;
 
+  /** Business filters configuration */
+  businessFiltersConfig?: FilterConfig[];
+  businessFilters?: FiltersObject;
+  setBusinessFilters?: (filters: FiltersObject) => void;
+
   /** Sort configuration */
   sortOptions?: SortOption[];
   sort?: { field?: string; order?: "asc" | "desc" };
@@ -34,8 +39,8 @@ interface TableToolbarProps {
 }
 
 /**
- * Flexible TableToolbar — use only the pieces you need:
- * search, filters, sort, reset.
+ * Flexible TableToolbar — supports:
+ * search, filters, business filters, sort, reset
  */
 export const TableToolbar: React.FC<TableToolbarProps> = ({
   showSearch = false,
@@ -45,12 +50,17 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   filtersConfig = [],
   filters,
   setFilters,
+  businessFiltersConfig = [],
+  businessFilters,
+  setBusinessFilters,
   sortOptions = [],
   sort = {},
   setSort,
   compact = true,
 }) => {
-  // 🧩 Handlers
+  // -------------------
+  // Handlers
+  // -------------------
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setFilters({ ...filters, search: e.target.value });
@@ -61,6 +71,21 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   const handleFiltersChange = useCallback(
     (newFilters: FiltersObject) => setFilters({ ...filters, ...newFilters }),
     [filters, setFilters]
+  );
+
+  const handleBusinessFiltersChange = useCallback(
+    (newFilters: FiltersObject) => {
+      const normalized: FiltersObject = {};
+
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+          normalized[key] = value;
+        }
+      });
+
+      setBusinessFilters?.(normalized);
+    },
+    [setBusinessFilters]
   );
 
   const selectedSort = useMemo(
@@ -82,12 +107,16 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
 
   const handleReset = useCallback(() => {
     setFilters({});
+    setBusinessFilters?.({});
     setSort?.({
       field: sortOptions[0]?.field ?? "createdAt",
       order: "desc",
     });
-  }, [setFilters, setSort, sortOptions]);
+  }, [setFilters, setBusinessFilters, setSort, sortOptions]);
 
+  // -------------------
+  // Render
+  // -------------------
   return (
     <div
       className={`w-full hover:border-border-hover hover:shadow-md transition-all duration-150 flex flex-col gap-3 bg-surface p-3 border border-border rounded-lg shadow-sm ${
@@ -95,6 +124,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
       }`}
     >
       <div className="flex-1 flex flex-col gap-3 w-full">
+        {/* Search */}
         {showSearch && (
           <AppInput
             placeholder="Search..."
@@ -105,6 +135,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
           />
         )}
 
+        {/* Normal Filters */}
         {showFilters && filtersConfig.length > 0 && (
           <FilterPanel
             filters={filters ?? {}}
@@ -112,8 +143,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
             fields={filtersConfig}
           />
         )}
+
+        {/* Business Filters */}
+        {businessFiltersConfig.length > 0 && setBusinessFilters && (
+          <FilterPanel
+            filters={businessFilters ?? {}}
+            onChange={handleBusinessFiltersChange}
+            fields={businessFiltersConfig}
+          />
+        )}
       </div>
 
+      {/* Sort + Reset */}
       {(showSort || showReset) && (
         <div className="flex flex-wrap items-center gap-2 justify-end">
           {showSort && sortOptions.length > 0 && (
@@ -126,10 +167,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 }))}
                 value={
                   selectedSort
-                    ? {
-                        label: selectedSort.label,
-                        value: selectedSort.field,
-                      }
+                    ? { label: selectedSort.label, value: selectedSort.field }
                     : undefined
                 }
                 onChange={handleSortField}

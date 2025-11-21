@@ -8,11 +8,21 @@ import {
   LinkageEntity,
 } from "@/configs/crud/linkage.config";
 import { toastUtils } from "@/lib/utils/toastUtils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ViewLinkagePage() {
-  const controller = useCRUDController<LinkageEntity>(linkageCrudConfig);
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const initialBusinessFilters = searchParams.has("businessFilters")
+    ? JSON.parse(searchParams.get("businessFilters")!)
+    : {};
+
+  const controller = useCRUDController<LinkageEntity>({
+    ...linkageCrudConfig,
+    defaultBusinessFilters: initialBusinessFilters,
+  });
 
   const [itemToDelete, setItemToDelete] = useState<LinkageEntity | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -37,12 +47,15 @@ export default function ViewLinkagePage() {
   return (
     <EntityViewPage<LinkageEntity>
       title="Linkages"
-      columns={linkageCrudConfig.columns}
+      columns={linkageCrudConfig.columns(controller.page, controller.pageSize)}
       data={controller.data}
       loading={controller.isLoading}
       filtersConfig={linkageCrudConfig.filters}
       filters={controller.filters}
       onFiltersChange={controller.setFilters}
+      businessFiltersConfig={linkageCrudConfig.businessFilters}
+      businessFilters={controller.businessFilters}
+      onBusinessFiltersChange={controller.setBusinessFilters}
       sortOptions={linkageCrudConfig.sortOptions}
       sort={controller.sort}
       onSortChange={controller.setSort}

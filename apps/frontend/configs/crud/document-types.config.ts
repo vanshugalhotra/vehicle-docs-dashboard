@@ -41,14 +41,15 @@ export const documentTypeLayout = {
 // -------------------------------
 // Table columns
 // -------------------------------
-export const documentTypeColumns: ColumnDef<DocumentType>[] = [
+export const getColumns = (
+  page: number,
+  pageSize: number
+): ColumnDef<DocumentType>[] => [
   {
     id: "serial",
     header: "#",
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => row.index + 1 + (page - 1) * pageSize,
     size: 40,
-    minSize: 40,
-    maxSize: 60,
   },
   { accessorKey: "name", header: "Name", enableSorting: true },
   {
@@ -83,7 +84,7 @@ export const documentTypeCrudConfig = {
   queryKey: "document-types",
   schema: documentTypeSchema,
   fields: documentTypeFields,
-  columns: documentTypeColumns,
+  columns: getColumns,
   layout: documentTypeLayout,
   filters: documentTypeFilters,
   sortOptions: documentTypeSortOptions,

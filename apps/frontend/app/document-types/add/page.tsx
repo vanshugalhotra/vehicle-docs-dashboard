@@ -132,7 +132,7 @@ export default function DocumentTypesPage() {
       table={
         <div className="flex flex-col gap-4">
           <DataTable
-            columns={documentTypeCrudConfig.columns}
+            columns={documentTypeCrudConfig.columns(page, pageSize)}
             data={documentTypes}
             loading={isLoading}
             onEdit={handleEdit}

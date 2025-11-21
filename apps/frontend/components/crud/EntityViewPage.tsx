@@ -30,6 +30,10 @@ interface EntityViewPageProps<TData extends { id?: string | number }> {
   filters: FiltersObject;
   onFiltersChange: (filters: FiltersObject) => void;
 
+  businessFiltersConfig?: FilterConfig[];
+  businessFilters?: FiltersObject;
+  onBusinessFiltersChange?: (filters: FiltersObject) => void;
+
   sortOptions?: SortOption[];
   sort?: SortState;
   onSortChange?: (sort: SortState) => void;
@@ -74,6 +78,9 @@ export function EntityViewPage<TData extends { id?: string | number }>({
   filtersConfig,
   filters,
   onFiltersChange,
+  businessFiltersConfig = [],
+  businessFilters,
+  onBusinessFiltersChange,
   sortOptions,
   sort,
   onSortChange,
@@ -136,6 +143,9 @@ export function EntityViewPage<TData extends { id?: string | number }>({
         filtersConfig={filtersConfig}
         filters={filters}
         setFilters={onFiltersChange}
+        businessFiltersConfig={businessFiltersConfig}
+        businessFilters={businessFilters}
+        setBusinessFilters={onBusinessFiltersChange}
         sortOptions={sortOptions}
         sort={sort}
         setSort={onSortChange}
