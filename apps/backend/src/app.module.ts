@@ -14,6 +14,7 @@ import { DocumentTypesModule } from './modules/document-type/document-types.modu
 import { VehicleDocumentsModule } from './modules/vehicle-document/vehicle-documents.module';
 import { ValidationModule } from './common/validation/validation.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { StatsModule } from './modules/stats/stats.module';
     DocumentTypesModule,
     VehicleDocumentsModule,
     StatsModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
