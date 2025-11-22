@@ -24,6 +24,7 @@ export interface DataTableProps<T> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onView?: (row: T) => void;
+  onRenew?: (row: T) => void;
   className?: string;
   sort?: SortState;
   setSort?: (sort: SortState) => void;
@@ -36,6 +37,7 @@ export const DataTable = <T extends object>({
   onEdit,
   onDelete,
   onView,
+  onRenew,
   className,
   sort,
   setSort,
@@ -67,7 +69,10 @@ export const DataTable = <T extends object>({
                   className="border-b border-border-subtle/50 bg-primary/8"
                 >
                   {headerGroup.headers.map((header) => {
-                    const colDef = header.column.columnDef as ColumnDef<T, unknown>;
+                    const colDef = header.column.columnDef as ColumnDef<
+                      T,
+                      unknown
+                    >;
                     const isSortable = colDef.enableSorting;
                     const field = header.column.id;
 
@@ -90,7 +95,12 @@ export const DataTable = <T extends object>({
                             label={
                               typeof colDef.header === "string"
                                 ? colDef.header
-                                : String(flexRender(colDef.header, header.getContext()))
+                                : String(
+                                    flexRender(
+                                      colDef.header,
+                                      header.getContext()
+                                    )
+                                  )
                             }
                             currentSort={
                               sort?.field && sort?.order
@@ -203,7 +213,7 @@ export const DataTable = <T extends object>({
                         className={clsx(
                           "px-6 py-4",
                           "sticky right-0 z-20 border-l border-border-subtle/20",
-                          index % 2 === 0 ? "bg-gray-50" : "bg-white",
+                          index % 2 === 0 ? "bg-gray-50" : "bg-white"
                         )}
                       >
                         <DataTableActions
@@ -211,6 +221,7 @@ export const DataTable = <T extends object>({
                           onEdit={onEdit}
                           onDelete={onDelete}
                           onView={onView}
+                          onRenew={onRenew}
                         />
                       </td>
                     )}

@@ -6,7 +6,6 @@ import {
   Link,
   Bell,
   Users,
-  Settings,
   Plus,
   FolderSymlink,
   CalendarSync,
@@ -16,7 +15,7 @@ import {
   Type,
   MapPin,
   ClipboardPlus,
-  NotebookText
+  NotebookText,
 } from "lucide-react";
 
 export type SidebarSize = "expanded" | "collapsed";
@@ -37,7 +36,6 @@ export interface SidebarItemConfig {
   children?: SidebarItemConfig[];
 }
 
-
 export const sidebarConfig: SidebarItemConfig[] = [
   {
     type: "brand",
@@ -47,6 +45,18 @@ export const sidebarConfig: SidebarItemConfig[] = [
     label: "Dashboard",
     icon: <LayoutDashboard size={24} />,
     path: "/",
+  },
+  {
+    label: "Linkages",
+    icon: <Link size={24} />,
+    children: [
+      { label: "Add Linkage", path: "/linkages/add", icon: <Plus size={20} /> },
+      {
+        label: "View Linkages",
+        path: "/linkages",
+        icon: <FolderSymlink size={20} />,
+      },
+    ],
   },
   {
     label: "Vehicles",
@@ -61,16 +71,40 @@ export const sidebarConfig: SidebarItemConfig[] = [
     icon: <FileText size={24} />,
     path: "/document-types",
     children: [
-      { label: "Add Document", path: "/document-types/add", icon: <ClipboardPlus size={20} /> },
-      { label: "View Documents", path: "/document-types", icon: <NotebookText size={20} /> },
+      {
+        label: "Add Document",
+        path: "/document-types/add",
+        icon: <ClipboardPlus size={20} />,
+      },
+      {
+        label: "View Documents",
+        path: "/document-types",
+        icon: <NotebookText size={20} />,
+      },
     ],
   },
+
   {
-    label: "Linkages",
-    icon: <Link size={24} />,
+    label: "Others",
+    icon: <Blinds size={24} />,
     children: [
-      { label: "Add Linkage", path: "/linkages/add", icon: <Plus size={20} /> },
-      { label: "View Linkages", path: "/linkages", icon: <FolderSymlink size={20} /> },
+      { label: "Drivers", path: "/others/drivers", icon: <Truck size={20} /> },
+      { label: "Owners", path: "/others/owners", icon: <Users size={20} /> },
+      {
+        label: "Categories",
+        path: "/others/vehicle-categories",
+        icon: <Layers2 size={20} />,
+      },
+      {
+        label: "Types",
+        path: "/others/vehicle-types",
+        icon: <Type size={20} />,
+      },
+      {
+        label: "Locations",
+        path: "/others/locations",
+        icon: <MapPin size={20} />,
+      },
     ],
   },
   {
@@ -82,23 +116,11 @@ export const sidebarConfig: SidebarItemConfig[] = [
         path: "/reminders/add",
         icon: <Plus size={20} />,
       },
-      { label: "View Reminders", path: "/reminders", icon: <CalendarSync size={20} /> },
+      {
+        label: "View Reminders",
+        path: "/reminders",
+        icon: <CalendarSync size={20} />,
+      },
     ],
-  },
-  {
-    label: "Others",
-    icon: <Blinds size={24} />,
-    children: [
-      { label: "Drivers", path: "/others/drivers", icon: <Truck size={20} /> },
-      { label: "Owners", path: "/others/owners", icon: <Users size={20} /> },
-      { label: "Categories", path: "/others/vehicle-categories", icon: <Layers2 size={20} /> },
-      { label: "Types", path: "/others/vehicle-types", icon: <Type size={20} /> },
-    { label: "Locations", path: "/others/locations", icon: <MapPin size={20} /> },
-    ],
-  },
-  {
-    label: "Settings",
-    icon: <Settings size={24} />,
-    path: "/settings",
   },
 ];

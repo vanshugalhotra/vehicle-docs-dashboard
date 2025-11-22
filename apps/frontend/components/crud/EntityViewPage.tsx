@@ -46,6 +46,7 @@ interface EntityViewPageProps<TData extends { id?: string | number }> {
   onExport?: () => void;
   onEdit?: (item: TData) => void;
   onView?: (item: TData) => void;
+  onRenew?: (item: TData) => void;
 
   // Delete Flow (external control)
   handleDelete?: (item: TData) => void;
@@ -90,6 +91,7 @@ export function EntityViewPage<TData extends { id?: string | number }>({
   onExport,
   onEdit,
   onView,
+  onRenew,
   handleDelete,
   confirmDelete,
   deleteLoading,
@@ -161,6 +163,7 @@ export function EntityViewPage<TData extends { id?: string | number }>({
           setSort={onSortChange}
           onView={onView}
           onEdit={onEdit}
+          onRenew={onRenew}
           onDelete={handleDelete}
         />
         <div className="border-t border-border/40">

@@ -30,6 +30,23 @@ export const linkageSchema = z.object({
   notes: z.string().optional().nullable(),
   link: z.string().optional().nullable(),
 });
+
+export const renewalSchema = z.object({
+  documentNo: z.string().min(1, "Document number is required"),
+  startDate: z
+    .union([z.string(), z.date()])
+    .refine(
+      (val) => val !== null && val !== undefined && val !== "",
+      "Start date is required"
+    ),
+  expiryDate: z
+    .union([z.string(), z.date()])
+    .refine(
+      (val) => val !== null && val !== undefined && val !== "",
+      "Expiry date is required"
+    ),
+});
+
 export type LinkageEntity = VehicleDocumentResponse;
 
 // =====================
