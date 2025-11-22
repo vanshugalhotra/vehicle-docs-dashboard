@@ -6,7 +6,6 @@ import {
   IsOptional,
   MaxLength,
   Matches,
-  IsUrl,
 } from 'class-validator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
@@ -59,7 +58,6 @@ export class CreateVehicleDocumentDto {
     required: false,
   })
   @IsOptional()
-  @IsUrl({}, { message: 'link must be a valid URL' })
   @Trim()
   link?: string;
 

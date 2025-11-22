@@ -86,12 +86,6 @@ export const Sidebar: React.FC = () => {
             <AppText size="caption" className="font-medium">
               © 2025 Yash Group.
             </AppText>
-            <div className="flex items-center gap-1">
-              <Heart className="w-3 h-3 text-red-500 fill-current" />
-              <AppText size="caption" className="font-normal">
-                Made by HelpMeFolks
-              </AppText>
-            </div>
           </div>
         ) : (
           <div className="flex justify-center p-2">
