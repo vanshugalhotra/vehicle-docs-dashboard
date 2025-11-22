@@ -2,8 +2,8 @@
 
 import React from "react";
 import { StatsSection } from "@/components/analytics/layout/StatsSection";
-import { MetricsGrid } from "@/components/analytics/Metrics/MetricsGrid";
-import { MetricCard } from "@/components/analytics/Metrics/MetricCard";
+import { MetricsGrid } from "@/components/analytics/Cards/MetricsGrid";
+import { MetricCard } from "@/components/analytics/Cards/MetricCard";
 import { AppText } from "@/components/ui/AppText";
 import { TrendingUp } from "lucide-react";
 import { dashboardMetricsConfig } from "@/configs/analytics/dashboardMetrics.config";

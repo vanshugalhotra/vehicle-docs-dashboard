@@ -19,7 +19,6 @@ export interface TrendApiItem {
   count: number;
 }
 
-
 export interface GroupedPoint {
   label: string;
   count: number;
@@ -47,52 +46,6 @@ export interface OverviewStats {
   vehicleCreatedTrend: Array<{ date: string; count: number }>;
 }
 
-
-/* ----------------------------------------------------
- * Expiring Documents Detailed Item
- * --------------------------------------------------*/
-
-export interface ExpiringDocument {
-  id: string;
-  documentNo: string;
-  documentTypeId: string;
-  documentTypeName: string;
-  startDate: string;
-  expiryDate: string;
-  daysRemaining: number;
-
-  link?: string | null;
-  notes?: string | null;
-
-  createdAt?: string;
-  updatedAt?: string;
-
-  vehicle: {
-    id: string;
-    name: string;
-    licensePlate: string | null;
-    rcNumber?: string;
-    chassisNumber?: string;
-    engineNumber?: string;
-    notes?: string | null;
-
-    categoryId?: string;
-    typeId?: string;
-    ownerId?: string;
-    driverId?: string;
-    locationId?: string;
-
-    createdAt?: string;
-    updatedAt?: string;
-
-    categoryName?: string;
-    typeName?: string;
-    ownerName?: string;
-    driverName?: string;
-    locationName?: string;
-  };
-}
-
 /* ----------------------------------------------------
  * Paginated Response Wrapper
  * --------------------------------------------------*/
@@ -100,4 +53,35 @@ export interface ExpiringDocument {
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
+}
+
+/* ----------------------------------------------------
+ * Vehicle Documents / Expiry Insights Types
+ * --------------------------------------------------*/
+
+export type DocumentStatus =
+  | "expired"
+  | "today"
+  | "in_1_day"
+  | "in_1_week"
+  | "in_1_month"
+  | "in_1_year";
+
+export interface VehicleDocumentItem {
+  id: string;
+  documentNo: string;
+  documentTypeName: string;
+  vehicleName: string;
+  expiryDate: string | Date;
+  vehicleId: string;
+}
+
+export interface VehicleDocumentStats {
+  items: VehicleDocumentItem[]; // top N items for the tab
+  totalDocuments: number; // total documents matching filter
+  totalVehicles: number; // unique vehicles matching filter     // % of fleet covered
+}
+export interface ExpiryInsights {
+  status: DocumentStatus;
+  data: VehicleDocumentStats;
 }

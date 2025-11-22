@@ -4,15 +4,18 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/utils/fetchWithAuth";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { statusToExpiryFilter } from "@/lib/utils/statusFilterCalculation";
 
 import {
   OverviewStats,
   GroupedPoint,
   TrendPoint,
   BucketPoint,
-  ExpiringDocument,
-  PaginatedResponse,
   TrendApiItem,
+  DocumentStatus,
+  VehicleDocumentItem,
+  PaginatedResponse,
+  VehicleDocumentStats,
 } from "@/lib/types/stats.types";
 
 /* ---------------------------------------------
@@ -23,7 +26,7 @@ export type StatsEndpoint =
   | "vehicles-grouped"
   | "vehicles-created-trend"
   | "documents-expiry-distribution"
-  | "documents-expiring-soon";
+  | "vehicle-document";
 
 export interface StatsParams {
   startDate?: string;
@@ -43,6 +46,9 @@ export interface StatsParams {
 
   vehicleId?: string;
   documentTypeId?: string;
+
+  status?: DocumentStatus;
+  top?: number; // number of items to return for tab display
 }
 
 const endpointMap: Record<StatsEndpoint, string> = {
@@ -50,7 +56,7 @@ const endpointMap: Record<StatsEndpoint, string> = {
   "vehicles-grouped": apiRoutes.stats.vehiclesGrouped,
   "vehicles-created-trend": apiRoutes.stats.vehiclesCreatedTrend,
   "documents-expiry-distribution": apiRoutes.stats.documentsExpiryDistribution,
-  "documents-expiring-soon": apiRoutes.stats.documentsExpiringSoon,
+  "vehicle-document": apiRoutes.vehicle_documents.base,
 };
 
 /* ---------------------------------------------
@@ -85,9 +91,6 @@ function normalizeTrend(raw: TrendApiItem[]): TrendPoint[] {
 
 const normalizeExpiryBuckets = (raw: BucketPoint[]): BucketPoint[] => raw ?? [];
 
-const normalizeExpiringDocs = (raw: ExpiringDocument[]): ExpiringDocument[] =>
-  raw ?? [];
-
 /* ---------------------------------------------
    Return types per endpoint
 ----------------------------------------------*/
@@ -96,54 +99,93 @@ type StatsResponseMap = {
   "vehicles-grouped": GroupedPoint[];
   "vehicles-created-trend": TrendPoint[];
   "documents-expiry-distribution": BucketPoint[];
-  "documents-expiring-soon": PaginatedResponse<ExpiringDocument>;
+  "vehicle-document": VehicleDocumentStats;
 };
 
 /* ---------------------------------------------
    Hook
 ----------------------------------------------*/
-/* ---------------------------------------------
-   Hook
-----------------------------------------------*/
 export function useStatsController<E extends StatsEndpoint>(
   endpoint: E,
-  initialParams?: StatsParams // <-- new
+  initialParams?: StatsParams
 ) {
   const [params, setParams] = useState<StatsParams>(initialParams || {});
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const url = endpointMap[endpoint];
 
   const queryKey = useMemo(
-    () => ["stats", endpoint, params, page, pageSize],
-    [endpoint, params, page, pageSize]
+    () => ["stats", endpoint, params],
+    [endpoint, params]
   );
 
   const queryFn = async (): Promise<unknown> => {
-    const base = new URL(
-      url,
+    // Standard endpoints
+    if (endpoint !== "vehicle-document") {
+      const base = new URL(
+        endpointMap[endpoint],
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost"
+      );
+
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          qs.set(key, String(value));
+        }
+      });
+      base.search = qs.toString();
+
+      return fetchWithAuth(base.toString());
+    }
+
+    // Vehicle document endpoint with status handling
+    const expiryFilter = params.status
+      ? statusToExpiryFilter(params.status)
+      : undefined;
+
+    // Fetch all to calculate totalVehicles and totalDocuments
+    const allBase = new URL(
+      endpointMap[endpoint],
       typeof window !== "undefined"
         ? window.location.origin
         : "http://localhost"
     );
-
-    const qs = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        qs.set(key, String(value));
-      }
-    });
-
-    if (endpoint === "documents-expiring-soon") {
-      qs.set("skip", String((page - 1) * pageSize));
-      qs.set("take", String(pageSize));
+    if (expiryFilter) {
+      allBase.searchParams.set(
+        "filters",
+        JSON.stringify({ expiryDate: expiryFilter })
+      );
     }
+    const allResponse = (await fetchWithAuth(
+      allBase.toString()
+    )) as PaginatedResponse<VehicleDocumentItem>;
 
-    base.search = qs.toString();
+    const items: VehicleDocumentItem[] = (allResponse.items ?? []).map(
+      (i: VehicleDocumentItem) => ({
+        id: i.id,
+        documentNo: i.documentNo,
+        documentTypeName: i.documentTypeName,
+        vehicleName: i.vehicleName,
+        expiryDate: i.expiryDate,
+        vehicleId: i.vehicleId,
+      })
+    );
 
-    return fetchWithAuth(base.toString());
+    const totalDocuments: number = allResponse.total ?? 0;
+    const vehicleIds = new Set(
+      allResponse.items?.map((i: VehicleDocumentItem) => i.vehicleId) ?? []
+    );
+    const totalVehicles = vehicleIds.size;
+
+    // Only return top N items for tab display
+    const topItems = items.slice(0, params.top ?? 3);
+
+    const result: VehicleDocumentStats = {
+      items: topItems,
+      totalDocuments,
+      totalVehicles,
+    };
+
+    return result;
   };
 
   const query = useQuery({
@@ -152,7 +194,6 @@ export function useStatsController<E extends StatsEndpoint>(
   });
 
   const raw = query.data;
-
   let data: StatsResponseMap[E] | undefined = undefined;
 
   /* ---------------------------------------------
@@ -178,24 +219,9 @@ export function useStatsController<E extends StatsEndpoint>(
         ) as StatsResponseMap[E];
         break;
 
-      case "documents-expiring-soon": {
-        const r = raw as
-          | PaginatedResponse<ExpiringDocument>
-          | ExpiringDocument[];
-
-        if (Array.isArray(r)) {
-          data = {
-            items: normalizeExpiringDocs(r),
-            total: r.length,
-          } as StatsResponseMap[E];
-        } else {
-          data = {
-            items: normalizeExpiringDocs(r.items),
-            total: r.total,
-          } as StatsResponseMap[E];
-        }
+      case "vehicle-document":
+        data = raw as VehicleDocumentStats as StatsResponseMap[E];
         break;
-      }
     }
   }
 
@@ -205,20 +231,10 @@ export function useStatsController<E extends StatsEndpoint>(
   return {
     raw: raw as StatsResponseMap[E] | undefined,
     data,
-
     isLoading: query.isLoading,
     error: query.error as Error | null,
-
     params,
     setParams,
-
     refetch: query.refetch,
-
-    page: endpoint === "documents-expiring-soon" ? page : undefined,
-    setPage: endpoint === "documents-expiring-soon" ? setPage : undefined,
-
-    pageSize: endpoint === "documents-expiring-soon" ? pageSize : undefined,
-    setPageSize:
-      endpoint === "documents-expiring-soon" ? setPageSize : undefined,
   };
 }

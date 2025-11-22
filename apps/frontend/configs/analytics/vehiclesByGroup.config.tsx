@@ -1,6 +1,6 @@
 import { GroupedPoint } from "@/lib/types/stats.types";
 import { BarChart, PieChart } from "@/components/analytics/Chart/index";
-import { MetricCard } from "@/components/analytics/Metrics/MetricCard";
+import { MetricCard } from "@/components/analytics/Cards/MetricCard";
 import React from "react";
 import { Car, MapPin, User, UserCheck } from "lucide-react";
 import { AppText } from "@/components/ui/AppText";

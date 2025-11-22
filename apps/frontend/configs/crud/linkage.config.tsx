@@ -253,7 +253,6 @@ export const linkageFiltersConfig: FilterConfig[] = [
     ],
   },
 ];
-
 // =====================
 // 🔹 Sort Options
 // =====================
