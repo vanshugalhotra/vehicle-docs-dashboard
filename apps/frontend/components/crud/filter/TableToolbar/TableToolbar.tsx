@@ -69,8 +69,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   );
 
   const handleFiltersChange = useCallback(
-    (newFilters: FiltersObject) => setFilters({ ...filters, ...newFilters }),
-    [filters, setFilters]
+    (newFilters: FiltersObject) => {
+      const normalized: FiltersObject = {};
+
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+          normalized[key] = value;
+        }
+      });
+
+      setFilters(normalized);
+    },
+    [setFilters]
   );
 
   const handleBusinessFiltersChange = useCallback(
