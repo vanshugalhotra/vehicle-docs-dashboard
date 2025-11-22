@@ -5,9 +5,11 @@ import { Option } from "@/components/ui/AppSelect";
 export interface FilterOption {
   label: string;
   value: string;
+  count?: number; 
+  icon?: React.ReactNode;
 }
 
-export type FilterControlType = "text" | "select" | "async-select" | "dateRange";
+export type FilterControlType = "text" | "select" | "async-select" | "dateRange" | "tab";
 
 export interface FilterConfig {
   key: string; // backend filter key

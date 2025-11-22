@@ -223,7 +223,7 @@ export const linkageFiltersConfig: FilterConfig[] = [
   {
     key: "expiryDate",
     label: "Status",
-    type: "select",
+    type: "tab",
     options: [
       { label: "All", value: "" },
       {
@@ -231,23 +231,23 @@ export const linkageFiltersConfig: FilterConfig[] = [
         value: JSON.stringify(statusToExpiryFilter("expired")),
       },
       {
-        label: "Expiring Today",
+        label: "Today",
         value: JSON.stringify(statusToExpiryFilter("today")),
       },
       {
-        label: "Expiring in 1 Day",
+        label: "1 Day",
         value: JSON.stringify(statusToExpiryFilter("in_1_day")),
       },
       {
-        label: "Expiring in 1 Week",
+        label: "1 Week",
         value: JSON.stringify(statusToExpiryFilter("in_1_week")),
       },
       {
-        label: "Expiring in 1 Month",
+        label: "1 Month",
         value: JSON.stringify(statusToExpiryFilter("in_1_month")),
       },
       {
-        label: "Expiring in 1 Year",
+        label: "1 Year",
         value: JSON.stringify(statusToExpiryFilter("in_1_year")),
       },
     ],

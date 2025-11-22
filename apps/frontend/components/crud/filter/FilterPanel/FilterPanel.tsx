@@ -40,12 +40,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <div className="grid w-full gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {fields.map((config) => (
-        <FilterRenderer
+        <div
           key={`${config.key}:${config.label}`}
-          config={config}
-          filters={filters}
-          onChange={handleChange}
-        />
+          className={config.type === "tab" ? "col-span-full" : ""}
+        >
+          <FilterRenderer
+            config={config}
+            filters={filters}
+            onChange={handleChange}
+          />
+        </div>
       ))}
     </div>
   );
