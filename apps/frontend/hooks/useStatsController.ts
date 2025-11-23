@@ -155,6 +155,8 @@ export function useStatsController<E extends StatsEndpoint>(
         JSON.stringify({ expiryDate: expiryFilter })
       );
     }
+    allBase.searchParams.set("sortBy", "expiryDate");
+    allBase.searchParams.set("order", "asc");
     const allResponse = (await fetchWithAuth(
       allBase.toString()
     )) as PaginatedResponse<VehicleDocumentItem>;

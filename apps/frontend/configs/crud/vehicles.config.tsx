@@ -291,7 +291,7 @@ export const vehicleBusinessFiltersConfig: FilterConfig[] = [
   {
     key: "unassigned",
     label: "Assignment Status",
-    type: "select",
+    type: "tab",
     options: [
       { label: "All", value: "" },
       { label: "Assigned", value: "false" },

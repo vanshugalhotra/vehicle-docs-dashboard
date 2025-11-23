@@ -28,38 +28,46 @@ export function statusToExpiryFilter(status: DocumentStatus) {
       };
 
     case "in_1_day": {
-      const d = new Date(now);
-      d.setDate(now.getDate() + 1);
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      const dayAfterTomorrow = new Date(now);
+      dayAfterTomorrow.setDate(now.getDate() + 2);
       return {
-        gte: now.toISOString(),
-        lte: endOfDay(d).toISOString(),
+        gte: startOfDay(tomorrow).toISOString(),
+        lte: endOfDay(tomorrow).toISOString(),
       };
     }
 
     case "in_1_week": {
-      const d = new Date(now);
-      d.setDate(now.getDate() + 7);
+      const dayAfterTomorrow = new Date(now);
+      dayAfterTomorrow.setDate(now.getDate() + 2);
+      const oneWeekFromNow = new Date(now);
+      oneWeekFromNow.setDate(now.getDate() + 7);
       return {
-        gte: now.toISOString(),
-        lte: endOfDay(d).toISOString(),
+        gte: startOfDay(dayAfterTomorrow).toISOString(),
+        lte: endOfDay(oneWeekFromNow).toISOString(),
       };
     }
 
     case "in_1_month": {
-      const d = new Date(now);
-      d.setMonth(now.getMonth() + 1);
+      const oneWeekFromNow = new Date(now);
+      oneWeekFromNow.setDate(now.getDate() + 8); // Start from day after 1 week
+      const oneMonthFromNow = new Date(now);
+      oneMonthFromNow.setMonth(now.getMonth() + 1);
       return {
-        gte: now.toISOString(),
-        lte: endOfDay(d).toISOString(),
+        gte: startOfDay(oneWeekFromNow).toISOString(),
+        lte: endOfDay(oneMonthFromNow).toISOString(),
       };
     }
 
     case "in_1_year": {
-      const d = new Date(now);
-      d.setFullYear(now.getFullYear() + 1);
+      const oneMonthFromNow = new Date(now);
+      oneMonthFromNow.setMonth(now.getMonth() + 2); // Start from day after 1 month
+      const oneYearFromNow = new Date(now);
+      oneYearFromNow.setFullYear(now.getFullYear() + 1);
       return {
-        gte: now.toISOString(),
-        lte: endOfDay(d).toISOString(),
+        gte: startOfDay(oneMonthFromNow).toISOString(),
+        lte: endOfDay(oneYearFromNow).toISOString(),
       };
     }
 

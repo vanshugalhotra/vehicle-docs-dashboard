@@ -44,7 +44,7 @@ export const ImpactSummaryCard: FC<SummaryCardProps> = ({
   const variantClasses = {
     minimal: "bg-white border border-gray-200",
     elevated:
-      "bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300",
+      "bg-white border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300",
   };
 
   return (
