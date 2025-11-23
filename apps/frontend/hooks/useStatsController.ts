@@ -117,77 +117,88 @@ export function useStatsController<E extends StatsEndpoint>(
   );
 
   const queryFn = async (): Promise<unknown> => {
-    // Standard endpoints
-    if (endpoint !== "vehicle-document") {
-      const base = new URL(
+    // Vehicle document endpoint with status handling
+    if (endpoint === "vehicle-document") {
+      const expiryFilter = params.status
+        ? statusToExpiryFilter(params.status)
+        : undefined;
+
+      // Fetch all to calculate totalVehicles and totalDocuments
+      const allBase = new URL(
         endpointMap[endpoint],
         typeof window !== "undefined"
           ? window.location.origin
           : "http://localhost"
       );
+      if (expiryFilter) {
+        allBase.searchParams.set(
+          "filters",
+          JSON.stringify({ expiryDate: expiryFilter })
+        );
+      }
+      allBase.searchParams.set("sortBy", "expiryDate");
+      allBase.searchParams.set("order", "asc");
+      const allResponse = (await fetchWithAuth(
+        allBase.toString()
+      )) as PaginatedResponse<VehicleDocumentItem>;
 
-      const qs = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          qs.set(key, String(value));
-        }
-      });
-      base.search = qs.toString();
+      const items: VehicleDocumentItem[] = (allResponse.items ?? []).map(
+        (i: VehicleDocumentItem) => ({
+          id: i.id,
+          documentNo: i.documentNo,
+          documentTypeName: i.documentTypeName,
+          vehicleName: i.vehicleName,
+          expiryDate: i.expiryDate,
+          vehicleId: i.vehicleId,
+        })
+      );
 
-      return fetchWithAuth(base.toString());
+      const totalDocuments: number = allResponse.total ?? 0;
+      const vehicleIds = new Set(
+        allResponse.items?.map((i: VehicleDocumentItem) => i.vehicleId) ?? []
+      );
+      const totalVehicles = vehicleIds.size;
+
+      // Only return top N items for tab display
+      const topItems = items.slice(0, params.top ?? 3);
+
+      const result: VehicleDocumentStats = {
+        items: topItems,
+        totalDocuments,
+        totalVehicles,
+      };
+
+      return result;
     }
 
-    // Vehicle document endpoint with status handling
-    const expiryFilter = params.status
-      ? statusToExpiryFilter(params.status)
-      : undefined;
-
-    // Fetch all to calculate totalVehicles and totalDocuments
-    const allBase = new URL(
+    // Standard endpoints
+    const base = new URL(
       endpointMap[endpoint],
       typeof window !== "undefined"
         ? window.location.origin
         : "http://localhost"
     );
-    if (expiryFilter) {
-      allBase.searchParams.set(
-        "filters",
-        JSON.stringify({ expiryDate: expiryFilter })
-      );
+
+    const qs = new URLSearchParams();
+    
+    if (endpoint === "documents-expiry-distribution") {
+      if (params.bucketSize !== undefined) {
+        qs.set("bucketSize", params.bucketSize.toString());
+      }
+      if (params.maxBucket !== undefined) {
+        qs.set("maxBucket", params.maxBucket.toString());
+      }
+    } else {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          qs.set(key, String(value));
+        }
+      });
     }
-    allBase.searchParams.set("sortBy", "expiryDate");
-    allBase.searchParams.set("order", "asc");
-    const allResponse = (await fetchWithAuth(
-      allBase.toString()
-    )) as PaginatedResponse<VehicleDocumentItem>;
+    
+    base.search = qs.toString();
 
-    const items: VehicleDocumentItem[] = (allResponse.items ?? []).map(
-      (i: VehicleDocumentItem) => ({
-        id: i.id,
-        documentNo: i.documentNo,
-        documentTypeName: i.documentTypeName,
-        vehicleName: i.vehicleName,
-        expiryDate: i.expiryDate,
-        vehicleId: i.vehicleId,
-      })
-    );
-
-    const totalDocuments: number = allResponse.total ?? 0;
-    const vehicleIds = new Set(
-      allResponse.items?.map((i: VehicleDocumentItem) => i.vehicleId) ?? []
-    );
-    const totalVehicles = vehicleIds.size;
-
-    // Only return top N items for tab display
-    const topItems = items.slice(0, params.top ?? 3);
-
-    const result: VehicleDocumentStats = {
-      items: topItems,
-      totalDocuments,
-      totalVehicles,
-    };
-
-    return result;
+    return fetchWithAuth(base.toString());
   };
 
   const query = useQuery({

@@ -18,7 +18,7 @@ import { chartTheme } from "../core/ChartTheme";
 import { DefaultTooltip, TooltipProps } from "../core/ChartToolTip";
 import { VerticalGradient } from "../core/ChartGradient";
 
-interface LineChartProps<T extends Record<string, string | number>> {
+interface LineChartProps<T> {
   data: T[];
   xKey: keyof T;
   yKey: keyof T;
@@ -32,11 +32,11 @@ interface LineChartProps<T extends Record<string, string | number>> {
   height?: number;
   width?: number | string;
   animate?: boolean;
-  hoverEffect?: boolean;
+  hoverEffect?: boolean; // Add missing prop
   customTooltip?: (props: TooltipProps) => React.ReactNode;
 }
 
-export const LineChart = <T extends Record<string, string | number>>({
+export const LineChart = <T,>({
   data,
   xKey,
   yKey,

@@ -9,15 +9,21 @@ import {
 import { ImpactSummaryCard } from "@/components/analytics/Cards/ImpactSummaryCard";
 import { LinkageCard } from "@/components/analytics/Cards/LinkageCard";
 import { AlertTriangle } from "lucide-react";
-import { ExpiryInsights, VehicleDocumentItem } from "@/lib/types/stats.types";
+import {
+  ExpiryInsights,
+  VehicleDocumentItem,
+  BucketPoint,
+} from "@/lib/types/stats.types";
 import { getExpireStatus } from "@/lib/utils/dateUtils";
 import { useRouter } from "next/navigation";
 import { AppText } from "@/components/ui/AppText";
+import { ExpiryInsightsCharts } from "../Chart/Sections/ExpiryInsightsCharts";
 
 interface ExpiryInsightsSectionProps {
-  data?: ExpiryInsights[]; // data for all tabs
+  data?: ExpiryInsights[];
   loading?: boolean;
-  totalFleet?: number; // optional, for fleet percentage calculation
+  totalFleet?: number;
+  expiryBuckets?: BucketPoint[];
 }
 
 // Map tab keys to the expected title values
@@ -37,6 +43,7 @@ export function ExpiryInsightsSection({
   data,
   loading,
   totalFleet,
+  expiryBuckets = [],
 }: ExpiryInsightsSectionProps) {
   const tabDataMap = useMemo(() => {
     const map: Record<string, ExpiryInsights> = {};
@@ -46,7 +53,6 @@ export function ExpiryInsightsSection({
     return map;
   }, [data]);
 
-  // Create tabs with counts
   const expiryTabs: TabConfig[] = useMemo(
     () => [
       {
@@ -78,11 +84,11 @@ export function ExpiryInsightsSection({
     ],
     [tabDataMap]
   );
+
   const router = useRouter();
+
   const renderTabContent = (activeKey: string) => {
     const tabData = tabDataMap[activeKey];
-
-    // Get the correct title for the cards
     const cardTitle = tabKeyToTitleMap[activeKey] || "expired";
 
     const numDocs = tabData?.data.totalDocuments ?? 0;
@@ -91,12 +97,7 @@ export function ExpiryInsightsSection({
       ? Math.round((numVehicles / totalFleet) * 100)
       : 0;
 
-    // Map top 3 VehicleDocumentItems to LinkageCard format
-    const topLinkages: {
-      documentType: string;
-      vehicleName: string;
-      expireStatus: string;
-    }[] =
+    const topLinkages =
       tabData?.data.items.slice(0, 3).map((item: VehicleDocumentItem) => ({
         documentType: item.documentTypeName,
         vehicleName: item.vehicleName,
@@ -105,17 +106,17 @@ export function ExpiryInsightsSection({
 
     return (
       <div className="space-y-6">
-        {/* Top Summary */}
         <ImpactSummaryCard
           numDocs={numDocs}
           numVehicles={numVehicles}
           fleetPercentage={fleetPercentage}
           title={cardTitle}
-          onViewAll={() => {router.push('/linkages')}}
+          onViewAll={() => router.push("/linkages")}
         />
 
-        {/* Top 3 Linkages */}
-        <AppText size="heading3" variant="secondary">Showing top 3 linkages affected</AppText>
+        <AppText size="heading3" variant="secondary">
+          Showing top 3 linkages affected
+        </AppText>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
           {topLinkages.map((linkage, idx) => (
             <LinkageCard
@@ -139,11 +140,15 @@ export function ExpiryInsightsSection({
       loading={loading}
       className="mt-8"
     >
+      {/* Tabs + top linkages */}
       <TabbedSection
         tabs={expiryTabs}
         renderContent={(activeKey) => renderTabContent(activeKey as string)}
         showDivider={false}
       />
+
+      {/* Charts section */}
+      <ExpiryInsightsCharts expiryBuckets={expiryBuckets} />
     </StatsSection>
   );
 }

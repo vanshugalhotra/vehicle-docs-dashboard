@@ -170,6 +170,10 @@ export default function HomePage() {
     day: "numeric",
   });
 
+  const expiryDistribution = useStatsController(
+    "documents-expiry-distribution"
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* HERO SECTION */}
@@ -217,6 +221,7 @@ export default function HomePage() {
           data={expiryInsights}
           loading={isExpiringLoading}
           totalFleet={overviewData?.totalVehicles}
+          expiryBuckets={expiryDistribution.data}
         />
 
         {/* VEHICLES BY GROUP */}

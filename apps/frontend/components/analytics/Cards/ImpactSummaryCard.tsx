@@ -140,7 +140,7 @@ export const ImpactSummaryCard: FC<SummaryCardProps> = ({
         {/* CTA Section */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <AppText size="body" className="text-gray-500">
-            {fleetPercentage}% of fleet vehicles affected
+            {fleetPercentage}% of fleet affected
           </AppText>
 
           <AppButton
