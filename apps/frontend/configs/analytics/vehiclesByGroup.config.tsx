@@ -83,7 +83,10 @@ const renderTop3Cards = (
   variant: "default" | "linear" | "minimal",
   groupLabel?: string
 ): React.ReactNode => {
-  const top3 = data.sort((a, b) => b.count - a.count).slice(0, 3);
+  // Create a copy before sorting to handle immutable data
+  const top3 = data
+    ? [...data].sort((a, b) => b.count - a.count).slice(0, 3)
+    : [];
 
   return (
     <div className="flex flex-col gap-3">

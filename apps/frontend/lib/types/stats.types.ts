@@ -85,3 +85,32 @@ export interface ExpiryInsights {
   status: DocumentStatus;
   data: VehicleDocumentStats;
 }
+
+export interface StatsParams {
+  startDate?: string;
+  endDate?: string;
+
+  categoryId?: string;
+  typeId?: string;
+  locationId?: string;
+  ownerId?: string;
+
+  search?: string;
+
+  groupBy?: "category" | "location" | "owner" | "driver";
+  bucketSize?: number;
+  maxBucket?: number;
+  withinDays?: number;
+
+  vehicleId?: string;
+  documentTypeId?: string;
+
+  status?: DocumentStatus;
+  top?: number; // number of items to return for tab display
+}
+
+export type StatsEndpoint =
+  | "overview"
+  | "vehicles-grouped"
+  | "documents-expiry-distribution"
+  | "vehicle-document";
