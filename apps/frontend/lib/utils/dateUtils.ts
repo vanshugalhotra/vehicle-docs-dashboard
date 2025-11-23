@@ -45,3 +45,28 @@ export function timeAgo(date: string | Date | null | undefined): string {
 
   return "just now";
 }
+
+// Helper function to calculate days difference and generate status text
+export const getExpireStatus = (expiryDate: string): string => {
+  const today = new Date();
+  const expiry = new Date(expiryDate);
+  
+  // Reset time part for accurate day calculation
+  today.setHours(0, 0, 0, 0);
+  expiry.setHours(0, 0, 0, 0);
+  
+  const diffTime = expiry.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return "Expires today";
+  } else if (diffDays === 1) {
+    return "Expires tomorrow";
+  } else if (diffDays > 1) {
+    return `Expires in ${diffDays} days`;
+  } else if (diffDays === -1) {
+    return "Expired yesterday";
+  } else {
+    return `Expired ${Math.abs(diffDays)} days ago`;
+  }
+};

@@ -6,6 +6,7 @@ import { FilterTextInput } from "./FilterTextInput/FilterTextInput";
 import { FilterSelect } from "./FilterSelect/FilterSelect";
 import { FilterAsyncSelect } from "./FilterAsyncSelect/FilterAsyncSelect";
 import { FilterDateRange } from "./FilterDateRange/FilterDateRange";
+import { FilterTabGroup } from "./FilterTabGroup/FilterTabGroup";
 
 interface FilterRendererProps {
   config: FilterConfig;
@@ -65,6 +66,16 @@ export const FilterRenderer: React.FC<FilterRendererProps> = ({
         />
       );
     }
+
+    case "tab":
+      return (
+        <FilterTabGroup
+          label={config.label}
+          options={config.options ?? []}
+          value={(value as string) ?? ""}
+          onChange={(v) => onChange(config.key, v)}
+        />
+      );
 
     default:
       return null;

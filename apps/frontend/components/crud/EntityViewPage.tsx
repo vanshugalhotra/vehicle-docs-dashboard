@@ -68,7 +68,7 @@ interface EntityViewPageProps<TData extends { id?: string | number }> {
 }
 
 /**
- * 🧭 EntityViewPage
+ * EntityViewPage
  * Reusable listing layout — HeaderBar + Filters + DataTable + Pagination + external delete flow.
  */
 export function EntityViewPage<TData extends { id?: string | number }>({

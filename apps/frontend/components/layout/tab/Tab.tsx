@@ -5,7 +5,7 @@ import clsx from "clsx";
 
 export interface TabItem {
   key: string | number;
-  label: string;
+  label: ReactNode;
   icon?: ReactNode;
   disabled?: boolean;
 }
@@ -133,7 +133,7 @@ export const Tabs: React.FC<TabsProps> = ({
           >
             <div className="flex items-center gap-2">
               {item.icon && <span className="shrink-0">{item.icon}</span>}
-              <span>{item.label}</span>
+              {item.label}
             </div>
           </button>
         );

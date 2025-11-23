@@ -9,21 +9,13 @@ import {
   renewalSchema,
 } from "@/configs/crud/linkage.config";
 import { toastUtils } from "@/lib/utils/toastUtils";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import FormModal from "@/components/crud/Form/FormModal";
 
 export default function LinkagePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const initialBusinessFilters = searchParams.has("businessFilters")
-    ? JSON.parse(searchParams.get("businessFilters")!)
-    : {};
-
-  const controller = useCRUDController<LinkageEntity>({
-    ...linkageCrudConfig,
-    defaultBusinessFilters: initialBusinessFilters,
-  });
+  const controller = useCRUDController<LinkageEntity>(linkageCrudConfig);
 
   // ---------------- Renewal State ----------------
   const [renewOpen, setRenewOpen] = useState(false);
@@ -93,9 +85,6 @@ export default function LinkagePage() {
         filtersConfig={linkageCrudConfig.filters}
         filters={controller.filters}
         onFiltersChange={controller.setFilters}
-        businessFiltersConfig={linkageCrudConfig.businessFilters}
-        businessFilters={controller.businessFilters}
-        onBusinessFiltersChange={controller.setBusinessFilters}
         sortOptions={linkageCrudConfig.sortOptions}
         sort={controller.sort}
         onSortChange={controller.setSort}

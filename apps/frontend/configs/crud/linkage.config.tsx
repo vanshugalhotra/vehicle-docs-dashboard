@@ -7,6 +7,7 @@ import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
+import { statusToExpiryFilter } from "@/lib/utils/statusFilterCalculation";
 
 // =====================
 // 🔹 Schema
@@ -219,30 +220,50 @@ export const linkageFiltersConfig: FilterConfig[] = [
     label: "Expiry Date",
     type: "dateRange", // new date range filter
   },
+  {
+    key: "expiryDate",
+    label: "Status",
+    type: "tab",
+    options: [
+      { label: "All", value: "" },
+      {
+        label: "Expired",
+        value: JSON.stringify(statusToExpiryFilter("expired")),
+      },
+      {
+        label: "Today",
+        value: JSON.stringify(statusToExpiryFilter("today")),
+      },
+      {
+        label: "1 Day",
+        value: JSON.stringify(statusToExpiryFilter("in_1_day")),
+      },
+      {
+        label: "1 Week",
+        value: JSON.stringify(statusToExpiryFilter("in_1_week")),
+      },
+      {
+        label: "1 Month",
+        value: JSON.stringify(statusToExpiryFilter("in_1_month")),
+      },
+      {
+        label: "1 Year",
+        value: JSON.stringify(statusToExpiryFilter("in_1_year")),
+      },
+    ],
+  },
 ];
-
 // =====================
 // 🔹 Sort Options
 // =====================
 export const linkageSortOptions: SortOption[] = [
-  { field: "expiryDate", label: "Expiry Date", default: true },
+  { field: "updatedAt", label: "Modified Date", default: true },
+  { field: "expiryDate", label: "Expiry Date" },
   { field: "startDate", label: "Start Date" },
   { field: "documentNo", label: "Document No" },
 ];
 
-export const linkageBusinessFiltersConfig: FilterConfig[] = [
-  {
-    key: "status",
-    label: "Status",
-    type: "select",
-    options: [
-      { label: "All", value: "" },
-      { label: "Active", value: "active" },
-      { label: "Expiring Soon (30 days)", value: "expiringSoon" },
-      { label: "Expired", value: "expired" },
-    ],
-  },
-];
+export const linkageBusinessFiltersConfig: FilterConfig[] = [];
 
 // =====================
 // 🔹 CRUD Config

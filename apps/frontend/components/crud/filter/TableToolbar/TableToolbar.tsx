@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { ArrowUpDown, X, Search } from "lucide-react";
+import { ArrowUpDown, X, Search, Filter } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppSelect, Option } from "@/components/ui/AppSelect";
 import { AppInput } from "@/components/ui/AppInput";
@@ -56,7 +56,6 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   sortOptions = [],
   sort = {},
   setSort,
-  compact = true,
 }) => {
   // -------------------
   // Handlers
@@ -69,8 +68,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   );
 
   const handleFiltersChange = useCallback(
-    (newFilters: FiltersObject) => setFilters({ ...filters, ...newFilters }),
-    [filters, setFilters]
+    (newFilters: FiltersObject) => {
+      const normalized: FiltersObject = {};
+
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+          normalized[key] = value;
+        }
+      });
+
+      setFilters(normalized);
+    },
+    [setFilters]
   );
 
   const handleBusinessFiltersChange = useCallback(
@@ -114,53 +123,49 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     });
   }, [setFilters, setBusinessFilters, setSort, sortOptions]);
 
+  // Count active filters for badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    
+    // Count normal filters (excluding search)
+    Object.entries(filters).forEach(([key, value]) => {
+      if (key !== 'search' && value !== "" && value !== null && value !== undefined) {
+        count++;
+      }
+    });
+    
+    // Count business filters
+    if (businessFilters) {
+      Object.values(businessFilters).forEach(value => {
+        if (value !== "" && value !== null && value !== undefined) {
+          count++;
+        }
+      });
+    }
+    
+    return count;
+  }, [filters, businessFilters]);
+
+  const hasActiveFilters = activeFilterCount > 0;
+
   // -------------------
   // Render
   // -------------------
   return (
-    <div
-      className={`w-full hover:border-border-hover hover:shadow-md transition-all duration-150 flex flex-col gap-3 bg-surface p-3 border border-border rounded-lg shadow-sm ${
-        compact ? "md:flex-row md:items-end md:justify-between" : ""
-      }`}
-    >
-      <div className="flex-1 flex flex-col gap-3 w-full">
-        {/* Search */}
-        {showSearch && (
-          <AppInput
-            placeholder="Search..."
-            value={(filters.search as string) ?? ""}
-            onChange={handleSearch}
-            prefixIcon={<Search className="h-4 w-4 text-muted-foreground" />}
-            className="max-w-sm"
-          />
-        )}
-
-        {/* Normal Filters */}
-        {showFilters && filtersConfig.length > 0 && (
-          <FilterPanel
-            filters={filters ?? {}}
-            onChange={handleFiltersChange}
-            fields={filtersConfig}
-          />
-        )}
-
-        {/* Business Filters */}
-        {businessFiltersConfig.length > 0 && setBusinessFilters && (
-          <FilterPanel
-            filters={businessFilters ?? {}}
-            onChange={handleBusinessFiltersChange}
-            fields={businessFiltersConfig}
-          />
-        )}
-      </div>
-
-      {/* Sort + Reset */}
+    <div className="w-full flex flex-col gap-4">
+      {/* Sort & Reset Bar - FIRST */}
       {(showSort || showReset) && (
-        <div className="flex flex-wrap items-center gap-2 justify-end">
+        <div className="w-full flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-surface p-4 border border-border rounded-lg shadow-sm">
+          {/* Left side - Sort controls */}
           {showSort && sortOptions.length > 0 && (
-            <>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ArrowUpDown className="h-4 w-4" />
+                <span className="font-medium">Sort by</span>
+              </div>
+              
               <AppSelect
-                placeholder="Sort by..."
+                placeholder="Select field..."
                 options={sortOptions.map((s) => ({
                   label: s.label,
                   value: s.field,
@@ -171,38 +176,90 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     : undefined
                 }
                 onChange={handleSortField}
-                className="min-w-40"
+                className="min-w-48"
               />
 
               {sort.field && (
                 <AppButton
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={toggleSortOrder}
-                  aria-label="Toggle sort order"
+                  aria-label={`Sort ${sort.order === 'asc' ? 'descending' : 'ascending'}`}
+                  className="flex items-center gap-2"
                 >
-                  <ArrowUpDown
-                    className={`h-4 w-4 transition-transform ${
-                      sort.order === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="capitalize">{sort.order}</span>
                 </AppButton>
               )}
-            </>
+            </div>
           )}
 
+          {/* Right side - Reset button */}
           {showReset && (
             <AppButton
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleReset}
-              title="Reset all"
+              className="flex items-center gap-2 sm:ml-auto"
             >
               <X className="h-4 w-4" />
+              <span>Reset</span>
             </AppButton>
           )}
         </div>
       )}
+
+      {/* Filters Section - SECOND */}
+      {(showFilters && filtersConfig.length > 0) || 
+       (businessFiltersConfig.length > 0 && setBusinessFilters) || 
+       showSearch ? (
+        <div className="w-full flex flex-col gap-4 bg-surface p-4 border border-border rounded-lg shadow-sm">
+          {/* Header with filter count */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+              {hasActiveFilters && (
+                <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {/* Search */}
+            {showSearch && (
+              <div className="max-w-sm">
+                <AppInput
+                  placeholder="Search..."
+                  value={(filters.search as string) ?? ""}
+                  onChange={handleSearch}
+                  prefixIcon={<Search className="h-4 w-4 text-muted-foreground" />}
+                />
+              </div>
+            )}
+
+            {/* Normal Filters */}
+            {showFilters && filtersConfig.length > 0 && (
+              <FilterPanel
+                filters={filters ?? {}}
+                onChange={handleFiltersChange}
+                fields={filtersConfig}
+              />
+            )}
+
+            {/* Business Filters */}
+            {businessFiltersConfig.length > 0 && setBusinessFilters && (
+              <FilterPanel
+                filters={businessFilters ?? {}}
+                onChange={handleBusinessFiltersChange}
+                fields={businessFiltersConfig}
+              />
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

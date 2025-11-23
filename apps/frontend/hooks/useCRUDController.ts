@@ -60,12 +60,22 @@ export function useCRUDController<
         params.set("sortBy", sort.field);
         params.set("order", sort.order ?? "desc");
       }
+      const { search: searchTerm, ...otherFilters } = filters;
+
+      const parsedFilters = Object.fromEntries(
+        Object.entries(otherFilters).map(([key, value]) => {
+          try {
+            return [key, typeof value === "string" ? JSON.parse(value) : value];
+          } catch {
+            return [key, value];
+          }
+        })
+      );
 
       // -------------------
       // Serialize normal filters
       // -------------------
-      const { search: searchTerm, ...otherFilters } = filters;
-      const serializedFilters = serializeFilters(otherFilters);
+      const serializedFilters = serializeFilters(parsedFilters);
       if (serializedFilters) {
         params.set("filters", serializedFilters);
       }

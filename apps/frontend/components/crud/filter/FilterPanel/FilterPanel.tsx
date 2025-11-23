@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useCallback } from "react";
-import { FilterConfig, FiltersObject, FilterValue } from "@/lib/types/filter.types";
+import {
+  FilterConfig,
+  FiltersObject,
+  FilterValue,
+} from "@/lib/types/filter.types";
 import { FilterRenderer } from "../FilterRenderer";
 
 interface FilterPanelProps {
@@ -36,12 +40,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <div className="grid w-full gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {fields.map((config) => (
-        <FilterRenderer
-          key={config.key}
-          config={config}
-          filters={filters}
-          onChange={handleChange}
-        />
+        <div
+          key={`${config.key}:${config.label}`}
+          className={config.type === "tab" ? "col-span-full" : ""}
+        >
+          <FilterRenderer
+            config={config}
+            filters={filters}
+            onChange={handleChange}
+          />
+        </div>
       ))}
     </div>
   );

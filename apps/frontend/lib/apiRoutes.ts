@@ -50,6 +50,5 @@ export const apiRoutes = {
     vehiclesGrouped: `${API_URL}/stats/vehicles/grouped`,
     vehiclesCreatedTrend: `${API_URL}/stats/vehicles/created-trend`,
     documentsExpiryDistribution: `${API_URL}/stats/documents/expiry-distribution`,
-    documentsExpiringSoon: `${API_URL}/stats/documents/expiring-soon`,
   },
 };
