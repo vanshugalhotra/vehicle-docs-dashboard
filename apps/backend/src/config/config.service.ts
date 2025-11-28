@@ -8,12 +8,20 @@ export interface AppConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   PORT: number;
   JWT_SECRET: string;
+
   SMTP_HOST: string;
   SMTP_PORT: number;
   SMTP_USER: string;
   SMTP_PASS: string;
+
   TZ: string;
   ALLOWED_ORIGINS: string;
+
+  REMINDER_TIME: string; // e.g., "08:00"
+  REMINDER_TIMEZONE: string; // e.g., "Asia/Kolkata"
+  REMINDER_SKIP_EMPTY: boolean; // true/false
+  REMINDER_MAX_RETRIES: number; // default 3
+  REMINDER_BACKOFF_BASE_MS: number; // default 1000
 }
 
 @Injectable()
@@ -23,7 +31,6 @@ export class ConfigService {
   constructor() {
     let envFile = `.env.${process.env.NODE_ENV || 'development'}`;
     if (!fs.existsSync(envFile)) {
-      // fallback to .env if the specific file doesn't exist
       envFile = '.env';
     }
 
@@ -35,13 +42,22 @@ export class ConfigService {
         .valid('development', 'production', 'test')
         .default('development'),
       PORT: Joi.number().default(3000),
+
       JWT_SECRET: Joi.string().required(),
+
       SMTP_HOST: Joi.string().required(),
       SMTP_PORT: Joi.number().required(),
       SMTP_USER: Joi.string().required(),
       SMTP_PASS: Joi.string().required(),
+
       TZ: Joi.string().default('UTC'),
       ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
+
+      REMINDER_TIME: Joi.string().default('08:00'),
+      REMINDER_TIMEZONE: Joi.string().default('Asia/Kolkata'),
+      REMINDER_SKIP_EMPTY: Joi.boolean().default(true),
+      REMINDER_MAX_RETRIES: Joi.number().default(3),
+      REMINDER_BACKOFF_BASE_MS: Joi.number().default(1000),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });
