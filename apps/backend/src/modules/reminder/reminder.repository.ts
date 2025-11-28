@@ -21,6 +21,16 @@ export class ReminderRepository {
     private readonly logger: LoggerService,
   ) {}
 
+  async getActiveConfigs(): Promise<ReminderConfig[]> {
+    return this.prisma.reminderConfig.findMany({ where: { enabled: true } });
+  }
+
+  async getAllDocuments(): Promise<{ id: string; expiryDate: Date }[]> {
+    return this.prisma.vehicleDocument.findMany({
+      select: { id: true, expiryDate: true },
+    });
+  }
+
   // ---------------------------------------------------------
   // QUEUE OPERATIONS
   // ---------------------------------------------------------

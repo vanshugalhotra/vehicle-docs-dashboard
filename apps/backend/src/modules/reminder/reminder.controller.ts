@@ -26,11 +26,15 @@ import {
   ReminderQueueResponseDto,
   ReminderRecipientResponseDto,
 } from './dto/reminder-response.dto';
+import { ReminderSchedulerService } from './reminder-scheduler.service';
 
 @ApiTags('Reminders')
 @Controller({ path: 'reminders', version: '1' })
 export class ReminderController {
-  constructor(private readonly service: ReminderService) {}
+  constructor(
+    private readonly service: ReminderService,
+    private readonly scheduler: ReminderSchedulerService,
+  ) {}
 
   // ────────────────────────────────
   // REMINDER CONFIG
@@ -111,5 +115,15 @@ export class ReminderController {
   @ApiResponse({ status: 200, type: [ReminderQueueResponseDto] })
   async getQueue(@Query('days') days?: number) {
     return this.service.getQueueList({ days });
+  }
+
+  // ────────────────────────────────
+  // MANUAL RESCHEDULE ENDPOINT
+  // ────────────────────────────────
+  @Post('reschedule')
+  @ApiResponse({ status: 200 })
+  async rescheduleAllDocuments() {
+    await this.scheduler.rescheduleAllDocuments();
+    return { success: true, message: 'Rescheduling triggered.' };
   }
 }
