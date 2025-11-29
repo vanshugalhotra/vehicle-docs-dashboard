@@ -31,6 +31,11 @@ export class ReminderRepository {
     });
   }
 
+  async clearQueue(): Promise<void> {
+    await this.prisma.reminderQueue.deleteMany({});
+    this.logger.warn('ReminderQueue cleared - full rebuild required.');
+  }
+
   // ---------------------------------------------------------
   // QUEUE OPERATIONS
   // ---------------------------------------------------------

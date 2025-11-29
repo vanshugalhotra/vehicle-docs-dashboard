@@ -1,5 +1,3 @@
-// src/lib/utils/statusUtils.ts
-
 export type DocumentStatus =
   | "all"
   | "expired"

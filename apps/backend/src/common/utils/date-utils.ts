@@ -1,5 +1,4 @@
 /**
- * Simple date utilities without using date-fns.
  * All functions return new Date() instances to avoid mutation.
  */
 
@@ -56,4 +55,17 @@ export function isDateInRange(date: Date, start: Date, end: Date): boolean {
   return (
     target >= startOfDay(start).getTime() && target <= endOfDay(end).getTime()
   );
+}
+
+export function calculateDaysRemaining(expiryDate: Date): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const exp = new Date(expiryDate);
+  exp.setHours(0, 0, 0, 0);
+
+  const diffMs = exp.getTime() - today.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  return Math.ceil(diffDays);
 }

@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ReminderRepository } from './reminder.repository';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { OnEvent } from '@nestjs/event-emitter';
+import {
+  startOfDay,
+  calculateDaysRemaining,
+} from 'src/common/utils/date-utils';
 
 @Injectable()
 export class ReminderSchedulerService {
@@ -23,56 +27,107 @@ export class ReminderSchedulerService {
     await this.scheduleRemindersForDocument(payload.id, payload.expiryDate);
   }
 
-  // -------------------------------
-  // SINGLE DOCUMENT SCHEDULING
-  // -------------------------------
   async scheduleRemindersForDocument(
     vehicleDocumentId: string,
     expiryDate: Date,
   ) {
-    // Fetch all active reminder configs via repo
     const configs = await this.repo.getActiveConfigs();
     if (!configs.length) {
-      this.logger.debug('No active ReminderConfigs, skipping scheduling');
+      this.logger.debug('No active ReminderConfigs.');
       return;
     }
 
-    for (const config of configs) {
-      const scheduledAt = new Date(expiryDate);
-      scheduledAt.setDate(scheduledAt.getDate() - config.offsetDays);
+    const today = startOfDay(new Date());
+    const remainingDays = calculateDaysRemaining(expiryDate);
 
-      if (scheduledAt < new Date()) {
+    // ------------------------------
+    // EXPIRED DOCUMENTS (remainingDays < 0)
+    // ------------------------------
+    if (remainingDays < 0) {
+      const zeroConfig = configs.find((c) => c.offsetDays === 0);
+
+      if (!zeroConfig) {
         this.logger.debug(
-          `Skipping past reminder: doc=${vehicleDocumentId}, config=${config.id}, scheduledAt=${String(scheduledAt)}`,
+          `Expired doc=${vehicleDocumentId} but no 0-day config exists. Skipping.`,
         );
-        continue;
+        return;
       }
 
-      // Use repo to check duplicates
+      const scheduledAt = today;
+
       const exists = await this.repo.existsQueueEntry(
         vehicleDocumentId,
-        config.id,
+        zeroConfig.id,
         scheduledAt,
       );
 
       if (exists) {
         this.logger.debug(
-          `Queue entry exists: doc=${vehicleDocumentId}, config=${config.id}, scheduledAt=${String(scheduledAt)}`,
+          `Expired-doc reminder already exists for doc=${vehicleDocumentId}`,
         );
-        continue;
+        return;
       }
 
-      // Use repo to create queue entry
       await this.repo.createQueueEntry({
         vehicleDocumentId,
-        reminderConfigId: config.id,
+        reminderConfigId: zeroConfig.id,
         scheduledAt,
       });
 
       this.logger.info(
-        `Scheduled reminder: doc=${vehicleDocumentId}, config=${config.id}, scheduledAt=${String(scheduledAt)}`,
+        `Scheduled EXPIRED reminder: doc=${vehicleDocumentId}, config=${zeroConfig.id}, scheduledAt=${scheduledAt.toISOString()}`,
       );
+
+      return;
     }
+
+    // ------------------------------
+    // NON-EXPIRED DOCUMENTS (remainingDays >= 0)
+    // ------------------------------
+
+    const sorted = configs.sort((a, b) => a.offsetDays - b.offsetDays);
+
+    const chosen = sorted.find((c) => remainingDays <= c.offsetDays);
+
+    if (!chosen) {
+      this.logger.debug(
+        `No matching bucket for remaining=${remainingDays}, doc=${vehicleDocumentId}`,
+      );
+      return;
+    }
+
+    let scheduledAt = new Date(expiryDate);
+    scheduledAt.setDate(scheduledAt.getDate() - chosen.offsetDays);
+
+    // Normalize for safety
+    const scheduledDay = startOfDay(scheduledAt);
+
+    if (scheduledDay < today) {
+      scheduledAt = today;
+    }
+
+    const exists = await this.repo.existsQueueEntry(
+      vehicleDocumentId,
+      chosen.id,
+      scheduledAt,
+    );
+
+    if (exists) {
+      this.logger.debug(
+        `Bucket reminder already exists for doc=${vehicleDocumentId}, config=${chosen.id}`,
+      );
+      return;
+    }
+
+    await this.repo.createQueueEntry({
+      vehicleDocumentId,
+      reminderConfigId: chosen.id,
+      scheduledAt,
+    });
+
+    this.logger.info(
+      `Scheduled bucket reminder: doc=${vehicleDocumentId}, config=${chosen.id}, scheduledAt=${scheduledAt.toISOString()}`,
+    );
   }
 
   // -------------------------------
@@ -99,6 +154,9 @@ export class ReminderSchedulerService {
   // -------------------------------
   async rescheduleAllDocuments() {
     this.logger.info('Rescheduling reminders for all VehicleDocuments...');
+
+    await this.repo.clearQueue(); // clear the queue
+
     const documents = await this.repo.getAllDocuments();
 
     // Idempotent: repo handles duplicates internally

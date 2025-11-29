@@ -1,3 +1,4 @@
+import { calculateDaysRemaining } from 'src/common/utils/date-utils';
 import { VehicleDocument, Vehicle, DocumentType } from '@prisma/client';
 import { VehicleDocumentResponseDto } from './dto/vehicle-document-response.dto';
 
@@ -9,14 +10,7 @@ type VehicleDocumentWithRelations = VehicleDocument & {
 export function mapVehicleDocumentToResponse(
   doc: VehicleDocumentWithRelations,
 ): VehicleDocumentResponseDto {
-  const today = new Date();
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil(
-      (new Date(doc.expiryDate).getTime() - today.getTime()) /
-        (1000 * 60 * 60 * 24),
-    ),
-  );
+  const daysRemaining = Math.max(0, calculateDaysRemaining(doc.expiryDate));
 
   return {
     id: doc.id,
