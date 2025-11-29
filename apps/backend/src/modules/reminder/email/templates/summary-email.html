@@ -1,0 +1,272 @@
+<!-- summary-email.html
+     Handlebars-style placeholders:
+       {{date}}                    - rendered date (e.g. "Nov 29, 2025")
+       {{appTitle}}                - "YASH GROUP DASHBOARD"
+       {{#each groups}}           - groups is array of { configName, color, colorText, count, items: [...] }
+         {{configName}}           - group title (Expired / 3-day / 7-day / ...)
+         {{count}}                - number of items in group
+         {{color}}                - group accent color (use for left border / badge background)
+         {{colorText}}            - readable text color for the accent (optional)
+         {{#each items}}          - items is array of { documentTypeName, vehicleName, documentNumber, expiryDate, expiryStatus, offsetDays }
+           {{documentTypeName}}, {{vehicleName}}, {{documentNumber}}, {{expiryStatus}} etc.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{appTitle}} — Daily Summary</title>
+    <style>
+      /* Basic, email-friendly resets */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #f4f6f8;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        color: #222;
+      }
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+        display: block;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .container {
+        width: 100%;
+        max-width: 680px;
+        margin: 18px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      }
+      .pad {
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        padding: 22px 20px 12px;
+        background: linear-gradient(90deg, #fbfbfb, #ffffff);
+      }
+      .title {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: 0.2px;
+        color: #0f172a;
+        font-weight: 700;
+      }
+      .subtitle {
+        margin-top: 6px;
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      .section {
+        padding: 14px 20px;
+        border-top: 1px solid #f0f2f4;
+      }
+      .section + .section {
+        border-top: 1px solid #f0f2f4;
+      }
+
+      .group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .group-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .group-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #1e3a8a;
+      }
+      .group-left-accent {
+        width: 6px;
+        height: 38px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+
+      /* Card (compact) */
+      .card {
+        display: block;
+        border-radius: 6px;
+        padding: 10px 12px;
+        border: 1px solid #eef2f6;
+        margin-bottom: 10px;
+        background: #fff;
+        transition: box-shadow 0.15s ease;
+      }
+      .card:hover {
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      }
+      .card-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .card-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .card-meta {
+        font-size: 12px;
+        color: #6b7280;
+        min-width: 130px;
+        text-align: right;
+      }
+
+      .card-sub {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: space-between;
+      }
+      .doc-number {
+        font-size: 13px;
+        color: #374151;
+        font-weight: 500;
+      }
+      .expiry-status {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      /* Small utility */
+      .muted {
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .notice {
+        font-size: 13px;
+        color: #475569;
+        margin-top: 6px;
+      }
+
+      /* responsive */
+      @media screen and (max-width: 520px) {
+        .container {
+          margin: 10px;
+        }
+        .card-meta {
+          text-align: left;
+          min-width: unset;
+          display: block;
+          margin-top: 6px;
+        }
+        .card-top {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" role="article" aria-label="Daily reminders">
+      <div class="header">
+        <div class="title">{{appTitle}}</div>
+        <div class="subtitle">Daily reminder summary — {{date}}</div>
+      </div>
+
+      {{#if preface}}
+      <div class="pad notice" style="padding-top: 14px">{{preface}}</div>
+      {{/if}}
+
+      <!-- Loop groups (config buckets) -->
+      {{#each groups}}
+      <div class="section">
+        <div class="group-header">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span
+              class="group-left-accent"
+              style="background: {{color}};"
+            ></span>
+            <div class="group-title">
+              {{configName}}
+              <span
+                class="muted"
+                style="font-weight: 500; font-size: 13px; margin-left: 6px"
+                >({{count}})</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="group-badge"
+            style="background: {{color}}22; color: {{color}};"
+          >
+            Offset: {{offsetDays}}d
+          </div>
+        </div>
+
+        <!-- Items -->
+        {{#each items}}
+        <div
+          class="card"
+          role="listitem"
+          aria-label="{{documentTypeName}} - {{vehicleName}}"
+        >
+          <div class="card-top">
+            <div class="card-title">{{documentTypeName}} – {{vehicleName}}</div>
+            <div class="card-meta muted">
+              {{expiryDateFormatted}}
+              <!-- builder should supply a human readable date -->
+            </div>
+          </div>
+
+          <div class="card-sub">
+            <div class="doc-number">{{documentNumber}}</div>
+            <div class="expiry-status" style="color: {{colorText}};">
+              {{expiryStatus}}
+              <!-- e.g. "Expired 2 days ago" or "In 3 days" -->
+            </div>
+          </div>
+        </div>
+        {{/each}} {{#if items.length}}
+        <!-- optional separator -->
+        {{else}}
+        <div class="muted" style="padding: 8px 0">No items in this bucket.</div>
+        {{/if}}
+      </div>
+      {{/each}}
+
+      <div
+        class="pad"
+        style="padding-bottom: 18px; font-size: 12px; color: #9aa4b2"
+      >
+        <div>Generated by {{appTitle}} • {{date}}</div>
+        <div style="margin-top: 6px">
+          This is an automated email. Do not reply to this mailbox.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

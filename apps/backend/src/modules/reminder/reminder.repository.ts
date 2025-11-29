@@ -9,10 +9,9 @@ import {
   Vehicle,
   DocumentType,
   ReminderConfig,
-  ReminderRecipient,
 } from '@prisma/client';
-import { ReminderEmailPayload } from 'src/common/types/reminder.types';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { SummaryQueueItem } from 'src/common/types/reminder.types';
 
 @Injectable()
 export class ReminderRepository {
@@ -107,25 +106,41 @@ export class ReminderRepository {
     }
   }
 
-  async getPendingToSend(now: Date = new Date()): Promise<
-    (ReminderQueue & {
-      vehicleDocument: VehicleDocument & {
-        vehicle: Vehicle;
-        documentType: DocumentType;
-      };
-      reminderConfig: ReminderConfig;
-    })[]
-  > {
+  async getPendingToSend(now: Date = new Date()): Promise<SummaryQueueItem[]> {
     try {
-      return await this.prisma.reminderQueue.findMany({
+      const rows = await this.prisma.reminderQueue.findMany({
         where: { scheduledAt: { lte: now }, sentAt: null },
         orderBy: { scheduledAt: 'asc' },
         include: {
-          vehicleDocument: { include: { vehicle: true, documentType: true } },
-          reminderConfig: true,
+          reminderConfig: {
+            select: { name: true, offsetDays: true },
+          },
+          vehicleDocument: {
+            select: {
+              documentNo: true,
+              expiryDate: true,
+              documentType: {
+                select: { name: true },
+              },
+              vehicle: {
+                select: { name: true },
+              },
+            },
+          },
         },
       });
-    } catch (error: unknown) {
+
+      return rows.map((entry) => ({
+        id: entry.id,
+        configName: entry.reminderConfig.name ?? 'Others',
+        offsetDays: entry.reminderConfig.offsetDays,
+        scheduledAt: entry.scheduledAt,
+        documentTypeName: entry.vehicleDocument.documentType.name,
+        documentNumber: entry.vehicleDocument.documentNo,
+        expiryDate: entry.vehicleDocument.expiryDate,
+        vehicleName: entry.vehicleDocument.vehicle.name,
+      }));
+    } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error('Error fetching pending queue', {
@@ -205,36 +220,5 @@ export class ReminderRepository {
       });
       throw error;
     }
-  }
-
-  // ---------------------------------------------------------
-  // PAYLOAD BUILDER
-  // ---------------------------------------------------------
-  buildEmailPayload(
-    entry: ReminderQueue & {
-      vehicleDocument: VehicleDocument & {
-        vehicle: Vehicle;
-        documentType: DocumentType;
-      };
-      reminderConfig: ReminderConfig;
-    },
-    recipients: ReminderRecipient[],
-  ): ReminderEmailPayload {
-    const { vehicleDocument: doc, reminderConfig: config } = entry;
-    return {
-      configId: config.id,
-      recipients: recipients.map((r) => r.email),
-      document: {
-        type: doc.documentType.name,
-        number: doc.documentNo,
-        expiryDate: doc.expiryDate,
-      },
-      vehicle: {
-        id: doc.vehicle.id,
-        name: doc.vehicle.name,
-        licensePlate: doc.vehicle.licensePlate,
-      },
-      scheduledAt: entry.scheduledAt,
-    };
   }
 }

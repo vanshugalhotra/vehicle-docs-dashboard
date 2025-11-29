@@ -33,22 +33,20 @@ export interface ReminderQueueResponse {
   vehicleDocument: VehicleDocumentResponse;
   reminderConfig: ReminderConfig;
 }
-
-/**
- * Payload format sent to the email service for a single reminder.
- */
-export type ReminderEmailPayload = {
-  configId: string;
-  recipients: string[];
-  document: {
-    type: string;
-    number: string;
-    expiryDate: Date;
-  };
-  vehicle: {
-    id: string;
-    name: string;
-    licensePlate: string;
-  };
+export interface SummaryQueueItem {
+  id: string;
+  configName: string;
+  offsetDays: number;
   scheduledAt: Date;
+  documentTypeName: string;
+  documentNumber: string;
+  expiryDate: Date;
+  vehicleName: string;
+}
+
+export type SummaryEmailItem = Omit<SummaryQueueItem, 'configName'>;
+
+export type SummaryEmailPayload = {
+  configName: string;
+  items: SummaryEmailItem[];
 };
