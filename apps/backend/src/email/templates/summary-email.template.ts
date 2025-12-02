@@ -126,7 +126,7 @@ function generateItemCard(item: ProcessedItem): string {
     <div class="card">
       <div class="card-header">
         <div class="card-title">${escapeHtml(item.documentTypeName)} – ${escapeHtml(item.vehicleName)}</div>
-        <div class="card-date">$Expires on: {escapeHtml(item.expiryDateFormatted)}</div>
+        <div class="card-date">Expires on: ${escapeHtml(item.expiryDateFormatted)}</div>
       </div>
       <div class="card-footer">
         <div class="doc-number">Document No: ${escapeHtml(item.documentNumber)}</div>
@@ -160,7 +160,6 @@ function generateGroupSection(group: ProcessedGroup): string {
             <span class="group-count">(${group.count})</span>
           </div>
         </div>
-        <div class="toggle-icon">▼</div>
       </div>
       <div class="group-content">
         ${itemsHtml}
@@ -172,6 +171,18 @@ function generateGroupSection(group: ProcessedGroup): string {
 function generatePreface(preface?: string): string {
   if (!preface) return '';
   return `<div class="preface">${escapeHtml(preface)}</div>`;
+}
+
+function generateCtaButton(dashboardUrl?: string): string {
+  if (!dashboardUrl) return '';
+
+  return `
+    <div class="cta-container">
+      <a href="${escapeHtml(dashboardUrl)}" class="cta-button">
+        Go to Dashboard
+      </a>
+    </div>
+  `;
 }
 
 function generateGroupsSection(groups: ProcessedGroup[]): string {
@@ -280,6 +291,7 @@ function processPayload(payload: SummaryEmailPayload[]): ProcessedGroup[] {
 
 export interface RenderOptions {
   preface?: string;
+  dashboardUrl?: string;
 }
 
 export function renderSummaryEmailHtml(
@@ -291,6 +303,7 @@ export function renderSummaryEmailHtml(
   const currentDate = formatDate(new Date());
 
   // Generate dynamic content
+  const ctaButtonHtml = generateCtaButton(opts?.dashboardUrl);
   const prefaceHtml = generatePreface(opts?.preface);
   const groupsHtml = generateGroupsSection(groups);
 
@@ -298,6 +311,7 @@ export function renderSummaryEmailHtml(
   const replacements = {
     APP_TITLE: 'YASH GROUP DASHBOARD',
     DATE: currentDate,
+    CTA_BUTTON: ctaButtonHtml,
     PREFACE: prefaceHtml,
     GROUPS: groupsHtml,
   };

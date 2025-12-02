@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { EmailService } from './email.service';
+import { ConfigService } from 'src/config/config.service';
 import {
   SummaryQueueItem,
   SummaryEmailPayload,
@@ -13,6 +14,7 @@ export class SummaryEmailService {
   constructor(
     private readonly emailService: EmailService,
     private readonly logger: LoggerService,
+    private readonly config: ConfigService,
   ) {}
 
   /**
@@ -47,10 +49,18 @@ export class SummaryEmailService {
       const payload: SummaryEmailPayload[] = buildSummaryEmailPayload(items);
 
       // Render HTML using template
-      const html: string = renderSummaryEmailHtml(payload, { preface });
+      const frontendUrl = this.config.get('FRONTEND_URL') || 'localhost:3000';
+      const html: string = renderSummaryEmailHtml(payload, {
+        preface,
+        dashboardUrl: frontendUrl,
+      });
 
       // Send email via EmailService
-      await this.emailService.sendEmail(recipients, 'Linkages Summary', html);
+      await this.emailService.sendEmail(
+        recipients,
+        'Vehicle Expiration Summary',
+        html,
+      );
 
       this.logger.info(
         `Summary email successfully sent to ${recipients.join(', ')}`,

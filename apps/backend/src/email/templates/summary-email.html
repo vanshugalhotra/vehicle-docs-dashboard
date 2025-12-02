@@ -66,6 +66,29 @@
         font-weight: 500;
       }
 
+      .cta-container {
+        text-align: center;
+        padding: 20px 24px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .cta-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
       .preface {
         padding: 20px 24px;
         background: #f8fafc;
@@ -86,15 +109,7 @@
       .group-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         padding: 20px 24px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-      }
-      .group-header:hover {
-        background-color: #f8fafc;
-      }
-      .group-header.expanded {
         background-color: #f1f5f9;
       }
 
@@ -122,35 +137,8 @@
         margin-left: 8px;
       }
 
-      .toggle-icon {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        color: #64748b;
-        font-size: 12px;
-        font-weight: bold;
-        transition: all 0.2s ease;
-      }
-      .group-header:hover .toggle-icon {
-        border-color: #cbd5e1;
-      }
-      .group-header.expanded .toggle-icon {
-        background: #64748b;
-        color: #ffffff;
-        border-color: #64748b;
-      }
-
       .group-content {
         padding: 0 24px 24px 24px;
-        display: none;
-      }
-      .group-content.expanded {
-        display: block;
       }
 
       .card {
@@ -159,7 +147,6 @@
         border-radius: 8px;
         padding: 16px;
         margin-bottom: 12px;
-        transition: all 0.2s ease;
       }
       .card:last-child {
         margin-bottom: 0;
@@ -233,6 +220,13 @@
         .title {
           font-size: 20px;
         }
+        .cta-container {
+          padding: 16px 20px;
+        }
+        .cta-button {
+          padding: 10px 20px;
+          font-size: 14px;
+        }
         .group-header {
           padding: 16px 20px;
         }
@@ -255,11 +249,6 @@
           align-items: flex-start;
           gap: 8px;
         }
-        .group-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-        }
       }
     </style>
   </head>
@@ -270,7 +259,7 @@
         <div class="subtitle">Daily Reminder Summary — {{DATE}}</div>
       </div>
 
-      {{PREFACE}} {{GROUPS}}
+      {{CTA_BUTTON}} {{PREFACE}} {{GROUPS}}
 
       <div class="footer">
         <div class="footer-title">{{APP_TITLE}}</div>
@@ -280,38 +269,5 @@
         </div>
       </div>
     </div>
-
-    <script>
-      // Simple collapsible functionality
-      document.addEventListener('DOMContentLoaded', function () {
-        // First group expanded by default
-        const firstGroup = document.querySelector('.group-header');
-        if (firstGroup) {
-          firstGroup.classList.add('expanded');
-          const content = firstGroup.nextElementSibling;
-          if (content && content.classList.contains('group-content')) {
-            content.classList.add('expanded');
-          }
-        }
-
-        // Add click handlers to all group headers
-        document.querySelectorAll('.group-header').forEach((header) => {
-          header.addEventListener('click', function () {
-            const wasExpanded = this.classList.contains('expanded');
-            const content = this.nextElementSibling;
-
-            if (content && content.classList.contains('group-content')) {
-              if (wasExpanded) {
-                this.classList.remove('expanded');
-                content.classList.remove('expanded');
-              } else {
-                this.classList.add('expanded');
-                content.classList.add('expanded');
-              }
-            }
-          });
-        });
-      });
-    </script>
   </body>
 </html>

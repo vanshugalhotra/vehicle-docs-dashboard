@@ -8,6 +8,7 @@ export interface AppConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   PORT: number;
   JWT_SECRET: string;
+  FRONTEND_URL?: string;
 
   SMTP_HOST: string;
   SMTP_PORT: number;
@@ -19,8 +20,6 @@ export interface AppConfig {
 
   REMINDER_TIME: string; // e.g., "08:00"
   REMINDER_SKIP_EMPTY: boolean; // true/false
-  REMINDER_MAX_RETRIES: number; // default 3
-  REMINDER_BACKOFF_BASE_MS: number; // default 1000
 }
 
 @Injectable()
@@ -51,11 +50,10 @@ export class ConfigService {
 
       TZ: Joi.string().default('UTC'),
       ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
+      FRONTEND_URL: Joi.string().optional(),
 
       REMINDER_TIME: Joi.string().default('08:00'),
       REMINDER_SKIP_EMPTY: Joi.boolean().default(true),
-      REMINDER_MAX_RETRIES: Joi.number().default(3),
-      REMINDER_BACKOFF_BASE_MS: Joi.number().default(1000),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });
