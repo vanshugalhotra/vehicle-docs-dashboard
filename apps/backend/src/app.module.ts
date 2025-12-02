@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule'; // Add this import
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -19,6 +20,7 @@ import { RemindersModule } from './modules/reminder/reminders.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule,
     PrismaModule,
     LoggerModule,

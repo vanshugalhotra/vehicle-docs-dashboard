@@ -7,6 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ReminderTriggerService } from './reminder-trigger.service';
 import { SummaryEmailService } from 'src/email/summary-email.service';
 import { EmailService } from 'src/email/email.service';
+import { ReminderCronService } from 'src/jobs/reminder-cron.service';
 
 @Module({
   imports: [EventEmitterModule.forRoot()],
@@ -18,7 +19,8 @@ import { EmailService } from 'src/email/email.service';
     ReminderTriggerService,
     SummaryEmailService,
     EmailService,
+    ReminderCronService,
   ],
-  exports: [ReminderSchedulerService],
+  exports: [ReminderSchedulerService, ReminderTriggerService],
 })
 export class RemindersModule {}
