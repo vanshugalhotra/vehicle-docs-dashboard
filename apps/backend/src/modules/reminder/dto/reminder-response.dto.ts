@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ReminderConfig } from '@prisma/client';
-import { VehicleDocumentResponse } from 'src/common/types';
 import {
   ReminderConfigResponse,
-  ReminderQueueResponse,
   ReminderRecipientResponse,
+  SummaryQueueItem,
 } from 'src/common/types/reminder.types';
 
 export class ReminderConfigResponseDto implements ReminderConfigResponse {
@@ -47,31 +45,21 @@ export class ReminderRecipientResponseDto implements ReminderRecipientResponse {
   updatedAt: Date;
 }
 
-export class ReminderQueueResponseDto implements ReminderQueueResponse {
+export class ReminderQueueResponseDto implements SummaryQueueItem {
   @ApiProperty()
   id: string;
-
+  @ApiProperty()
+  configName: string;
+  @ApiProperty()
+  offsetDays: number;
   @ApiProperty()
   scheduledAt: Date;
-
-  @ApiProperty({ required: false })
-  sentAt?: Date | null;
-
   @ApiProperty()
-  attempts: number;
-
-  @ApiProperty({ required: false })
-  lastError?: string | null;
-
+  documentTypeName: string;
   @ApiProperty()
-  vehicleDocumentId: string;
-
+  documentNumber: string;
   @ApiProperty()
-  reminderConfigId: string;
-
+  expiryDate: Date;
   @ApiProperty()
-  vehicleDocument: VehicleDocumentResponse;
-
-  @ApiProperty()
-  reminderConfig: ReminderConfig;
+  vehicleName: string;
 }

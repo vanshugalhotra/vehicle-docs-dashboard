@@ -18,7 +18,6 @@ export interface AppConfig {
   ALLOWED_ORIGINS: string;
 
   REMINDER_TIME: string; // e.g., "08:00"
-  REMINDER_TIMEZONE: string; // e.g., "Asia/Kolkata"
   REMINDER_SKIP_EMPTY: boolean; // true/false
   REMINDER_MAX_RETRIES: number; // default 3
   REMINDER_BACKOFF_BASE_MS: number; // default 1000
@@ -54,7 +53,6 @@ export class ConfigService {
       ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
 
       REMINDER_TIME: Joi.string().default('08:00'),
-      REMINDER_TIMEZONE: Joi.string().default('Asia/Kolkata'),
       REMINDER_SKIP_EMPTY: Joi.boolean().default(true),
       REMINDER_MAX_RETRIES: Joi.number().default(3),
       REMINDER_BACKOFF_BASE_MS: Joi.number().default(1000),

@@ -1,6 +1,3 @@
-import { ReminderConfig } from '@prisma/client';
-import { VehicleDocumentResponse } from './vehicle-document.types';
-
 export interface ReminderConfigResponse {
   id: string;
   name?: string;
@@ -22,16 +19,12 @@ export interface ReminderRecipientResponse {
 /**
  * Response type for listing ReminderQueue items
  */
-export interface ReminderQueueResponse {
-  id: string;
-  scheduledAt: Date;
-  sentAt?: Date | null;
-  attempts: number;
-  lastError?: string | null;
-  vehicleDocumentId: string;
-  reminderConfigId: string;
-  vehicleDocument: VehicleDocumentResponse;
-  reminderConfig: ReminderConfig;
+export interface GetQueueItemsOptions {
+  status?: 'pending' | 'sent' | 'failed' | 'all';
+  fromDate?: Date;
+  toDate?: Date;
+  configId?: string;
+  includeFailed?: boolean;
 }
 export interface SummaryQueueItem {
   id: string;

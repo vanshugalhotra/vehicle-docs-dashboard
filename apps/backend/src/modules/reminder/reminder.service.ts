@@ -12,13 +12,18 @@ import {
 } from './dto/update-reminder.dto';
 import { ReminderConfig, ReminderRecipient } from '@prisma/client';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { addDays } from 'src/common/utils/date-utils';
+import { ReminderRepository } from './reminder.repository';
+import {
+  SummaryQueueItem,
+  GetQueueItemsOptions,
+} from 'src/common/types/reminder.types';
 
 @Injectable()
 export class ReminderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly repo: ReminderRepository,
   ) {}
 
   // -------------------------------------------------------------------
@@ -178,32 +183,53 @@ export class ReminderService {
   // -------------------------------------------------------------------
   // ADMIN QUEUE FETCH
   // -------------------------------------------------------------------
-  async getQueueList(filter: { days?: number }) {
-    const days = filter.days ?? 30;
-    const startDate = addDays(new Date(), -days);
+  async getQueueList(
+    options: GetQueueItemsOptions = {},
+  ): Promise<SummaryQueueItem[]> {
+    this.logger.info('Fetching queue items with options', { options });
 
     try {
-      return await this.prisma.reminderQueue.findMany({
-        where: {
-          scheduledAt: { gte: startDate },
-        },
-        orderBy: { scheduledAt: 'desc' },
-        include: {
-          vehicleDocument: {
-            include: {
-              vehicle: true,
-              documentType: true,
-            },
-          },
-          reminderConfig: true,
-        },
-      });
+      const finalOptions: GetQueueItemsOptions = {
+        status: options.status || 'all',
+        fromDate: options.fromDate,
+        toDate: options.toDate,
+        configId: options.configId,
+        includeFailed:
+          options.includeFailed ?? (options.status === 'all' ? true : false),
+      };
+
+      const result = await this.repo.getQueueItems(finalOptions);
+      this.logger.info(`Fetched ${result.length} queue items`);
+      return result;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('Failed to fetch reminder queue', {
+      this.logger.error('Failed to fetch queue items', {
+        error: errorMessage,
+        options,
+      });
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error, 'ReminderQueue');
+      }
+      throw error;
+    }
+  }
+
+  async clearQueue(): Promise<object> {
+    try {
+      await this.repo.clearQueue();
+      return {
+        success: true,
+        message: 'Reminder queue cleared successfully',
+      };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error('Failed to clear reminder queue', {
         error: errorMessage,
       });
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, 'ReminderQueue');
       }

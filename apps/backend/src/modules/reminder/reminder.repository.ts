@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { startOfDay, endOfDay, addDays } from 'src/common/utils/date-utils';
+import { startOfDay, endOfDay } from 'src/common/utils/date-utils';
 import { Prisma } from '@prisma/client';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
-import {
-  ReminderQueue,
-  VehicleDocument,
-  Vehicle,
-  DocumentType,
-  ReminderConfig,
-} from '@prisma/client';
+import { ReminderQueue, ReminderConfig } from '@prisma/client';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { SummaryQueueItem } from 'src/common/types/reminder.types';
+import {
+  SummaryQueueItem,
+  GetQueueItemsOptions,
+} from 'src/common/types/reminder.types';
 
 @Injectable()
 export class ReminderRepository {
@@ -22,6 +19,26 @@ export class ReminderRepository {
 
   async getActiveConfigs(): Promise<ReminderConfig[]> {
     return this.prisma.reminderConfig.findMany({ where: { enabled: true } });
+  }
+
+  async getActiveRecipients(): Promise<string[]> {
+    try {
+      const rows = await this.prisma.reminderRecipient.findMany({
+        where: { active: true },
+        select: { email: true },
+      });
+
+      return rows.map((r) => r.email);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      this.logger.error('Failed to fetch active reminder recipients', {
+        error: errorMessage,
+      });
+
+      throw error;
+    }
   }
 
   async getAllDocuments(): Promise<{ id: string; expiryDate: Date }[]> {
@@ -57,28 +74,6 @@ export class ReminderRepository {
     }
   }
 
-  async bulkInsertQueue(
-    entries: {
-      vehicleDocumentId: string;
-      reminderConfigId: string;
-      scheduledAt: Date;
-    }[],
-  ): Promise<void> {
-    if (!entries.length) return;
-    this.logger.debug(`Bulk inserting ${entries.length} queue entries`);
-    try {
-      await this.prisma.reminderQueue.createMany({
-        data: entries,
-        skipDuplicates: true,
-      });
-    } catch (error: unknown) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'ReminderQueue');
-      }
-      throw error;
-    }
-  }
-
   async existsQueueEntry(
     vehicleDocumentId: string,
     reminderConfigId: string,
@@ -106,10 +101,57 @@ export class ReminderRepository {
     }
   }
 
-  async getPendingToSend(now: Date = new Date()): Promise<SummaryQueueItem[]> {
+  async getQueueItems(
+    options: GetQueueItemsOptions = {},
+  ): Promise<SummaryQueueItem[]> {
     try {
+      const {
+        status = 'pending',
+        fromDate,
+        toDate,
+        configId,
+        includeFailed = false,
+      } = options;
+
+      // Build where clause
+      const whereClause: Prisma.ReminderQueueWhereInput = {};
+
+      // Status filter
+      if (status === 'pending') {
+        whereClause.sentAt = null;
+        whereClause.lastError = null;
+      } else if (status === 'sent') {
+        whereClause.sentAt = { not: null };
+        whereClause.lastError = null;
+      } else if (status === 'failed') {
+        whereClause.OR = [
+          { lastError: { not: null } },
+          { attempts: { gte: 3 } },
+        ];
+      } else if (status === 'all') {
+        if (!includeFailed) {
+          whereClause.lastError = null;
+        }
+      }
+
+      // Date range filter
+      if (fromDate || toDate) {
+        whereClause.scheduledAt = {};
+        if (fromDate) {
+          whereClause.scheduledAt.gte = fromDate;
+        }
+        if (toDate) {
+          whereClause.scheduledAt.lte = toDate;
+        }
+      }
+
+      // Config ID filter
+      if (configId) {
+        whereClause.reminderConfigId = configId;
+      }
+
       const rows = await this.prisma.reminderQueue.findMany({
-        where: { scheduledAt: { lte: now }, sentAt: null },
+        where: whereClause,
         orderBy: { scheduledAt: 'asc' },
         include: {
           reminderConfig: {
@@ -143,8 +185,9 @@ export class ReminderRepository {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('Error fetching pending queue', {
+      this.logger.error('Error fetching queue items', {
         error: errorMessage,
+        options,
       });
       throw error;
     }
@@ -177,45 +220,6 @@ export class ReminderRepository {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to mark queue ${id} as failed`, {
-        error: errorMessage,
-      });
-      throw error;
-    }
-  }
-
-  async getDocumentsExpiringInDays(
-    offset: number,
-  ): Promise<
-    (VehicleDocument & { vehicle: Vehicle; documentType: DocumentType })[]
-  > {
-    const today = startOfDay(new Date());
-    const target = endOfDay(addDays(today, offset));
-    try {
-      return await this.prisma.vehicleDocument.findMany({
-        where: { expiryDate: { gte: today, lte: target } },
-        include: { vehicle: true, documentType: true },
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('Error fetching documents expiring in days', {
-        error: errorMessage,
-      });
-      throw error;
-    }
-  }
-
-  async cleanupOldHistory(days = 90): Promise<void> {
-    const threshold = addDays(new Date(), -days);
-    try {
-      const deleted = await this.prisma.reminderQueue.deleteMany({
-        where: { sentAt: { lte: threshold } },
-      });
-      this.logger.info(`Cleaned up ${deleted.count} old queue entries`);
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('Failed to cleanup old queue entries', {
         error: errorMessage,
       });
       throw error;
