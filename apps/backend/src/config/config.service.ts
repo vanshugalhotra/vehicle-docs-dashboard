@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as Joi from 'joi';
-
 export interface AppConfig {
   DATABASE_URL: string;
   NODE_ENV: 'development' | 'production' | 'test';
@@ -18,8 +17,14 @@ export interface AppConfig {
   TZ: string;
   ALLOWED_ORIGINS: string;
 
-  REMINDER_TIME: string; // e.g., "08:00"
-  REMINDER_SKIP_EMPTY: boolean; // true/false
+  REMINDER_TIME: string;
+  REMINDER_SKIP_EMPTY: boolean;
+
+  LOG_LEVEL: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  LOG_TO_FILE: boolean;
+  LOG_DIR: string;
+  LOG_RETENTION_DAYS: number;
+  LOG_MAX_SIZE: number;
 }
 
 @Injectable()
@@ -36,10 +41,12 @@ export class ConfigService {
 
     const schema = Joi.object<AppConfig>({
       DATABASE_URL: Joi.string().required(),
+
       NODE_ENV: Joi.string()
         .valid('development', 'production', 'test')
         .default('development'),
-      PORT: Joi.number().default(3000),
+
+      PORT: Joi.number().default(3333),
 
       JWT_SECRET: Joi.string().required(),
 
@@ -49,11 +56,24 @@ export class ConfigService {
       SMTP_PASS: Joi.string().required(),
 
       TZ: Joi.string().default('UTC'),
+
       ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
       FRONTEND_URL: Joi.string().optional(),
 
       REMINDER_TIME: Joi.string().default('08:00'),
       REMINDER_SKIP_EMPTY: Joi.boolean().default(true),
+
+      LOG_LEVEL: Joi.string()
+        .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace')
+        .default('info'),
+
+      LOG_TO_FILE: Joi.boolean().default(false),
+
+      LOG_DIR: Joi.string().default('./logs'),
+
+      LOG_RETENTION_DAYS: Joi.number().integer().min(1).default(30),
+
+      LOG_MAX_SIZE: Joi.number().integer().min(1).default(10),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });

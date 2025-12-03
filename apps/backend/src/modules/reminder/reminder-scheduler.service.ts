@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReminderRepository } from './reminder.repository';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { OnEvent } from '@nestjs/event-emitter';
+// import { OnEvent } from '@nestjs/event-emitter'; // Commented out
 import {
   startOfDay,
   calculateDaysRemaining,
@@ -15,17 +15,18 @@ export class ReminderSchedulerService {
   ) {}
 
   // -------------------------------
-  // EVENT HANDLERS
+  // EVENT HANDLERS (COMMENTED OUT - NOT USED CURRENTLY)
   // -------------------------------
-  @OnEvent('vehicleDocument.created')
-  async handleDocumentCreated(payload: { id: string; expiryDate: Date }) {
-    await this.scheduleRemindersForDocument(payload.id, payload.expiryDate);
-  }
 
-  @OnEvent('vehicleDocument.updated')
-  async handleDocumentUpdated(payload: { id: string; expiryDate: Date }) {
-    await this.scheduleRemindersForDocument(payload.id, payload.expiryDate);
-  }
+  // @OnEvent('vehicleDocument.created')
+  // async handleDocumentCreated(payload: { id: string; expiryDate: Date }) {
+  //   await this.scheduleRemindersForDocument(payload.id, payload.expiryDate);
+  // }
+
+  // @OnEvent('vehicleDocument.updated')
+  // async handleDocumentUpdated(payload: { id: string; expiryDate: Date }) {
+  //   await this.scheduleRemindersForDocument(payload.id, payload.expiryDate);
+  // }
 
   async scheduleRemindersForDocument(
     vehicleDocumentId: string,

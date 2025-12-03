@@ -1,5 +1,4 @@
-// reminder-cron.service.ts
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ReminderSchedulerService } from 'src/modules/reminder/reminder-scheduler.service';
@@ -8,8 +7,9 @@ import { LoggerService } from 'src/common/logger/logger.service';
 import { ConfigService } from 'src/config/config.service';
 
 @Injectable()
-export class ReminderCronService implements OnModuleInit {
+export class ReminderCronService implements OnModuleInit, OnModuleDestroy {
   private readonly JOB_NAME = 'DAILY_REMINDER_JOB';
+  private isTestEnvironment = false;
 
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
@@ -17,10 +17,22 @@ export class ReminderCronService implements OnModuleInit {
     private readonly reminderTriggerService: ReminderTriggerService,
     private readonly logger: LoggerService,
     private readonly config: ConfigService,
-  ) {}
+  ) {
+    // Check if we're in test environment
+    this.isTestEnvironment = this.config.get('NODE_ENV') === 'test';
+  }
 
   onModuleInit() {
+    if (this.isTestEnvironment) {
+      this.logger.info('Skipping cron job setup in test environment');
+      return;
+    }
     this.setupDailyJob();
+  }
+
+  onModuleDestroy() {
+    // Always stop the cron job when module is destroyed
+    this.stopDailyJob();
   }
 
   private setupDailyJob() {
@@ -49,12 +61,23 @@ export class ReminderCronService implements OnModuleInit {
       false,
       timezone,
     );
+
     this.schedulerRegistry.addCronJob(this.JOB_NAME, job);
     job.start();
 
     this.logger.info(
       `Daily reminder job scheduled for ${reminderTime} ${timezone}`,
     );
+  }
+
+  private stopDailyJob() {
+    try {
+      const job = this.schedulerRegistry.getCronJob(this.JOB_NAME);
+      void job.stop();
+      this.logger.debug('Cron job stopped');
+    } catch {
+      // Job doesn't exist, that's fine
+    }
   }
 
   private async executeDailyJob() {

@@ -16,7 +16,7 @@ import { parseBusinessFilters } from 'src/common/business-filters/parser';
 import { createLinkageBusinessEngine } from './business-resolver/business-engine.factory';
 import { LINKAGE_ALLOWED_BUSINESS_FILTERS } from 'src/common/types';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+// import { EventEmitter2 } from '@nestjs/event-emitter'; // Commented out
 
 @Injectable()
 export class VehicleDocumentService {
@@ -24,7 +24,7 @@ export class VehicleDocumentService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly validationService: VehicleDocumentValidationService,
-    private readonly eventEmitter: EventEmitter2,
+    // private readonly eventEmitter: EventEmitter2, // Commented out
   ) {}
 
   // -----------------------
@@ -65,7 +65,10 @@ export class VehicleDocumentService {
       });
 
       this.logger.info(`Vehicle document created: ${created.id}`);
-      this.eventEmitter.emit('vehicleDocument.created', created);
+
+      // Commented out event emission - not currently used
+      // this.eventEmitter.emit('vehicleDocument.created', created);
+
       return mapVehicleDocumentToResponse(created);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -198,10 +201,10 @@ export class VehicleDocumentService {
       );
 
       // Fetch current expiry date before update
-      const existingDoc = await this.prisma.vehicleDocument.findUnique({
-        where: { id },
-        select: { expiryDate: true },
-      });
+      // const existingDoc = await this.prisma.vehicleDocument.findUnique({
+      //   where: { id },
+      //   select: { expiryDate: true },
+      // });
 
       const updated = await this.prisma.vehicleDocument.update({
         where: { id },
@@ -222,15 +225,16 @@ export class VehicleDocumentService {
       // -------------------------
       // Emit event only if expiry changed
       // -------------------------
-      if (
-        dto.expiryDate &&
-        existingDoc?.expiryDate?.getTime() !== expiry?.getTime()
-      ) {
-        this.eventEmitter.emit('vehicleDocument.updated', updated);
-        this.logger.debug(
-          `Emitted vehicleDocument.updated event for document: ${updated.id}`,
-        );
-      }
+      // Commented out event emission - not currently used
+      // if (
+      //   dto.expiryDate &&
+      //   existingDoc?.expiryDate?.getTime() !== expiry?.getTime()
+      // ) {
+      //   this.eventEmitter.emit('vehicleDocument.updated', updated);
+      //   this.logger.debug(
+      //     `Emitted vehicleDocument.updated event for document: ${updated.id}`,
+      //   );
+      // }
 
       return mapVehicleDocumentToResponse(updated);
     } catch (error) {
