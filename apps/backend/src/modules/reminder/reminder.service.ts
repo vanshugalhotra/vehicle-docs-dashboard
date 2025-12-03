@@ -16,7 +16,11 @@ import { ReminderRepository } from './reminder.repository';
 import {
   SummaryQueueItem,
   GetQueueItemsOptions,
+  ReminderRecipientResponse,
 } from 'src/common/types/reminder.types';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { buildQueryArgs } from 'src/common/utils/query-builder';
+import { PaginatedRecipientResponseDto } from './dto/reminder-response.dto';
 
 @Injectable()
 export class ReminderService {
@@ -118,14 +122,48 @@ export class ReminderService {
       throw error;
     }
   }
+  async listRecipients(
+    query: QueryOptionsDto,
+  ): Promise<PaginatedRecipientResponseDto> {
+    this.logger.debug(
+      `Fetching reminder recipients with params: ${JSON.stringify(query, null, 2)}`,
+    );
 
-  async listRecipients(): Promise<ReminderRecipient[]> {
-    this.logger.debug('Listing reminder recipients');
     try {
-      return await this.prisma.reminderRecipient.findMany();
+      const queryArgs = buildQueryArgs<
+        ReminderRecipientResponse,
+        Prisma.ReminderRecipientWhereInput
+      >(query, ['name', 'email']); // searchable fields
+
+      const [list, total] = await Promise.all([
+        this.prisma.reminderRecipient.findMany({
+          where: queryArgs.where,
+          skip: queryArgs.skip,
+          take: queryArgs.take,
+          orderBy: queryArgs.orderBy,
+        }),
+        this.prisma.reminderRecipient.count({
+          where: queryArgs.where,
+        }),
+      ]);
+
+      this.logger.info(`Fetched ${list.length} of ${total} recipients`);
+
+      return {
+        items: list.map((r) => ({
+          id: r.id,
+          name: r.name ?? undefined,
+          email: r.email,
+          active: r.active,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        })),
+        total,
+      };
     } catch (error: unknown) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, 'ReminderRecipient');
+      }
       throw error;
     }
   }

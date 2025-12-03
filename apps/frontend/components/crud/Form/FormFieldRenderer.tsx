@@ -210,6 +210,35 @@ export const FormFieldRenderer: React.FC<FormFieldRendererProps> = ({
         />
       );
 
+    case "checkbox":
+      return (
+        <Controller
+          name={field.key}
+          control={control}
+          render={({ field: f }) => (
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={!!f.value}
+                onChange={(e) => f.onChange(e.target.checked)}
+                className="h-4 w-4"
+                id={field.key}
+              />
+              <label htmlFor={field.key} className="cursor-pointer select-none">
+                {field.label}
+                {isRequired && <span className="text-danger ml-1">*</span>}
+              </label>
+
+              {errorMessage && (
+                <AppText size="caption" variant="error" className="ml-2">
+                  {errorMessage}
+                </AppText>
+              )}
+            </div>
+          )}
+        />
+      );
+
     default:
       return null;
   }

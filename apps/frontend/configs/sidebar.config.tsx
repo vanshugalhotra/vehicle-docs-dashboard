@@ -8,7 +8,6 @@ import {
   Users,
   Plus,
   FolderSymlink,
-  CalendarSync,
   Blinds,
   Truck,
   Layers2,
@@ -110,17 +109,6 @@ export const sidebarConfig: SidebarItemConfig[] = [
   {
     label: "Reminders",
     icon: <Bell size={24} />,
-    children: [
-      {
-        label: "Add Reminder",
-        path: "/reminders/add",
-        icon: <Plus size={20} />,
-      },
-      {
-        label: "View Reminders",
-        path: "/reminders",
-        icon: <CalendarSync size={20} />,
-      },
-    ],
+    path: "/reminders",
   },
 ];

@@ -45,6 +45,14 @@ export class ReminderRecipientResponseDto implements ReminderRecipientResponse {
   updatedAt: Date;
 }
 
+export class PaginatedRecipientResponseDto {
+  @ApiProperty({ type: [ReminderRecipientResponseDto] })
+  items: ReminderRecipientResponseDto[];
+
+  @ApiProperty({ example: 150 })
+  total: number;
+}
+
 export class ReminderQueueResponseDto implements SummaryQueueItem {
   @ApiProperty()
   id: string;

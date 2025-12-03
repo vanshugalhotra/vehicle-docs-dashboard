@@ -7,7 +7,8 @@ export type FieldType =
   | "select"
   | "date"
   | "number"
-  | "asyncSelect";
+  | "asyncSelect"
+  | "checkbox";
 
 export interface EntityField {
   key: string;

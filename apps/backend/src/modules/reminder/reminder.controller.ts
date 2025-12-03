@@ -9,7 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ReminderService } from './reminder.service';
 import { ReminderTriggerService } from './reminder-trigger.service';
 import {
@@ -27,9 +27,11 @@ import {
   ReminderConfigResponseDto,
   ReminderQueueResponseDto,
   ReminderRecipientResponseDto,
+  PaginatedRecipientResponseDto,
 } from './dto/reminder-response.dto';
 import { ReminderSchedulerService } from './reminder-scheduler.service';
 import { GetQueueItemsOptions } from 'src/common/types/reminder.types';
+import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 
 @ApiTags('Reminders')
 @Controller({ path: 'reminders', version: '1' })
@@ -92,10 +94,37 @@ export class ReminderController {
   }
 
   @Get('recipients')
-  @ApiOperation({ summary: 'List all reminder recipients' })
-  @ApiResponse({ status: 200, type: [ReminderRecipientResponseDto] })
-  async listRecipients() {
-    return this.service.listRecipients();
+  @ApiOperation({
+    summary: 'List reminder recipients with filters & pagination',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Filter recipients by name or email (case-insensitive)',
+    example: 'feedback@company.com',
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    type: Number,
+    example: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated reminder recipients retrieved successfully',
+    type: PaginatedRecipientResponseDto,
+  })
+  async listRecipients(
+    @Query() query: QueryOptionsDto,
+  ): Promise<PaginatedRecipientResponseDto> {
+    return this.service.listRecipients(query);
   }
 
   @Get('recipients/:id')
