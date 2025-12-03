@@ -20,6 +20,8 @@ interface CRUDPageLayoutProps {
   table: React.ReactNode;
   footer?: React.ReactNode;
   layout?: "side-by-side" | "stacked";
+
+  rightActions?: React.ReactNode;
 }
 
 /**
@@ -36,12 +38,30 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
   table,
   footer,
   layout = "side-by-side",
+  rightActions,
 }) => {
+  const exportAction = (
+    <AppButton
+      variant="primary"
+      size="md"
+      onClick={() => toastUtils.info("Export feature coming soon")}
+      endIcon={<Download size={16} />}
+    >
+      Export
+    </AppButton>
+  );
+
+  const mergedRightActions = (
+    <div className="flex items-center gap-2">
+      {exportAction}
+      {rightActions}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       {/* Conditional Layout */}
       {layout === "side-by-side" ? (
-        /* Side by Side Layout: Header | Left Form + Right Table */
         <>
           {/* Header */}
           <HeaderBar
@@ -51,18 +71,7 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
             search={search}
             onSearchChange={onSearchChange}
             addLabel={addLabel}
-            rightActions={
-              <div className="flex items-center gap-2">
-                <AppButton
-                  variant="primary"
-                  size="md"
-                  onClick={() => toastUtils.info("Export feature coming soon")}
-                  endIcon={<Download size={16} />}
-                >
-                  Export
-                </AppButton>
-              </div>
-            }
+            rightActions={mergedRightActions}
           />
 
           <div className="grid lg:grid-cols-3 gap-4 min-h-0 h-full">
@@ -85,7 +94,6 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
           </div>
         </>
       ) : (
-        /* Stacked Layout: Form | Header | Table */
         <>
           {/* Top: Form */}
           <div>{form}</div>
@@ -98,18 +106,7 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
             search={search}
             onSearchChange={onSearchChange}
             addLabel={addLabel}
-            rightActions={
-              <div className="flex items-center gap-2">
-                <AppButton
-                  variant="primary"
-                  size="md"
-                  onClick={() => toastUtils.info("Export feature coming soon")}
-                  endIcon={<Download size={16} />}
-                >
-                  Export
-                </AppButton>
-              </div>
-            }
+            rightActions={mergedRightActions}
           />
 
           {/* Bottom: Table */}
