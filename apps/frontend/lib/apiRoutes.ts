@@ -56,4 +56,10 @@ export const apiRoutes = {
     list: `${API_URL}/reminders/recipients`,
     detail: (id: string) => `${API_URL}/reminders/recipients/${id}`,
   },
+  reminder_trigger: {
+    base: `${API_URL}/reminders/trigger`,
+  },
+  reminder_reschedule: {
+    base: `${API_URL}/reminders/reschedule`,
+  },
 };

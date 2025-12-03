@@ -14,6 +14,9 @@ import {
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { AppButton } from "@/components/ui/AppButton";
+import { useTriggerReminder } from "@/hooks/useTriggerReminder";
+import { Bell } from "lucide-react";
 
 export default function ReminderRecipientsPage() {
   const formCtrl = useFormStateController<ReminderRecipient>("embedded");
@@ -21,15 +24,15 @@ export default function ReminderRecipientsPage() {
     null
   );
   const [deleteLoading, setDeleteLoading] = useState(false);
-
   const [formKey, setFormKey] = useState(0);
+
+  const { formRef, focusForm } = useEditFocus();
 
   const handleCancel = () => {
     formCtrl.closeForm();
     setFormKey((k) => k + 1);
   };
 
-  const { formRef, focusForm } = useEditFocus();
   const handleEdit = (item: ReminderRecipient) => {
     formCtrl.openEdit(item);
     toastUtils.info(`Editing recipient ${item.name}`);
@@ -54,10 +57,22 @@ export default function ReminderRecipientsPage() {
     setSort,
   } = useCRUDController<ReminderRecipient>(reminderRecipientCrudConfig);
 
-  // ----------------------------------
-  // SUBMIT HANDLER
-  // ----------------------------------
+  // ------------------------------
+  // TRIGGER REMINDER HOOK
+  // ------------------------------
+  const { trigger, isLoading: triggerLoading } = useTriggerReminder();
 
+  const handleTriggerReminder = async () => {
+    toastUtils.promise(trigger(), {
+      loading: "Sending reminders...",
+      success: "Reminder emails sent successfully",
+      error: "Failed to trigger reminders",
+    });
+  };
+
+  // ------------------------------
+  // SUBMIT HANDLER
+  // ------------------------------
   const handleSubmit = async (values: ReminderRecipient) => {
     const action =
       formCtrl.isEditing && formCtrl.selectedItem?.id
@@ -81,6 +96,7 @@ export default function ReminderRecipientsPage() {
     await refetch();
   };
 
+  // DELETE HANDLING
   const handleDelete = (item: ReminderRecipient) => {
     setItemToDelete(item);
   };
@@ -88,6 +104,7 @@ export default function ReminderRecipientsPage() {
   const handleConfirmDelete = async () => {
     if (!itemToDelete?.id) return;
     setDeleteLoading(true);
+
     try {
       await remove(itemToDelete.id);
       await refetch();
@@ -100,9 +117,9 @@ export default function ReminderRecipientsPage() {
     }
   };
 
-  // ----------------------------------
+  // ------------------------------
   // RENDER
-  // ----------------------------------
+  // ------------------------------
 
   return (
     <CRUDPageLayout
@@ -113,6 +130,19 @@ export default function ReminderRecipientsPage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Recipient"
+      rightActions={
+        <div className="flex items-center gap-2">
+          <AppButton
+            variant="secondary"
+            size="md"
+            loading={triggerLoading}
+            onClick={handleTriggerReminder}
+            endIcon={<Bell size={16} />}
+          >
+            Send Email Reminder
+          </AppButton>
+        </div>
+      }
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>
