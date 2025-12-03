@@ -25,6 +25,7 @@ export interface AppConfig {
   LOG_DIR: string;
   LOG_RETENTION_DAYS: number;
   LOG_MAX_SIZE: number;
+  LOG_DETAIL: boolean;
 }
 
 @Injectable()
@@ -74,6 +75,7 @@ export class ConfigService {
       LOG_RETENTION_DAYS: Joi.number().integer().min(1).default(30),
 
       LOG_MAX_SIZE: Joi.number().integer().min(1).default(10),
+      LOG_DETAIL: Joi.boolean().default(false),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });
