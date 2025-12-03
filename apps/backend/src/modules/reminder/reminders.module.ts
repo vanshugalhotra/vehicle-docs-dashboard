@@ -8,6 +8,7 @@ import { ReminderTriggerService } from './reminder-trigger.service';
 import { SummaryEmailService } from 'src/email/summary-email.service';
 import { EmailService } from 'src/email/email.service';
 import { ReminderCronService } from 'src/jobs/reminder-cron.service';
+import { ReminderValidationService } from './validation/reminder-validation.service';
 
 @Module({
   // imports: [EventEmitterModule.forRoot()],
@@ -20,6 +21,7 @@ import { ReminderCronService } from 'src/jobs/reminder-cron.service';
     SummaryEmailService,
     EmailService,
     ReminderCronService,
+    ReminderValidationService,
   ],
   exports: [ReminderSchedulerService, ReminderTriggerService],
 })

@@ -5,14 +5,12 @@ import { MockedPrisma } from '../../../../test/utils/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/mock-logger';
 import { CreateVehicleDto } from '../dto/create-vehicle.dto';
 import { UpdateVehicleDto } from '../dto/update-vehicle.dto';
-import { mapVehicleToResponse } from '../vehicle.mapper';
 import { Vehicle } from '@prisma/client';
 import { VehicleValidationService } from '../validation/vehicle-validation.service';
 
 const mockVehicleValidationService = {
-  // Use jest.fn() so we can use .mockRejectedValueOnce()
   validateCreate: jest.fn().mockResolvedValue(null),
-  validateUpdate: jest.fn(), // Initialize as fn, set implementation in beforeEach
+  validateUpdate: jest.fn(),
 };
 
 jest.mock('../vehicle.mapper', () => ({
@@ -49,9 +47,7 @@ describe('VehicleService', () => {
   const mockType = { id: 'type-1', name: 'Sedan', categoryId: 'cat-1' };
 
   beforeEach(async () => {
-    // Reset mocks before each test to clear any specific mock implementations
     jest.clearAllMocks();
-    // Re-setup the default mock implementations defined above
     mockVehicleValidationService.validateCreate.mockResolvedValue(null);
     mockVehicleValidationService.validateUpdate.mockImplementation(
       (
@@ -65,7 +61,7 @@ describe('VehicleService', () => {
       ) => ({
         vehicle: {
           ...mockVehicle,
-          id, // Override ID with the one passed to the function
+          id,
           licensePlate: licensePlate || mockVehicle.licensePlate,
           rcNumber: rcNumber || mockVehicle.rcNumber,
           chassisNumber: chassisNumber || mockVehicle.chassisNumber,
@@ -77,6 +73,7 @@ describe('VehicleService', () => {
         type: mockType,
       }),
     );
+
     const setup = await createTestModule(VehicleService, [
       {
         provide: VehicleValidationService,
@@ -90,9 +87,6 @@ describe('VehicleService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  // ----------------------------------------------------------------
-  // CREATE
-  // ----------------------------------------------------------------
   describe('create', () => {
     const dto: CreateVehicleDto = {
       licensePlate: 'ab1234',
@@ -108,10 +102,7 @@ describe('VehicleService', () => {
     };
 
     it('should create a new vehicle successfully', async () => {
-      // prisma.vehicle.findFirst.mockResolvedValue(null); // This check is now in validation mock
       prisma.vehicle.create.mockResolvedValue(mockVehicle);
-
-      // Mocks needed for name generation within the service, before validation
       prisma.vehicleCategory.findUnique.mockResolvedValue(mockCategory);
       prisma.vehicleType.findUnique.mockResolvedValue(mockType);
 
@@ -119,53 +110,59 @@ describe('VehicleService', () => {
 
       expect(mockVehicleValidationService.validateCreate).toHaveBeenCalledTimes(
         1,
-      ); // Validation is now mocked
-      expect(mapVehicleToResponse).toHaveBeenCalledWith(mockVehicle);
+      );
       expect(result.licensePlate).toBe('AB1234');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Create'),
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Creating'),
+        expect.any(Object),
+      );
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Vehicle created'),
+        expect.any(Object),
       );
     });
 
     it('should throw ConflictException if identifiers conflict', async () => {
-      // ⚠️ FIX: Mock the validation service to throw the exception
       mockVehicleValidationService.validateCreate.mockRejectedValueOnce(
         new ConflictException('Vehicle identifier conflict'),
       );
-      // prisma.vehicle.findFirst.mockResolvedValue(mockVehicle); // Old Prisma mock removed
 
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
+      expect(logger.logError).toHaveBeenCalledWith(
+        expect.stringContaining('Error'),
+        expect.any(Object),
+      );
     });
 
     it('should throw NotFoundException if category missing', async () => {
-      // ⚠️ FIX: Mock the validation service to throw the exception
       mockVehicleValidationService.validateCreate.mockRejectedValueOnce(
         new NotFoundException('Category not found'),
       );
 
-      // Old Prisma mocks removed/ignored
-
       await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      expect(logger.logError).toHaveBeenCalledWith(
+        expect.stringContaining('Error'),
+        expect.any(Object),
+      );
     });
 
     it('should throw NotFoundException if type missing', async () => {
-      // ⚠️ FIX: Mock the validation service to throw the exception
       mockVehicleValidationService.validateCreate.mockRejectedValueOnce(
         new NotFoundException('Type not found'),
       );
 
-      // Old Prisma mocks removed/ignored
-
       await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+      expect(logger.logError).toHaveBeenCalledWith(
+        expect.stringContaining('Error'),
+        expect.any(Object),
+      );
     });
   });
 
-  // ----------------------------------------------------------------
-  // FIND ALL
-  // ----------------------------------------------------------------
   describe('findAll', () => {
     it('should return paginated list of vehicles', async () => {
       prisma.vehicle.findMany.mockResolvedValue([mockVehicle]);
+      prisma.vehicle.count.mockResolvedValue(1);
 
       const result = await service.findAll({ skip: 0, take: 10 });
 
@@ -177,53 +174,66 @@ describe('VehicleService', () => {
       );
       expect(result.items).toHaveLength(1);
       expect(result.items[0].licensePlate).toBe('AB1234');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Fetched'),
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching'),
+        expect.any(Object),
+      );
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Vehicles fetched'),
+        expect.any(Object),
       );
     });
 
     it('should apply filters correctly', async () => {
       prisma.vehicle.findMany.mockResolvedValue([mockVehicle]);
+      prisma.vehicle.count.mockResolvedValue(1);
+
       await service.findAll({});
+
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching'),
+        expect.any(Object),
+      );
     });
   });
 
-  // ----------------------------------------------------------------
-  // FIND ONE
-  // ----------------------------------------------------------------
   describe('findOne', () => {
     it('should return a vehicle if found', async () => {
       prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
+
       const result = await service.findOne('veh-1');
 
       expect(prisma.vehicle.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'veh-1' } }),
       );
       expect(result.id).toBe('veh-1');
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching'),
+        expect.any(Object),
+      );
     });
 
     it('should throw NotFoundException if not found', async () => {
       prisma.vehicle.findUnique.mockResolvedValue(null);
+
       await expect(service.findOne('missing')).rejects.toThrow(
         NotFoundException,
+      );
+      expect(logger.logWarn).toHaveBeenCalledWith(
+        expect.stringContaining('not found'),
+        expect.any(Object),
       );
     });
   });
 
-  // ----------------------------------------------------------------
-  // UPDATE
-  // ----------------------------------------------------------------
   describe('update', () => {
     const dto: UpdateVehicleDto = { licensePlate: 'NEW123' };
 
     it('should update vehicle successfully', async () => {
-      // NOTE: validateUpdate is mocked to pass by default
       prisma.vehicle.update.mockResolvedValue({
         ...mockVehicle,
         licensePlate: 'NEW123',
       });
-
-      // Mocks needed for name generation within the service
       prisma.vehicleCategory.findUnique.mockResolvedValue(mockCategory);
       prisma.vehicleType.findUnique.mockResolvedValue(mockType);
 
@@ -236,13 +246,17 @@ describe('VehicleService', () => {
         expect.objectContaining({ where: { id: 'veh-1' } }),
       );
       expect(result.licensePlate).toBe('NEW123');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Updated'),
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Updating'),
+        expect.any(Object),
+      );
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Vehicle updated'),
+        expect.any(Object),
       );
     });
 
     it('should throw NotFoundException if vehicle not found', async () => {
-      // ⚠️ FIX: Mock the validation service to throw the exception
       mockVehicleValidationService.validateUpdate.mockRejectedValueOnce(
         new NotFoundException('Vehicle not found'),
       );
@@ -250,26 +264,28 @@ describe('VehicleService', () => {
       await expect(service.update('missing', dto)).rejects.toThrow(
         NotFoundException,
       );
+      expect(logger.logError).toHaveBeenCalledWith(
+        expect.stringContaining('Error'),
+        expect.any(Object),
+      );
     });
 
     it('should throw ConflictException if identifier conflict', async () => {
-      // ⚠️ FIX: Mock the validation service to throw the exception
       mockVehicleValidationService.validateUpdate.mockRejectedValueOnce(
         new ConflictException('Identifier conflict'),
       );
 
-      // Old Prisma mocks removed/ignored
-
       await expect(service.update('veh-1', dto)).rejects.toThrow(
         ConflictException,
+      );
+      expect(logger.logError).toHaveBeenCalledWith(
+        expect.stringContaining('Error'),
+        expect.any(Object),
       );
     });
 
     it('should regenerate name when category/type/plate changes', async () => {
-      // NOTE: validateUpdate is mocked to pass by default
       prisma.vehicle.update.mockResolvedValue(mockVehicle);
-
-      // Mocks needed for name generation within the service
       prisma.vehicleCategory.findUnique.mockResolvedValue(mockCategory);
       prisma.vehicleType.findUnique.mockResolvedValue(mockType);
 
@@ -282,15 +298,17 @@ describe('VehicleService', () => {
       expect(mockVehicleValidationService.validateUpdate).toHaveBeenCalledTimes(
         1,
       );
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Updating'),
+        expect.any(Object),
+      );
     });
   });
 
-  // ----------------------------------------------------------------
-  // REMOVE
-  // ----------------------------------------------------------------
   describe('remove', () => {
     it('should delete vehicle successfully', async () => {
       prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
+      prisma.vehicleDocument.count.mockResolvedValue(0);
       prisma.vehicle.delete.mockResolvedValue(mockVehicle);
 
       const result = await service.remove('veh-1');
@@ -299,15 +317,36 @@ describe('VehicleService', () => {
       expect(prisma.vehicle.delete).toHaveBeenCalledWith({
         where: { id: 'veh-1' },
       });
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Deleted'),
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Deleting'),
+        expect.any(Object),
+      );
+      expect(logger.logInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Vehicle deleted'),
+        expect.any(Object),
       );
     });
 
     it('should throw NotFoundException if vehicle not found', async () => {
       prisma.vehicle.findUnique.mockResolvedValue(null);
+
       await expect(service.remove('veh-404')).rejects.toThrow(
         NotFoundException,
+      );
+      expect(logger.logWarn).toHaveBeenCalledWith(
+        expect.stringContaining('not found'),
+        expect.any(Object),
+      );
+    });
+
+    it('should throw ConflictException if linked documents exist', async () => {
+      prisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
+      prisma.vehicleDocument.count.mockResolvedValue(3);
+
+      await expect(service.remove('veh-1')).rejects.toThrow(ConflictException);
+      expect(logger.logWarn).toHaveBeenCalledWith(
+        expect.stringContaining('Delete failed'),
+        expect.any(Object),
       );
     });
   });

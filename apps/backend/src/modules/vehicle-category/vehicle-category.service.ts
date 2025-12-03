@@ -8,7 +8,7 @@ import { CreateCategoryDto } from './dto/create-vehicle-category.dto';
 import { UpdateCategoryDto } from './dto/update-vehicle-category.dto';
 import { mapCategoryToResponse } from './vehicle-category.mapper';
 import { VehicleCategoryResponse } from 'src/common/types';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { Prisma } from '@prisma/client';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
@@ -19,6 +19,8 @@ import { generateVehicleName } from 'src/common/utils/vehicleUtils';
 
 @Injectable()
 export class VehicleCategoryService {
+  private readonly entity = 'VehicleCategory';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
@@ -26,28 +28,44 @@ export class VehicleCategoryService {
   ) {}
 
   async create(dto: CreateCategoryDto): Promise<VehicleCategoryResponse> {
-    const name = dto.name;
-    this.logger.info(`Creating vehicle category: ${name}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'create',
+      additional: { dto },
+    };
+    this.logger.logInfo('Creating vehicle category', ctx);
+
     try {
-      await this.validationService.validateCreate(name);
+      await this.validationService.validateCreate(dto.name);
+
       const category = await this.prisma.vehicleCategory.create({
-        data: { name: name },
+        data: { name: dto.name },
       });
 
-      this.logger.info(`Vehicle category created: ${category.id}`);
+      this.logger.logInfo('Vehicle category created', {
+        ...ctx,
+        additional: { id: category.id },
+      });
       return mapCategoryToResponse(category);
     } catch (error) {
+      this.logger.logError('Failed to create vehicle category', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'VehicleCategory');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
   async findAll(query: QueryOptionsDto): Promise<PaginatedCategoryResponseDto> {
-    this.logger.debug(
-      `Fetching vehicle categories with params: ${JSON.stringify(query, null, 2)}`,
-    );
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'fetch',
+      additional: { query },
+    };
+    this.logger.logDebug('Fetching vehicle categories', ctx);
 
     try {
       const queryArgs = buildQueryArgs<
@@ -66,37 +84,53 @@ export class VehicleCategoryService {
         this.prisma.vehicleCategory.count({ where: queryArgs.where }),
       ]);
 
-      this.logger.info(`Fetched ${categories.length} of ${total} categories`);
+      this.logger.logInfo('Fetched vehicle categories', {
+        ...ctx,
+        additional: { fetched: categories.length, total },
+      });
 
-      return {
-        items: categories.map(mapCategoryToResponse),
-        total,
-      };
+      return { items: categories.map(mapCategoryToResponse), total };
     } catch (error) {
+      this.logger.logError('Failed to fetch vehicle categories', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'VehicleCategory');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
   async findOne(id: string): Promise<VehicleCategoryResponse> {
-    this.logger.info(`Fetching vehicle category by id: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'fetch',
+      additional: { id },
+    };
+    this.logger.logInfo('Fetching vehicle category by id', ctx);
+
     try {
       const category = await this.prisma.vehicleCategory.findUnique({
         where: { id },
         include: { types: true },
       });
+
       if (!category) {
-        this.logger.warn(`Vehicle category not found: ${id}`);
+        this.logger.logWarn('Vehicle category not found', ctx);
         throw new NotFoundException(`Vehicle category with id ${id} not found`);
       }
+
       return mapCategoryToResponse(category);
     } catch (error) {
+      this.logger.logError('Failed to fetch vehicle category', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'VehicleCategory');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
@@ -104,100 +138,118 @@ export class VehicleCategoryService {
     id: string,
     dto: UpdateCategoryDto,
   ): Promise<VehicleCategoryResponse> {
-    this.logger.info(`Updating vehicle category: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'update',
+      additional: { id, dto },
+    };
+    this.logger.logInfo('Updating vehicle category', ctx);
 
     try {
-      // Validate the update
       const category = await this.validationService.validateUpdate(
         id,
         dto.name,
       );
 
-      // Update the category
       const updatedCategory = await this.prisma.vehicleCategory.update({
         where: { id },
         data: { name: dto.name ?? category.name },
       });
 
-      this.logger.info(`Vehicle category updated: ${updatedCategory.id}`);
-
-      // Fetch all vehicles in this category with type info for name regeneration
-      const vehicles = await this.prisma.vehicle.findMany({
-        where: { categoryId: updatedCategory.id },
-        include: { type: true }, // need type.name
+      this.logger.logInfo('Vehicle category updated', {
+        ...ctx,
+        additional: { updatedId: updatedCategory.id },
       });
 
-      const updatePromises = vehicles.map(async (v) => {
-        try {
-          let newName: string;
+      // Regenerate vehicle names for all vehicles in this category
+      const vehicles = await this.prisma.vehicle.findMany({
+        where: { categoryId: updatedCategory.id },
+        include: { type: true },
+      });
 
+      await Promise.all(
+        vehicles.map(async (v) => {
           try {
-            newName = generateVehicleName(
+            const newName = generateVehicleName(
               updatedCategory.name,
               v.type.name,
               v.licensePlate,
             );
+            await this.prisma.vehicle.update({
+              where: { id: v.id },
+              data: { name: newName },
+            });
           } catch (err) {
-            this.logger.error(
-              `Failed to generate name for vehicle ${v.id}: ${(err as Error).message}`,
-            );
-            return null; // skip this vehicle
+            this.logger.logError(`Failed to update vehicle ${v.id}`, {
+              ...ctx,
+              additional: { error: err },
+            });
           }
-
-          // Update vehicle with new name
-          return await this.prisma.vehicle.update({
-            where: { id: v.id },
-            data: { name: newName },
-          });
-        } catch (err) {
-          this.logger.error(
-            `Failed to update vehicle ${v.id}: ${(err as Error).message}`,
-          );
-          return null;
-        }
-      });
-
-      await Promise.all(updatePromises);
+        }),
+      );
 
       return mapCategoryToResponse(updatedCategory);
     } catch (error) {
-      handlePrismaError(error, 'Vehicle category');
+      this.logger.logError('Failed to update vehicle category', {
+        ...ctx,
+        additional: { error },
+      });
+      handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
   async remove(id: string): Promise<{ success: boolean }> {
-    this.logger.info(`Deleting vehicle category: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'delete',
+      additional: { id },
+    };
+    this.logger.logInfo('Deleting vehicle category', ctx);
+
     try {
       const category = await this.prisma.vehicleCategory.findUnique({
         where: { id },
         include: { types: true, vehicles: true },
       });
+
       if (!category) {
-        this.logger.warn(`Delete failed, category not found: ${id}`);
+        this.logger.logWarn('Delete failed, category not found', ctx);
         throw new NotFoundException(`Vehicle category with id ${id} not found`);
       }
 
       if (category.types.length > 0) {
-        this.logger.warn(`Delete failed, category has dependent types: ${id}`);
+        this.logger.logWarn('Delete failed, category has dependent types', {
+          ...ctx,
+          additional: { dependentTypes: category.types.length },
+        });
         throw new ConflictException(
           `Cannot delete category "${category.name}" because it has ${category.types.length} type(s)`,
         );
       }
 
       if (category.vehicles?.length > 0) {
+        this.logger.logWarn('Delete failed, category has linked vehicles', {
+          ...ctx,
+          additional: { linkedVehicles: category.vehicles.length },
+        });
         throw new ConflictException(
-          `Cannot delete vehicle type "${category.name}" because vehicles exist for this type`,
+          `Cannot delete vehicle category "${category.name}" because vehicles exist for this category`,
         );
       }
 
       await this.prisma.vehicleCategory.delete({ where: { id } });
-      this.logger.info(`Vehicle category deleted: ${id}`);
+      this.logger.logInfo('Vehicle category deleted', ctx);
       return { success: true };
     } catch (error) {
+      this.logger.logError('Failed to delete vehicle category', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'VehicleCategory');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 }

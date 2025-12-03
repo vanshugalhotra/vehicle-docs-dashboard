@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { CreateVehicleDocumentDto } from './dto/create-vehicle-document.dto';
 import { UpdateVehicleDocumentDto } from './dto/update-vehicle-document.dto';
@@ -16,15 +16,15 @@ import { parseBusinessFilters } from 'src/common/business-filters/parser';
 import { createLinkageBusinessEngine } from './business-resolver/business-engine.factory';
 import { LINKAGE_ALLOWED_BUSINESS_FILTERS } from 'src/common/types';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
-// import { EventEmitter2 } from '@nestjs/event-emitter'; // Commented out
 
 @Injectable()
 export class VehicleDocumentService {
+  private readonly entity = 'VehicleDocument';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly validationService: VehicleDocumentValidationService,
-    // private readonly eventEmitter: EventEmitter2, // Commented out
   ) {}
 
   // -----------------------
@@ -34,7 +34,12 @@ export class VehicleDocumentService {
     dto: CreateVehicleDocumentDto,
   ): Promise<VehicleDocumentResponseDto> {
     const documentNo = dto.documentNo.toUpperCase();
-    this.logger.info(`Creating vehicle document: ${documentNo}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'create',
+      additional: { dto },
+    };
+    this.logger.logInfo(`Creating vehicle document: ${documentNo}`, ctx);
 
     const start = new Date(dto.startDate);
     const expiry = new Date(dto.expiryDate);
@@ -58,23 +63,24 @@ export class VehicleDocumentService {
           link: dto.link ?? null,
           notes: dto.notes ?? null,
         },
-        include: {
-          vehicle: true,
-          documentType: true,
-        },
+        include: { vehicle: true, documentType: true },
       });
 
-      this.logger.info(`Vehicle document created: ${created.id}`);
-
-      // Commented out event emission - not currently used
-      // this.eventEmitter.emit('vehicleDocument.created', created);
+      this.logger.logInfo('Vehicle document created', {
+        ...ctx,
+        additional: { id: created.id },
+      });
 
       return mapVehicleDocumentToResponse(created);
     } catch (error) {
+      this.logger.logError('Failed to create vehicle document', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle document');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
@@ -84,9 +90,12 @@ export class VehicleDocumentService {
   async findAll(
     query: QueryWithBusinessDto,
   ): Promise<PaginatedVehicleDocumentResponseDto> {
-    this.logger.info(
-      `Fetching vehicle documents (skip=${query.skip ?? 0}, take=${query.take ?? 20}, search=${query.search ?? ''})`,
-    );
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'fetch',
+      additional: { query },
+    };
+    this.logger.logInfo('Fetching vehicle documents', ctx);
 
     try {
       const { skip, take, where, orderBy } =
@@ -114,15 +123,11 @@ export class VehicleDocumentService {
         }),
       };
 
-      // -------------------------------------------
-      // 1) Parse business filters
-      // -------------------------------------------
+      // Business filters
       const parsedBusinessFilters = parseBusinessFilters(
         query.businessFilters,
         LINKAGE_ALLOWED_BUSINESS_FILTERS,
       );
-
-      // 2) Create engine for vehicle documents
       const engine = createLinkageBusinessEngine();
 
       const [docs, total] = await Promise.all([
@@ -136,26 +141,24 @@ export class VehicleDocumentService {
         this.prisma.vehicleDocument.count({ where: extendedWhere }),
       ]);
 
-      this.logger.info(`Fetched ${docs.length} of ${total} vehicle documents`);
+      this.logger.logInfo(
+        `Fetched ${docs.length} of ${total} vehicle documents`,
+        ctx,
+      );
 
-      // ---------------------------------------------------------------------
-      // 3) Map → Business filters → Return
-      // ---------------------------------------------------------------------
       const dtoList = docs.map(mapVehicleDocumentToResponse);
-
-      // Apply business filter resolvers (e.g., status with withinDays)
       const finalList = engine.apply(dtoList, parsedBusinessFilters);
 
-      return {
-        items: finalList,
-        total: total,
-      };
+      return { items: finalList, total };
     } catch (error) {
-      // Only handle Prisma errors, let NestJS exceptions pass through
+      this.logger.logError('Failed to fetch vehicle documents', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle document');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
@@ -163,22 +166,34 @@ export class VehicleDocumentService {
   // FIND ONE
   // -----------------------
   async findOne(id: string): Promise<VehicleDocumentResponseDto> {
-    this.logger.info(`Fetching vehicle document by id: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'fetch',
+      additional: { id },
+    };
+    this.logger.logInfo(`Fetching vehicle document by id: ${id}`, ctx);
+
     try {
       const doc = await this.prisma.vehicleDocument.findUnique({
         where: { id },
         include: { vehicle: true, documentType: true },
       });
+
       if (!doc) {
+        this.logger.logWarn('Vehicle document not found', ctx);
         throw new NotFoundException(`VehicleDocument with id ${id} not found`);
       }
+
       return mapVehicleDocumentToResponse(doc);
     } catch (error) {
-      // Only handle Prisma errors, let NestJS exceptions pass through
+      this.logger.logError('Failed to fetch vehicle document', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle document');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
@@ -189,7 +204,13 @@ export class VehicleDocumentService {
     id: string,
     dto: UpdateVehicleDocumentDto,
   ): Promise<VehicleDocumentResponseDto> {
-    this.logger.info(`Updating vehicle document: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'update',
+      additional: { id, dto },
+    };
+    this.logger.logInfo(`Updating vehicle document: ${id}`, ctx);
+
     try {
       const { start, expiry } = await this.validationService.validateUpdate(
         id,
@@ -199,12 +220,6 @@ export class VehicleDocumentService {
         dto.startDate ? new Date(dto.startDate) : undefined,
         dto.expiryDate ? new Date(dto.expiryDate) : undefined,
       );
-
-      // Fetch current expiry date before update
-      // const existingDoc = await this.prisma.vehicleDocument.findUnique({
-      //   where: { id },
-      //   select: { expiryDate: true },
-      // });
 
       const updated = await this.prisma.vehicleDocument.update({
         where: { id },
@@ -220,29 +235,21 @@ export class VehicleDocumentService {
         include: { vehicle: true, documentType: true },
       });
 
-      this.logger.info(`Vehicle document updated: ${updated.id}`);
-
-      // -------------------------
-      // Emit event only if expiry changed
-      // -------------------------
-      // Commented out event emission - not currently used
-      // if (
-      //   dto.expiryDate &&
-      //   existingDoc?.expiryDate?.getTime() !== expiry?.getTime()
-      // ) {
-      //   this.eventEmitter.emit('vehicleDocument.updated', updated);
-      //   this.logger.debug(
-      //     `Emitted vehicleDocument.updated event for document: ${updated.id}`,
-      //   );
-      // }
+      this.logger.logInfo('Vehicle document updated', {
+        ...ctx,
+        additional: { updatedId: updated.id },
+      });
 
       return mapVehicleDocumentToResponse(updated);
     } catch (error) {
-      // Only handle Prisma errors, let NestJS exceptions pass through
+      this.logger.logError('Failed to update vehicle document', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle document');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 
@@ -250,24 +257,35 @@ export class VehicleDocumentService {
   // REMOVE
   // -----------------------
   async remove(id: string): Promise<{ success: boolean }> {
-    this.logger.info(`Deleting vehicle document: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'delete',
+      additional: { id },
+    };
+    this.logger.logInfo(`Deleting vehicle document: ${id}`, ctx);
+
     try {
       const doc = await this.prisma.vehicleDocument.findUnique({
         where: { id },
       });
+
       if (!doc) {
+        this.logger.logWarn('Vehicle document not found', ctx);
         throw new NotFoundException(`VehicleDocument with id ${id} not found`);
       }
 
       await this.prisma.vehicleDocument.delete({ where: { id } });
-      this.logger.info(`Vehicle document deleted: ${id}`);
+      this.logger.logInfo('Vehicle document deleted', ctx);
       return { success: true };
     } catch (error) {
-      // Only handle Prisma errors, let NestJS exceptions pass through
+      this.logger.logError('Failed to delete vehicle document', {
+        ...ctx,
+        additional: { error },
+      });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle document');
+        handlePrismaError(error, this.entity);
       }
-      throw error; // Re-throw NestJS exceptions
+      throw error;
     }
   }
 }

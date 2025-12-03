@@ -11,6 +11,12 @@ import createStream, {
   PinoRotatingFileStreamOptions,
 } from 'pino-rotating-file-stream';
 
+export interface LogContext {
+  entity: string; // e.g., 'VehicleDocument', 'ReminderRecipient'
+  action: string; // e.g., 'create', 'update', 'delete', 'fetch'
+  additional?: Record<string, unknown>; // optional extra info like DTO, query params
+}
+
 @Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService {
   private readonly logger: PinoLogger;
@@ -121,5 +127,28 @@ export class LoggerService {
 
   debug(msg: string, meta?: Record<string, unknown>) {
     this.logger.debug(meta, msg);
+  }
+
+  logInfo(msg: string, context: LogContext) {
+    const contextStr = `[${context.entity}][${context.action}]${context.additional ? ' ' + JSON.stringify(context.additional) : ''}`;
+    this.logger.info(`${contextStr} ${msg}`);
+  }
+
+  logDebug(msg: string, context: LogContext) {
+    const contextStr = `[${context.entity}][${context.action}]${context.additional ? ' ' + JSON.stringify(context.additional) : ''}`;
+    this.logger.debug(`${contextStr} ${msg}`);
+  }
+
+  logWarn(msg: string, context: LogContext) {
+    const contextStr = `[${context.entity}][${context.action}]${context.additional ? ' ' + JSON.stringify(context.additional) : ''}`;
+    this.logger.warn(`${contextStr} ${msg}`);
+  }
+
+  logError(msg: string, context: LogContext, error?: unknown) {
+    const contextStr = `[${context.entity}][${context.action}]${context.additional ? ' ' + JSON.stringify(context.additional) : ''}`;
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    this.logger.error(
+      `${contextStr} ${msg}${errorMsg ? ' | Error: ' + errorMsg : ''}`,
+    );
   }
 }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
@@ -18,6 +18,8 @@ import { DriverValidationService } from './validation/driver-validation.service'
 
 @Injectable()
 export class DriverService {
+  private readonly entity = 'Driver';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
@@ -25,40 +27,52 @@ export class DriverService {
   ) {}
 
   async create(dto: CreateDriverDto): Promise<DriverResponse> {
-    const name = dto.name;
-    const phone = dto.phone;
-    const email = dto.email;
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'create',
+      additional: { dto },
+    };
+    this.logger.logInfo(`Creating driver`, ctx);
 
-    this.logger.info(`Creating driver: ${name} (${phone})`);
     try {
-      await this.driverValidation.validateCreate(phone, email);
+      await this.driverValidation.validateCreate(dto.phone, dto.email);
+
       const driver = await this.prisma.driver.create({
         data: {
-          name,
-          phone,
-          email: email || null,
+          name: dto.name,
+          phone: dto.phone,
+          email: dto.email || null,
         },
       });
 
-      this.logger.info(`Driver created: ${driver.id}`);
+      this.logger.logInfo(`Driver created`, {
+        ...ctx,
+        additional: { id: driver.id },
+      });
       return mapDriverToResponse(driver);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Driver');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error creating driver', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
   async findAll(query: QueryOptionsDto): Promise<PaginatedDriverResponseDto> {
-    this.logger.debug(
-      `Fetching drivers with params: ${JSON.stringify(query, null, 2)}`,
-    );
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'findAll',
+      additional: { query },
+    };
+    this.logger.logDebug('Fetching drivers', ctx);
 
     try {
       const queryArgs = buildQueryArgs<DriverResponse, Prisma.DriverWhereInput>(
         query,
-        ['name', 'phone', 'email'], // Searchable fields
+        ['name', 'phone', 'email'],
       );
 
       const [drivers, total] = await Promise.all([
@@ -71,38 +85,61 @@ export class DriverService {
         this.prisma.driver.count({ where: queryArgs.where }),
       ]);
 
-      this.logger.info(`Fetched ${drivers.length} of ${total} drivers`);
+      this.logger.logInfo('Fetched drivers', {
+        ...ctx,
+        additional: { count: drivers.length, total },
+      });
 
       return {
         items: drivers.map(mapDriverToResponse),
         total,
       };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Driver');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error fetching drivers', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
+
   async findOne(id: string): Promise<DriverResponse> {
-    this.logger.info(`Fetching driver by id: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'findOne',
+      additional: { id },
+    };
+    this.logger.logInfo(`Fetching driver by id`, ctx);
+
     try {
       const driver = await this.prisma.driver.findUnique({ where: { id } });
       if (!driver) {
-        this.logger.warn(`Driver not found: ${id}`);
+        this.logger.logWarn(`Driver not found`, ctx);
         throw new NotFoundException(`Driver with id ${id} not found`);
       }
+
       return mapDriverToResponse(driver);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Driver');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error fetching driver', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
   async update(id: string, dto: UpdateDriverDto): Promise<DriverResponse> {
-    this.logger.info(`Updating driver: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'update',
+      additional: { id, dto },
+    };
+    this.logger.logInfo(`Updating driver`, ctx);
+
     try {
       const driver = await this.driverValidation.validateUpdate(
         id,
@@ -119,46 +156,64 @@ export class DriverService {
         },
       });
 
-      this.logger.info(`Driver updated: ${updated.id}`);
+      this.logger.logInfo(`Driver updated`, {
+        ...ctx,
+        additional: { updatedId: updated.id },
+      });
       return mapDriverToResponse(updated);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Driver');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error updating driver', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
   async remove(id: string): Promise<{ success: boolean }> {
-    this.logger.info(`Deleting driver: ${id}`);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'remove',
+      additional: { id },
+    };
+    this.logger.logInfo(`Deleting driver`, ctx);
+
     try {
       const driver = await this.prisma.driver.findUnique({ where: { id } });
       if (!driver) {
-        this.logger.warn(`Delete failed, driver not found: ${id}`);
+        this.logger.logWarn(`Delete failed, driver not found`, ctx);
         throw new NotFoundException(`Driver with id ${id} not found`);
       }
 
-      // Prevent deletion if any vehicle is linked
       const linkedVehicles = await this.prisma.vehicle.count({
         where: { driverId: id },
       });
       if (linkedVehicles > 0) {
-        this.logger.warn(
-          `Delete failed, driver has ${linkedVehicles} assigned vehicle(s): ${id}`,
-        );
+        this.logger.logWarn(`Delete failed, driver has assigned vehicles`, {
+          ...ctx,
+          additional: { linkedVehicles },
+        });
         throw new ConflictException(
           `Cannot delete driver "${driver.name}" because ${linkedVehicles} vehicle(s) are assigned`,
         );
       }
 
       await this.prisma.driver.delete({ where: { id } });
-      this.logger.info(`Driver deleted: ${id}`);
+      this.logger.logInfo(`Driver deleted`, {
+        ...ctx,
+        additional: { deletedId: id },
+      });
       return { success: true };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Driver');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error deleting driver', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 }
