@@ -1,12 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 import { Express } from 'express';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   DocumentTypeResponse,
@@ -18,6 +11,8 @@ import {
 import { PaginatedVehicleDocumentResponseDto } from 'src/modules/vehicle-document/dto/vehicle-document-response.dto';
 import { PaginatedCategoryResponseDto } from 'src/modules/vehicle-category/dto/vehicle-category-response.dto';
 import { PaginatedTypeResponseDto } from 'src/modules/vehicle-type/dto/vehicle-type-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -34,26 +29,10 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   let vehicleDocB: VehicleDocumentResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+    await setupTestAuth(server);
 
     // Clean up relevant tables before tests
     await prisma.vehicleDocument.deleteMany({});
@@ -64,32 +43,32 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     // Create reference data via API
     // Create categories and types
-    const catResA = await request(server)
+    const catResA = await authedRequest(server)
       .post('/api/v1/vehicle-categories')
       .send({ name: 'Car' })
       .expect(201);
     const categoryIdA = (catResA.body as VehicleCategoryResponse).id;
 
-    const typeResA = await request(server)
+    const typeResA = await authedRequest(server)
       .post('/api/v1/vehicle-types')
       .send({ name: 'Sedan', categoryId: categoryIdA })
       .expect(201);
     const typeIdA = (typeResA.body as VehicleTypeResponse).id;
 
-    const catResB = await request(server)
+    const catResB = await authedRequest(server)
       .post('/api/v1/vehicle-categories')
       .send({ name: 'Truck' })
       .expect(201);
     const categoryIdB = (catResB.body as VehicleCategoryResponse).id;
 
-    const typeResB = await request(server)
+    const typeResB = await authedRequest(server)
       .post('/api/v1/vehicle-types')
       .send({ name: 'Mini-Truck', categoryId: categoryIdB })
       .expect(201);
     const typeIdB = (typeResB.body as VehicleTypeResponse).id;
 
     // Create vehicles
-    const vehicleResA = await request(server)
+    const vehicleResA = await authedRequest(server)
       .post('/api/v1/vehicles')
       .send({
         licensePlate: 'DOC001',
@@ -102,7 +81,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       .expect(201);
     vehicleIdA = (vehicleResA.body as VehicleResponse).id;
 
-    const vehicleResB = await request(server)
+    const vehicleResB = await authedRequest(server)
       .post('/api/v1/vehicles')
       .send({
         licensePlate: 'DOC002',
@@ -116,13 +95,13 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     vehicleIdB = (vehicleResB.body as VehicleResponse).id;
 
     // Create document types
-    const docTypeResA = await request(server)
+    const docTypeResA = await authedRequest(server)
       .post('/api/v1/document-types')
       .send({ name: 'Insurance Certificate' })
       .expect(201);
     documentTypeIdA = (docTypeResA.body as DocumentTypeResponse).id;
 
-    const docTypeResB = await request(server)
+    const docTypeResB = await authedRequest(server)
       .post('/api/v1/document-types')
       .send({ name: 'Pollution Certificate' })
       .expect(201);
@@ -146,7 +125,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       const startDate = new Date('2025-01-01');
       const expiryDate = new Date('2026-01-01');
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -178,7 +157,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       const startDate = new Date('2025-02-01');
       const expiryDate = new Date('2026-02-01');
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdB,
@@ -199,7 +178,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       const startDate = new Date('2025-03-01');
       const expiryDate = new Date('2026-03-01');
 
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -212,7 +191,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject creation with missing required fields (400)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           documentNo: 'TEST-001',
@@ -222,7 +201,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject creation when vehicleId/documentTypeId invalid (404)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: '00000000-0000-0000-0000-000000000000',
@@ -233,7 +212,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
         })
         .expect(404);
 
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -247,7 +226,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     it('should enforce uniqueness on documentNo (case-insensitive) (409)', async () => {
       // try duplicate documentNo in different case -> should conflict
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -260,7 +239,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject invalid date ranges (400)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -273,7 +252,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject invalid date formats (400)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -291,7 +270,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('List and fetch vehicle documents', () => {
     it('GET /vehicle-documents returns array and includes created documents', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/vehicle-documents')
         .expect(200);
       const body = res.body as PaginatedVehicleDocumentResponseDto;
@@ -301,26 +280,26 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('GET /vehicle-documents/:id should return the document (200)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .expect(200);
       expect((res.body as VehicleDocumentResponse).id).toBe(vehicleDocA.id);
     });
 
     it('GET /vehicle-documents/:id with invalid uuid -> 400', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/vehicle-documents/invalid-uuid')
         .expect(400);
     });
 
     it('GET /vehicle-documents/:id non-existent -> 404', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/vehicle-documents/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
 
     it('should include vehicle and documentType relations by default', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .expect(200);
       const doc = res.body as VehicleDocumentResponse;
@@ -339,7 +318,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     beforeAll(async () => {
       // Create additional test data for searching/filtering
-      const vehicleRes = await request(server)
+      const vehicleRes = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'SEARCH001',
@@ -347,25 +326,25 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           chassisNumber: 'ch-search-001',
           engineNumber: 'en-search-001',
           categoryId: (
-            (await request(server).get('/api/v1/vehicle-categories'))
+            (await authedRequest(server).get('/api/v1/vehicle-categories'))
               .body as PaginatedCategoryResponseDto
           ).items[0].id,
           typeId: (
-            (await request(server).get('/api/v1/vehicle-types'))
+            (await authedRequest(server).get('/api/v1/vehicle-types'))
               .body as PaginatedTypeResponseDto
           ).items[0].id,
         })
         .expect(201);
       searchVehicleId = (vehicleRes.body as VehicleResponse).id;
 
-      const docTypeRes = await request(server)
+      const docTypeRes = await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'Fitness Certificate' })
         .expect(201);
       searchDocTypeId = (docTypeRes.body as DocumentTypeResponse).id;
 
       // Create a test document to search/filter/sort
-      const docRes = await request(server)
+      const docRes = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: searchVehicleId,
@@ -381,7 +360,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     it('should support full-text search via ?search= on documentNo and vehicle name', async () => {
       // Search by document number
-      const resByDocNo = await request(server)
+      const resByDocNo = await authedRequest(server)
         .get(
           `/api/v1/vehicle-documents?search=${encodeURIComponent(searchVehicleDoc.documentNo)}`,
         )
@@ -393,7 +372,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       ).toBe(true);
 
       // Search by vehicle name (license plate)
-      const resByVehicle = await request(server)
+      const resByVehicle = await authedRequest(server)
         .get('/api/v1/vehicle-documents?search=SEARCH001')
         .expect(200);
       const bodyByVehicle =
@@ -409,7 +388,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
         documentTypeId: searchDocTypeId,
       };
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicle-documents?filters=${encodeURIComponent(JSON.stringify(filters))}`,
         )
@@ -431,7 +410,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
         expiryDate: { gte: futureDate },
       };
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicle-documents?filters=${encodeURIComponent(JSON.stringify(filters))}`,
         )
@@ -450,12 +429,12 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     it('should support sorting by various fields', async () => {
       // Sort by documentNo ascending
-      const asc = await request(server)
+      const asc = await authedRequest(server)
         .get('/api/v1/vehicle-documents?sortBy=documentNo&order=asc&take=5')
         .expect(200);
 
       // Sort by expiryDate descending (most recent first)
-      const desc = await request(server)
+      const desc = await authedRequest(server)
         .get('/api/v1/vehicle-documents?sortBy=expiryDate&order=desc&take=5')
         .expect(200);
 
@@ -479,10 +458,10 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should support pagination with skip and take', async () => {
-      const page1 = await request(server)
+      const page1 = await authedRequest(server)
         .get('/api/v1/vehicle-documents?skip=0&take=2')
         .expect(200);
-      const page2 = await request(server)
+      const page2 = await authedRequest(server)
         .get('/api/v1/vehicle-documents?skip=2&take=2')
         .expect(200);
 
@@ -504,7 +483,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     it('should allow combining search + filter + pagination + sorting', async () => {
       const filters = { vehicleId: searchVehicleId };
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicle-documents?search=${encodeURIComponent(searchVehicleDoc.documentNo)}&filters=${encodeURIComponent(JSON.stringify(filters))}&sortBy=createdAt&order=desc&skip=0&take=3`,
         )
@@ -521,7 +500,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Update Vehicle Document', () => {
     it('should reject after trimming', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocB.id}`)
         .send({ documentNo: '  ins-001-2025  ' })
         .expect(409);
@@ -531,7 +510,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       const newStartDate = new Date('2025-06-01');
       const newExpiryDate = new Date('2026-06-01');
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({
           startDate: newStartDate.toISOString(),
@@ -548,7 +527,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should update notes and link fields', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({
           notes: 'Updated comprehensive notes with more details',
@@ -563,7 +542,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should update vehicle and document type associations', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocB.id}`)
         .send({
           vehicleId: vehicleIdA, // Move to different vehicle
@@ -576,26 +555,26 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject update when changing to duplicate documentNo (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocB.id}`)
         .send({ documentNo: 'ins-001-2025' }) // Same as vehicleDocA (case-insensitive)
         .expect(409);
     });
 
     it('should reject update with invalid vehicleId/documentTypeId (404)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({ vehicleId: '00000000-0000-0000-0000-000000000000' })
         .expect(404);
 
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({ documentTypeId: '00000000-0000-0000-0000-000000000000' })
         .expect(404);
     });
 
     it('should reject update with invalid date ranges (400)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({
           startDate: new Date('2026-01-01').toISOString(),
@@ -605,7 +584,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should return 404 when updating non-existent document', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/vehicle-documents/00000000-0000-0000-0000-000000000000')
         .send({ notes: 'ghost update' })
         .expect(404);
@@ -613,7 +592,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     it('should allow partial updates (PATCH semantics)', async () => {
       // Update only notes
-      const res1 = await request(server)
+      const res1 = await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({ notes: 'Partial update test' })
         .expect(200);
@@ -622,7 +601,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       );
 
       // Update only documentNo
-      const res2 = await request(server)
+      const res2 = await authedRequest(server)
         .patch(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .send({ documentNo: 'PARTIAL-UPDATE' })
         .expect(200);
@@ -640,7 +619,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
 
     beforeEach(async () => {
       // Create a temporary document for deletion tests
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -654,28 +633,28 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should delete document successfully', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-documents/${tempDocumentId}`)
         .expect(200);
 
       // Verify document is gone
-      await request(server)
+      await authedRequest(server)
         .get(`/api/v1/vehicle-documents/${tempDocumentId}`)
         .expect(404);
     });
 
     it('deleting already-deleted document should return 404', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-documents/${tempDocumentId}`)
         .expect(200);
 
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-documents/${tempDocumentId}`)
         .expect(404);
     });
 
     it('should return 404 when deleting non-existent random id', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(
           '/api/v1/vehicle-documents/00000000-0000-0000-0000-000000000000',
         )
@@ -691,7 +670,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
       const longNotes = 'A'.repeat(500); // 500 character notes
       const longLink = `https://example.com/${'doc'.repeat(50)}.pdf`;
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -709,7 +688,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should handle documents with special characters in documentNo', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
@@ -731,7 +710,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Relation integrity tests', () => {
     it('should maintain referential integrity when fetching with relations', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicle-documents/${vehicleDocA.id}`)
         .expect(200);
 
@@ -747,7 +726,7 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     it('should show conflict when deleting vehicle with linked docs', async () => {
       // This test verifies the API behavior when underlying relations change
       // Note: Actual cascade behavior depends on your database schema
-      const tempVehicleRes = await request(server)
+      const tempVehicleRes = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'TEMP-DELETE',
@@ -755,17 +734,17 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           chassisNumber: 'ch-temp-delete',
           engineNumber: 'en-temp-delete',
           categoryId: (
-            (await request(server).get('/api/v1/vehicle-categories'))
+            (await authedRequest(server).get('/api/v1/vehicle-categories'))
               .body as PaginatedCategoryResponseDto
           ).items[0].id,
           typeId: (
-            (await request(server).get('/api/v1/vehicle-types'))
+            (await authedRequest(server).get('/api/v1/vehicle-types'))
               .body as PaginatedTypeResponseDto
           ).items[0].id,
         })
         .expect(201);
 
-      const tempDocRes = await request(server)
+      const tempDocRes = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: (tempVehicleRes.body as VehicleResponse).id,
@@ -777,14 +756,14 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
         .expect(201);
 
       // Delete the vehicle
-      await request(server)
+      await authedRequest(server)
         .delete(
           `/api/v1/vehicles/${(tempVehicleRes.body as VehicleResponse).id}`,
         )
         .expect(409);
 
       // Document will still exist
-      const docRes = await request(server).get(
+      const docRes = await authedRequest(server).get(
         `/api/v1/vehicle-documents/${(tempDocRes.body as VehicleResponse).id}`,
       );
 

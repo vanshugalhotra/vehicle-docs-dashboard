@@ -1,15 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 import { Express } from 'express';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { DriverResponse } from 'src/common/types';
 import { PaginatedDriverResponseDto } from 'src/modules/driver/dto/driver-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('Driver E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -19,26 +14,10 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   let driverB: DriverResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+    await setupTestAuth(server);
 
     // Clean database before test run
     await prisma.vehicle.deleteMany({});
@@ -56,7 +35,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   // ────────────────────────────────────────────────
   describe('POST /api/v1/drivers', () => {
     it('should create a driver successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/drivers')
         .send({
           name: 'John Doe',
@@ -73,7 +52,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should create another driver without email', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/drivers')
         .send({
           name: 'No Email Driver',
@@ -86,7 +65,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject duplicate phone numbers', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/drivers')
         .send({
           name: 'Dup Phone',
@@ -97,7 +76,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject duplicate email', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/drivers')
         .send({
           name: 'Dup Email',
@@ -108,14 +87,14 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject invalid payload (missing name)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/drivers')
         .send({ phone: '1234567890' })
         .expect(400);
     });
 
     it('should reject invalid phone format', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/drivers')
         .send({ name: 'BadPhone', phone: 'abc' })
         .expect(400);
@@ -127,7 +106,9 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   // ────────────────────────────────────────────────
   describe('GET /api/v1/drivers', () => {
     it('should fetch all drivers ordered by name', async () => {
-      const res = await request(server).get('/api/v1/drivers').expect(200);
+      const res = await authedRequest(server)
+        .get('/api/v1/drivers')
+        .expect(200);
       const body = res.body as PaginatedDriverResponseDto;
       expect(Array.isArray(body['items'])).toBe(true);
       expect(body['items'].length).toBeGreaterThanOrEqual(2);
@@ -135,7 +116,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should support search by name', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/drivers')
         .query({ search: 'john' })
         .expect(200);
@@ -145,7 +126,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should support search by phone', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/drivers')
         .query({ search: '8888' })
         .expect(200);
@@ -160,7 +141,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   // ────────────────────────────────────────────────
   describe('GET /api/v1/drivers/:id', () => {
     it('should fetch a single driver by id', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/drivers/${driverA.id}`)
         .expect(200);
       const body = res.body as DriverResponse;
@@ -168,7 +149,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should return 404 for non-existent driver', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/drivers/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
@@ -179,7 +160,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   // ────────────────────────────────────────────────
   describe('PATCH /api/v1/drivers/:id', () => {
     it('should update driver successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/drivers/${driverA.id}`)
         .send({ name: 'John Updated', email: 'john.updated@example.com' })
         .expect(200);
@@ -189,27 +170,27 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject updates to existing phone', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/drivers/${driverA.id}`)
         .send({ phone: '8888888888' }) // phone of driverB
         .expect(409);
     });
     it('should reject due to duplicate after trim', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/drivers/${driverA.id}`)
         .send({ phone: '8888888888    ' })
         .expect(409);
     });
 
     it('should accept updates to existing email', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/drivers/${driverA.id}`)
         .send({ email: driverB.email ?? 'john@example.com' })
         .expect(200);
     });
 
     it('should return 404 when updating non-existent driver', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/drivers/00000000-0000-0000-0000-000000000000')
         .send({ name: 'Ghost' })
         .expect(404);
@@ -221,7 +202,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
   // ────────────────────────────────────────────────
   describe('DELETE /api/v1/drivers/:id', () => {
     it('should delete driver successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .delete(`/api/v1/drivers/${driverB.id}`)
         .expect(200);
       const body = res.body as { success: boolean };
@@ -234,7 +215,7 @@ describe('Driver E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should return 404 when deleting non-existent driver', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete('/api/v1/drivers/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });

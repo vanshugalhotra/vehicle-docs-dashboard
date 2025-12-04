@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { DriverService } from './driver.service';
@@ -19,8 +20,10 @@ import {
   PaginatedDriverResponseDto,
 } from './dto/driver-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Drivers')
+@UseGuards(AuthGuard)
 @Controller({ path: 'drivers', version: '1' })
 export class DriverController {
   constructor(private readonly driversService: DriverService) {}

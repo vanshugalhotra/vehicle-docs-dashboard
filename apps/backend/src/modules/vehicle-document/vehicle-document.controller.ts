@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleDocumentService } from './vehicle-document.service';
@@ -18,8 +19,10 @@ import {
   PaginatedVehicleDocumentResponseDto,
 } from './dto/vehicle-document-response.dto';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Vehicle Documents')
+@UseGuards(AuthGuard)
 @Controller({ path: 'vehicle-documents', version: '1' })
 export class VehicleDocumentController {
   constructor(

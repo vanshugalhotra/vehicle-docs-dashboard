@@ -9,5 +9,5 @@
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1"
   },
-  "setupFiles": ["<rootDir>/setup.ts"]
+  "setupFiles": ["<rootDir>/utils/e2e-setup/setup.ts"]
 }

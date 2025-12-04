@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { OwnerService } from './owner.service';
@@ -19,8 +20,10 @@ import {
   PaginatedOwnerResponseDto,
 } from './dto/owner-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Owners')
+@UseGuards(AuthGuard)
 @Controller({ path: 'owners', version: '1' })
 export class OwnerController {
   constructor(private readonly ownersService: OwnerService) {}

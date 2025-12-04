@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleCategoryService } from './vehicle-category.service';
@@ -19,8 +20,10 @@ import {
   PaginatedCategoryResponseDto,
 } from './dto/vehicle-category-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Vehicle Categories')
+@UseGuards(AuthGuard)
 @Controller({ path: 'vehicle-categories', version: '1' })
 export class VehicleCategoryController {
   constructor(private readonly categoryService: VehicleCategoryService) {}

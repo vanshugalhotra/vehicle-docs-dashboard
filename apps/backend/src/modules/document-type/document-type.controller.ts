@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { DocumentTypesService } from './document-type.service';
@@ -19,8 +20,10 @@ import {
   PaginatedDocumentTypeResponseDto,
 } from './dto/document-type-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Document Types')
+@UseGuards(AuthGuard)
 @Controller({ path: 'document-types', version: '1' })
 export class DocumentTypeController {
   constructor(private readonly documentTypesService: DocumentTypesService) {}

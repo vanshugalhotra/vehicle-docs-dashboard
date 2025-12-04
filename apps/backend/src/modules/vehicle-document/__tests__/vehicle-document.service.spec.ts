@@ -1,8 +1,8 @@
 import { VehicleDocumentService } from '../vehicle-document.service';
-import { createTestModule } from '../../../../test/utils/test-setup';
+import { createTestModule } from '../../../../test/utils/unit-setup/test-setup';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { MockedPrisma } from '../../../../test/utils/mock-prisma';
-import { MockedLogger } from '../../../../test/utils/mock-logger';
+import { MockedPrisma } from '../../../../test/utils/unit-setup/mock-prisma';
+import { MockedLogger } from '../../../../test/utils/unit-setup/mock-logger';
 import { CreateVehicleDocumentDto } from '../dto/create-vehicle-document.dto';
 import { UpdateVehicleDocumentDto } from '../dto/update-vehicle-document.dto';
 import { VehicleDocument, Vehicle, DocumentType } from '@prisma/client';

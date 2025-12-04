@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as Joi from 'joi';
+
 export interface AppConfig {
   DATABASE_URL: string;
   NODE_ENV: 'development' | 'production' | 'test';
@@ -26,6 +27,13 @@ export interface AppConfig {
   LOG_RETENTION_DAYS: number;
   LOG_MAX_SIZE: number;
   LOG_DETAIL: boolean;
+
+  JWT_EXPIRES_IN: string;
+  AUTH_COOKIE_NAME: string;
+  AUTH_COOKIE_SECURE: boolean;
+  AUTH_COOKIE_SAMESITE: string;
+  AUTH_COOKIE_PATH: string;
+  AUTH_ADMIN_SECRET: string;
 }
 
 @Injectable()
@@ -42,13 +50,10 @@ export class ConfigService {
 
     const schema = Joi.object<AppConfig>({
       DATABASE_URL: Joi.string().required(),
-
       NODE_ENV: Joi.string()
         .valid('development', 'production', 'test')
         .default('development'),
-
       PORT: Joi.number().default(3333),
-
       JWT_SECRET: Joi.string().required(),
 
       SMTP_HOST: Joi.string().required(),
@@ -57,7 +62,6 @@ export class ConfigService {
       SMTP_PASS: Joi.string().required(),
 
       TZ: Joi.string().default('UTC'),
-
       ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
       FRONTEND_URL: Joi.string().optional(),
 
@@ -67,15 +71,18 @@ export class ConfigService {
       LOG_LEVEL: Joi.string()
         .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace')
         .default('info'),
-
       LOG_TO_FILE: Joi.boolean().default(false),
-
       LOG_DIR: Joi.string().default('./logs'),
-
       LOG_RETENTION_DAYS: Joi.number().integer().min(1).default(30),
-
       LOG_MAX_SIZE: Joi.number().integer().min(1).default(10),
       LOG_DETAIL: Joi.boolean().default(false),
+
+      JWT_EXPIRES_IN: Joi.string().required(),
+      AUTH_COOKIE_NAME: Joi.string().required(),
+      AUTH_COOKIE_SECURE: Joi.boolean().default(false),
+      AUTH_COOKIE_SAMESITE: Joi.string().required(),
+      AUTH_COOKIE_PATH: Joi.string().required(),
+      AUTH_ADMIN_SECRET: Joi.string().required(),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });

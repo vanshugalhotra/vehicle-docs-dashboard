@@ -1,13 +1,5 @@
-// test/vehicles-integration.e2e-spec.ts
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 import { Express } from 'express';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   VehicleResponse,
@@ -17,6 +9,8 @@ import {
   DriverResponse,
   LocationResponse,
 } from 'src/common/types';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () => {
   let app: INestApplication;
@@ -36,26 +30,10 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
   let vehicleB: VehicleResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+    await setupTestAuth(server);
 
     // Clean up relevant tables before tests (safe: test DB)
     await prisma.vehicle.deleteMany({});
@@ -82,13 +60,13 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
   // -----------------------------------------------------------------------
   describe('Reference data setup', () => {
     it('creates Category A and Category B', async () => {
-      const resA = await request(server)
+      const resA = await authedRequest(server)
         .post('/api/v1/vehicle-categories')
         .send({ name: 'Commercial' })
         .expect(201);
       categoryA = resA.body as VehicleCategoryResponse;
 
-      const resB = await request(server)
+      const resB = await authedRequest(server)
         .post('/api/v1/vehicle-categories')
         .send({ name: 'Personal' })
         .expect(201);
@@ -101,20 +79,20 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
     });
 
     it('rejects creating duplicate category (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-categories')
         .send({ name: 'commercial' }) // lowercase duplicate
         .expect(409);
     });
 
     it('creates Types under categories', async () => {
-      const t1 = await request(server)
+      const t1 = await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Truck', categoryId: categoryA.id })
         .expect(201);
       typeA1 = t1.body as VehicleTypeResponse;
 
-      const t2 = await request(server)
+      const t2 = await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Sedan', categoryId: categoryB.id })
         .expect(201);
@@ -125,7 +103,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
     });
 
     it('rejects creating type with invalid category FK', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({
           name: 'Ghost',
@@ -135,19 +113,19 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
     });
 
     it('creates Owner, Driver, Location', async () => {
-      const o = await request(server)
+      const o = await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: 'Acme Logistics' })
         .expect(201);
       ownerA = o.body as OwnerResponse;
 
-      const d = await request(server)
+      const d = await authedRequest(server)
         .post('/api/v1/drivers')
         .send({ name: 'Raza', phone: '9000000001' })
         .expect(201);
       driverA = d.body as DriverResponse;
 
-      const l = await request(server)
+      const l = await authedRequest(server)
         .post('/api/v1/locations')
         .send({ name: 'Depot-East' })
         .expect(201);
@@ -164,7 +142,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
   // -----------------------------------------------------------------------
   describe('Vehicle creation & uniqueness', () => {
     it('creates vehicleA with all FKs and normalized identifiers', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ab-1234',
@@ -190,7 +168,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
 
     it('rejects creation when identifiers duplicate (licensePlate, rc, chassis, engine)', async () => {
       // same license plate - should 409
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'AB-1234', // same as vehicleA normalized
@@ -203,7 +181,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
         .expect(409);
 
       // same RC
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'zz-0001',
@@ -218,7 +196,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
 
     it('rejects creation when FK category/type missing or mismatched', async () => {
       // type belongs to categoryB but categoryA given (mismatch)
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ZZ-1000',
@@ -231,7 +209,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
         .expect(409);
 
       // completely invalid categoryId
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'NEW-01',
@@ -245,7 +223,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
     });
 
     it('creates vehicleB (different category/type) minimal FKs', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'CD-2222',
@@ -269,31 +247,35 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
   describe('Delete protections (cannot delete refs while vehicles exist)', () => {
     it('cannot delete category when types/vehicles exist (409)', async () => {
       // categoryA has at least typeA1 and vehicleA
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-categories/${categoryA.id}`)
         .expect(409);
     });
 
     it('cannot delete type when vehicles exist (409)', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-types/${typeA1.id}`)
         .expect(409);
     });
 
     it('cannot delete owner/driver/location while vehicles reference them (409)', async () => {
-      await request(server).delete(`/api/v1/owners/${ownerA.id}`).expect(409);
-      await request(server).delete(`/api/v1/drivers/${driverA.id}`).expect(409);
-      await request(server)
+      await authedRequest(server)
+        .delete(`/api/v1/owners/${ownerA.id}`)
+        .expect(409);
+      await authedRequest(server)
+        .delete(`/api/v1/drivers/${driverA.id}`)
+        .expect(409);
+      await authedRequest(server)
         .delete(`/api/v1/locations/${locationA.id}`)
         .expect(409);
     });
 
     it('deleting vehicle removes references and then allows deleting refs', async () => {
       // delete vehicles
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicles/${vehicleA.id}`)
         .expect(200);
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicles/${vehicleB.id}`)
         .expect(200);
 
@@ -302,15 +284,19 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
         where: { name: 'Mini' },
       });
       if (tempType) {
-        await request(server)
+        await authedRequest(server)
           .delete(`/api/v1/vehicle-types/${tempType.id}`)
           .expect(200);
       }
 
       // delete owner/driver/location now should succeed
-      await request(server).delete(`/api/v1/owners/${ownerA.id}`).expect(200);
-      await request(server).delete(`/api/v1/drivers/${driverA.id}`).expect(200);
-      await request(server)
+      await authedRequest(server)
+        .delete(`/api/v1/owners/${ownerA.id}`)
+        .expect(200);
+      await authedRequest(server)
+        .delete(`/api/v1/drivers/${driverA.id}`)
+        .expect(200);
+      await authedRequest(server)
         .delete(`/api/v1/locations/${locationA.id}`)
         .expect(200);
     });
@@ -324,7 +310,7 @@ describe('Vehicles E2E (Comprehensive Integration - Categories/Types/Refs)', () 
       for (const t of typesB) {
         await prisma.vehicleType.delete({ where: { id: t.id } });
       }
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicle-categories/${categoryB.id}`)
         .expect(200);
     });

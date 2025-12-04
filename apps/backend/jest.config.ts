@@ -10,5 +10,5 @@ module.exports = {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
-  setupFiles: ['<rootDir>/test/setup.ts'],
+  setupFiles: ['<rootDir>/test/utils/e2e-setup/setup.ts'],
 };

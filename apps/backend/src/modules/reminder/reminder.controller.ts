@@ -8,6 +8,7 @@ import {
   Body,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ReminderService } from './reminder.service';
@@ -32,8 +33,10 @@ import {
 import { ReminderSchedulerService } from './reminder-scheduler.service';
 import { GetQueueItemsOptions } from 'src/common/types/reminder.types';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Reminders')
+@UseGuards(AuthGuard)
 @Controller({ path: 'reminders', version: '1' })
 export class ReminderController {
   constructor(
