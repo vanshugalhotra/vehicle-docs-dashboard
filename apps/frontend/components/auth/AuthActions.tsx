@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { LogOut, LogIn, User as UserIcon, UserCircle } from "lucide-react";
+import { LogOut, LogIn, User as UserIcon } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 interface AuthActionsProps {
   className?: string;
@@ -13,6 +14,7 @@ interface AuthActionsProps {
 
 export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
   const { user, logout, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   const getDisplayName = () => {
     if (user?.email) return user.email.split("@")[0];
@@ -46,12 +48,6 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
   return (
     <div className={`flex items-center gap-3`}>
       <div className="flex items-center gap-2">
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <UserCircle size={20} className="text-primary" />
-          </div>
-        </div>
-
         {/* Welcome Greeting */}
         <div className="flex">
           <AppText
@@ -84,7 +80,10 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
         size="sm"
         variant="outline"
         startIcon={<LogOut size={16} />}
-        onClick={() => logout()}
+        onClick={() => {
+          logout();
+          router.push("/login");
+        }}
         className="hover:bg-error/5 hover:text-error hover:border-error/20 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
         aria-label={`Sign out as ${getDisplayName()}`}
       >

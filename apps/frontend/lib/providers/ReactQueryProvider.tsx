@@ -26,11 +26,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }),
         defaultOptions: {
           queries: {
-            retry: 1,
-            staleTime: 1000 * 60, // 1 minute
+            staleTime: 0,
+            refetchOnMount: "always",
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
           },
           mutations: {
-            retry: 1,
+            onSuccess: () => {
+              queryClient.invalidateQueries();
+            },
           },
         },
       })
