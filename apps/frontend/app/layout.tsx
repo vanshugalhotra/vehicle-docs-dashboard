@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/ui/AppToaster/AppToaster";
-import { AppLayout } from "@/components/layout/applayout";
 import { Providers } from "@/lib/providers/ReactQueryProvider";
-import { AuthActions } from "@/components/auth/AuthActions";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -27,12 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
         <Providers>
-          <AppLayout
-            title="Yash Group Dashboard"
-            rightActions={<AuthActions />}
-          >
-            {children}
-          </AppLayout>
+          {children}
           <AppToaster />
         </Providers>
       </body>
