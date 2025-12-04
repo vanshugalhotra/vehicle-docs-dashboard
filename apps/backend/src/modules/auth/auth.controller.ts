@@ -6,9 +6,11 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Get,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto, UserResponseDto } from './dto/auth.dto';
 import { AdminSecretGuard, AuthGuard } from './auth.gaurd';
@@ -68,5 +70,19 @@ export class AuthController {
     @Body('userId') userId: string,
   ) {
     return this.authService.logout(res, userId);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  @ApiResponse({
+    status: 200,
+    description: 'Authenticated user information',
+    type: UserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  me(
+    @Req() req: Request & { user: { sub: string } },
+  ): Promise<UserResponseDto> {
+    return this.authService.me(req.user.sub);
   }
 }

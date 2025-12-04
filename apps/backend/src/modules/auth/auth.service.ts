@@ -247,4 +247,37 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
+  /**
+   * Get authenticated user using token payload
+   */
+  async me(userId: string): Promise<UserResponseDto> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'me',
+      additional: { userId },
+    };
+
+    this.logger.logDebug(`Fetching authenticated user`, ctx);
+
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, createdAt: true },
+      });
+
+      if (!user) {
+        this.logger.logWarn(`Authenticated user not found`, ctx);
+        throw new UnauthorizedException('User no longer exists');
+      }
+
+      return user;
+    } catch (error) {
+      this.logger.logError('Error fetching authenticated user', {
+        ...ctx,
+        additional: { error },
+      });
+
+      throw new InternalServerErrorException('Failed to fetch profile');
+    }
+  }
 }

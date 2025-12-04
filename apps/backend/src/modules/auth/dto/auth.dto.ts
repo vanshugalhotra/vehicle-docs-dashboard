@@ -34,8 +34,8 @@ export class UserResponseDto {
   email: string;
 
   @ApiProperty({ example: '2025-01-10T05:21:22Z' })
-  createdAt: Date;
+  createdAt?: Date;
 
   @ApiProperty({ example: '2025-01-10T05:21:22Z' })
-  updatedAt: Date;
+  updatedAt?: Date;
 }
