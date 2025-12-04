@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { LocationService } from './location.service';
@@ -19,8 +20,10 @@ import {
   PaginatedLocationResponseDto,
 } from './dto/location-response';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Location')
+@UseGuards(AuthGuard)
 @Controller({ path: 'locations', version: '1' })
 export class LocationController {
   constructor(private readonly locationsService: LocationService) {}

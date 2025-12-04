@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/ui/AppToaster/AppToaster";
-import { AppLayout } from "@/components/layout/applayout";
 import { Providers } from "@/lib/providers/ReactQueryProvider";
 
 const montserrat = Montserrat({
@@ -26,9 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
         <Providers>
-          <AppLayout title="Yash Group Dashboard">
-            {children}
-          </AppLayout>
+          {children}
           <AppToaster />
         </Providers>
       </body>

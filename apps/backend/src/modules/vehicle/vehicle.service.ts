@@ -4,10 +4,10 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { mapVehicleToResponse } from './vehicle.mapper';
-import { LoggerService } from 'src/common/logger/logger.service';
 import {
   VehicleResponse,
   VEHICLE_ALLOWED_BUSINESS_FILTERS,
@@ -24,18 +24,23 @@ import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
 
 @Injectable()
 export class VehicleService {
+  private readonly entity = 'Vehicle';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly vehicleValidation: VehicleValidationService,
   ) {}
 
-  /**
-   * Create a new vehicle
-   */
   async create(dto: CreateVehicleDto): Promise<VehicleResponse> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'create',
+      additional: { dto },
+    };
+    this.logger.logInfo('Creating vehicle', ctx);
+
     try {
-      // Normalize input (uppercase for consistency)
       const normalized = {
         licensePlate: dto.licensePlate.toUpperCase(),
         rcNumber: dto.rcNumber.toUpperCase(),
@@ -52,7 +57,6 @@ export class VehicleService {
         dto.typeId,
       );
 
-      // Fetch category and type names for generating the vehicle name
       const category = await this.prisma.vehicleCategory.findUnique({
         where: { id: dto.categoryId },
       });
@@ -60,7 +64,6 @@ export class VehicleService {
         where: { id: dto.typeId },
       });
 
-      // Generate name
       const vehicleName = generateVehicleName(
         category!.name,
         type!.name,
@@ -83,80 +86,80 @@ export class VehicleService {
         },
       });
 
-      this.logger.info(`Created vehicle ${vehicle.id} - ${vehicle.name}`);
+      this.logger.logInfo(`Vehicle created`, {
+        ...ctx,
+        additional: { id: vehicle.id, name: vehicle.name },
+      });
       return mapVehicleToResponse(vehicle);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error creating vehicle', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
-  /**
-   * Retrieve a paginated, searchable, and filterable list of vehicles.
-   * Supports full-text search, relation includes, and dynamic filters.
-   */
   async findAll(
     query: QueryWithBusinessDto,
   ): Promise<PaginatedVehicleResponseDto> {
-    const { skip, take, where, orderBy } =
-      buildQueryArgs<Prisma.VehicleWhereInput>(query, [
-        'licensePlate',
-        'name',
-        'rcNumber',
-        'chassisNumber',
-        'engineNumber',
-      ]);
-
-    const include: Prisma.VehicleInclude = {
-      category: true,
-      type: true,
-      owner: true,
-      driver: true,
-      location: true,
-      ...(query.includeRelations && {
-        documents: {
-          select: {
-            id: true,
-            documentType: {
-              select: { name: true },
-            },
-          },
-        },
-      }),
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'findAll',
+      additional: { query },
     };
-
-    const search = query.search;
-
-    // -------------------------------------------
-    // 1) Parse business filters
-    // -------------------------------------------
-    const parsedBusinessFilters = parseBusinessFilters(
-      query.businessFilters,
-      VEHICLE_ALLOWED_BUSINESS_FILTERS,
-    );
-
-    // 2) Create engine
-    const engine = createVehicleBusinessEngine();
-
-    this.logger.info(
-      `Fetching vehicles: skip=${skip}, take=${take}, search="${search ?? ''}", includeRelations=${query.includeRelations}`,
-    );
+    this.logger.logInfo('Fetching vehicles', ctx);
 
     try {
-      // Extend where for relation search
+      const { skip, take, where, orderBy } =
+        buildQueryArgs<Prisma.VehicleWhereInput>(query, [
+          'licensePlate',
+          'name',
+          'rcNumber',
+          'chassisNumber',
+          'engineNumber',
+        ]);
+
+      const include: Prisma.VehicleInclude = {
+        category: true,
+        type: true,
+        owner: true,
+        driver: true,
+        location: true,
+        ...(query.includeRelations && {
+          documents: {
+            select: { id: true, documentType: { select: { name: true } } },
+          },
+        }),
+      };
+
+      const parsedBusinessFilters = parseBusinessFilters(
+        query.businessFilters,
+        VEHICLE_ALLOWED_BUSINESS_FILTERS,
+      );
+      const engine = createVehicleBusinessEngine();
+
       const extendedWhere: Prisma.VehicleWhereInput = {
         ...where,
-        ...(search && {
+        ...(query.search && {
           OR: [
             ...(Array.isArray(where?.OR)
               ? (where.OR as Prisma.VehicleWhereInput[])
               : []),
-            { category: { name: { contains: search, mode: 'insensitive' } } },
-            { type: { name: { contains: search, mode: 'insensitive' } } },
-            { owner: { name: { contains: search, mode: 'insensitive' } } },
-            { driver: { name: { contains: search, mode: 'insensitive' } } },
+            {
+              category: {
+                name: { contains: query.search, mode: 'insensitive' },
+              },
+            },
+            { type: { name: { contains: query.search, mode: 'insensitive' } } },
+            {
+              owner: { name: { contains: query.search, mode: 'insensitive' } },
+            },
+            {
+              driver: { name: { contains: query.search, mode: 'insensitive' } },
+            },
           ],
         }),
       };
@@ -172,34 +175,34 @@ export class VehicleService {
         this.prisma.vehicle.count({ where: extendedWhere }),
       ]);
 
-      this.logger.info(
-        `Fetched ${vehicles.length} of ${total} vehicles successfully.`,
-      );
+      this.logger.logInfo('Vehicles fetched', {
+        ...ctx,
+        additional: { count: vehicles.length, total },
+      });
 
-      // ---------------------------------------------------------------------
-      // 3) Map → Business filters → Return
-      // ---------------------------------------------------------------------
       const dtoList = vehicles.map(mapVehicleToResponse);
-
-      // Apply your resolvers (unassigned, missingDocs, ...)
       const finalList = engine.apply(dtoList, parsedBusinessFilters);
 
-      return {
-        items: finalList,
-        total: total,
-      };
+      return { items: finalList, total };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle');
-      }
+      this.logger.logError('Error fetching vehicles', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
       throw error;
     }
   }
 
-  /**
-   * Get a single vehicle by ID
-   */
   async findOne(id: string): Promise<VehicleResponse> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'findOne',
+      additional: { id },
+    };
+    this.logger.logInfo('Fetching vehicle by id', ctx);
+
     try {
       const vehicle = await this.prisma.vehicle.findUnique({
         where: { id },
@@ -213,23 +216,32 @@ export class VehicleService {
         },
       });
 
-      if (!vehicle)
+      if (!vehicle) {
+        this.logger.logWarn('Vehicle not found', ctx);
         throw new NotFoundException(`Vehicle with id ${id} not found`);
+      }
+
       return mapVehicleToResponse(vehicle);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error fetching vehicle', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
-  /**
-   * Update a vehicle
-   */
   async update(id: string, dto: UpdateVehicleDto): Promise<VehicleResponse> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'update',
+      additional: { id, dto },
+    };
+    this.logger.logInfo('Updating vehicle', ctx);
+
     try {
-      // Normalize input if provided
       const normalized = {
         licensePlate: dto.licensePlate?.toUpperCase(),
         rcNumber: dto.rcNumber?.toUpperCase(),
@@ -237,7 +249,6 @@ export class VehicleService {
         engineNumber: dto.engineNumber?.toUpperCase(),
       };
 
-      // Use validation service
       const { vehicle, category, type } =
         await this.vehicleValidation.validateUpdate(
           id,
@@ -249,12 +260,10 @@ export class VehicleService {
           dto.typeId,
         );
 
-      // If categoryId, typeId, or licensePlate is updated, regenerate name
       const updatedData: Partial<UpdateVehicleDto & { name?: string }> = {
         ...dto,
       };
 
-      // Add normalized fields if provided
       if (normalized.licensePlate)
         updatedData.licensePlate = normalized.licensePlate;
       if (normalized.rcNumber) updatedData.rcNumber = normalized.rcNumber;
@@ -263,19 +272,16 @@ export class VehicleService {
       if (normalized.engineNumber)
         updatedData.engineNumber = normalized.engineNumber;
 
-      // Regenerate name if category, type, or license plate changed (business logic)
       if (dto.categoryId || dto.typeId || dto.licensePlate) {
         const finalLicensePlate =
           normalized.licensePlate ?? vehicle.licensePlate;
-
-        // Use already fetched category/type or fetch if not available
         const finalCategory =
-          category ||
+          category ??
           (await this.prisma.vehicleCategory.findUnique({
             where: { id: dto.categoryId ?? vehicle.categoryId },
           }));
         const finalType =
-          type ||
+          type ??
           (await this.prisma.vehicleType.findUnique({
             where: { id: dto.typeId ?? vehicle.typeId },
           }));
@@ -286,52 +292,71 @@ export class VehicleService {
           finalLicensePlate,
         );
       }
+
       const updated = await this.prisma.vehicle.update({
         where: { id },
         data: updatedData,
       });
-
-      this.logger.info(`Updated vehicle ${updated.id} - ${updated.name}`);
+      this.logger.logInfo('Vehicle updated', {
+        ...ctx,
+        additional: { id: updated.id, name: updated.name },
+      });
 
       return mapVehicleToResponse(updated);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error updating vehicle', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 
-  /**
-   * Delete a vehicle
-   */
   async remove(id: string): Promise<{ success: boolean }> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'remove',
+      additional: { id },
+    };
+    this.logger.logInfo('Deleting vehicle', ctx);
+
     try {
       const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
-      if (!vehicle)
+      if (!vehicle) {
+        this.logger.logWarn('Vehicle not found', ctx);
         throw new NotFoundException(`Vehicle with id ${id} not found`);
+      }
 
-      // Prevent deletion if any vehicle document is linked
       const linkedDocuments = await this.prisma.vehicleDocument.count({
         where: { vehicleId: id },
       });
       if (linkedDocuments > 0) {
-        this.logger.warn(
-          `Delete failed, Vehicle has ${linkedDocuments} linked vehicle document(s): ${id}`,
-        );
+        this.logger.logWarn('Delete failed, linked documents exist', {
+          ...ctx,
+          additional: { linkedDocuments },
+        });
         throw new ConflictException(
           `Cannot delete Vehicle "${vehicle.name}" because ${linkedDocuments} vehicle document(s) are linked to it`,
         );
       }
 
       await this.prisma.vehicle.delete({ where: { id } });
-      this.logger.info(`Deleted vehicle ${vehicle.id} - ${vehicle.name}`);
+      this.logger.logInfo('Vehicle deleted', {
+        ...ctx,
+        additional: { id: vehicle.id, name: vehicle.name },
+      });
+
       return { success: true };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, 'Vehicle');
-      }
-      throw error; // Re-throw NestJS exceptions
+      this.logger.logError('Error deleting vehicle', {
+        ...ctx,
+        additional: { error },
+      });
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        handlePrismaError(error, this.entity);
+      throw error;
     }
   }
 }

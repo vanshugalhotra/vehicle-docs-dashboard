@@ -1,15 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
-import * as request from 'supertest';
 import { Express } from 'express';
 import { VehicleTypeResponse } from 'src/common/types';
 import { PaginatedTypeResponseDto } from 'src/modules/vehicle-type/dto/vehicle-type-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('VehicleType E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -20,26 +15,10 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
   let sedanTypeId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+    await setupTestAuth(server);
 
     // Cleanup and setup
     await prisma.vehicleType.deleteMany({});
@@ -64,7 +43,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
   // -------------------
   describe('POST /api/v1/vehicle-types', () => {
     it('should create a new vehicle type under a valid category', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Compact', categoryId: sedanCategoryId })
         .expect(201);
@@ -77,21 +56,21 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should throw 400 if name is missing', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ categoryId: sedanCategoryId })
         .expect(400);
     });
 
     it('should throw 400 if categoryId is missing', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Luxury' })
         .expect(400);
     });
 
     it('should throw 404 if categoryId does not exist', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({
           name: 'Sports',
@@ -101,14 +80,14 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should throw 409 if type already exists (case insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'compact', categoryId: sedanCategoryId })
         .expect(409);
     });
 
     it('should allow same type name under different category', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Compact', categoryId: suvCategoryId })
         .expect(201);
@@ -117,7 +96,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should reject special characters in name', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Luxury@2025', categoryId: sedanCategoryId })
         .expect(400);
@@ -139,7 +118,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should list all vehicle types', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/vehicle-types')
         .expect(200);
       const body = res.body as PaginatedTypeResponseDto;
@@ -148,7 +127,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should filter by categoryId', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicle-types?filters={"categoryId":"${suvCategoryId}"}`)
         .expect(200);
       const body = res.body as PaginatedTypeResponseDto;
@@ -158,7 +137,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should filter by search (case-insensitive contains)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/vehicle-types?search=del')
         .expect(200);
       const body = res.body as PaginatedTypeResponseDto;
@@ -168,7 +147,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should return empty list if no match', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/vehicle-types?search=nonexistent')
         .expect(200);
       const body = res.body as PaginatedTypeResponseDto;
@@ -181,7 +160,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
   // -------------------
   describe('GET /api/v1/vehicle-types/:id', () => {
     it('should get vehicle type by id', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicle-types/${sedanTypeId}`)
         .expect(200);
       const body = res.body as VehicleTypeResponse;
@@ -189,13 +168,15 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 for non-existent id', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/vehicle-types/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
 
     it('should return 400 for invalid UUID', async () => {
-      await request(server).get('/api/v1/vehicle-types/invalid-id').expect(400);
+      await authedRequest(server)
+        .get('/api/v1/vehicle-types/invalid-id')
+        .expect(400);
     });
   });
 
@@ -204,7 +185,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
   // -------------------
   describe('PATCH /api/v1/vehicle-types/:id', () => {
     it('should rename the vehicle type', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicle-types/${sedanTypeId}`)
         .send({ name: 'CompactPlus' })
         .expect(200);
@@ -213,7 +194,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should reassign a vehicle type to another category', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicle-types/${sedanTypeId}`)
         .send({ categoryId: suvCategoryId })
         .expect(200);
@@ -230,21 +211,21 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
         data: { name: 'Luxury', categoryId: suvCategoryId },
       });
 
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-types/${deluxe.id}`)
         .send({ categoryId: suvCategoryId })
         .expect(409);
     });
 
     it('should throw 404 if updating non-existent type', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/vehicle-types/00000000-0000-0000-0000-000000000000')
         .send({ name: 'Phantom' })
         .expect(404);
     });
 
     it('should reject empty name', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-types/${sedanTypeId}`)
         .send({ name: '' })
         .expect(400);
@@ -260,7 +241,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
         data: { name: 'Temporary', categoryId: sedanCategoryId },
       });
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .delete(`/api/v1/vehicle-types/${toDelete.id}`)
         .expect(200);
       const body = res.body as { success: boolean };
@@ -273,7 +254,7 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 when deleting non-existent type', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete('/api/v1/vehicle-types/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });

@@ -1,12 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 import { Express } from 'express';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { VehicleResponse } from 'src/common/types';
 import { VehicleCategoryResponse } from 'src/common/types';
@@ -15,6 +8,8 @@ import { OwnerResponse } from 'src/common/types';
 import { DriverResponse } from 'src/common/types';
 import { LocationResponse } from 'src/common/types';
 import { PaginatedVehicleResponseDto } from 'src/modules/vehicle/dto/vehicle-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   let app: INestApplication;
@@ -34,26 +29,11 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   let vehicleB: VehicleResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+
+    await setupTestAuth(server);
 
     // Clean up relevant tables before tests
     await prisma.vehicle.deleteMany({});
@@ -64,49 +44,49 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     await prisma.location.deleteMany({});
 
     // Create reference data via API to avoid "dummy" bypass
-    const catResA = await request(server)
+    const catResA = await authedRequest(server)
       .post('/api/v1/vehicle-categories')
       .send({ name: 'Car' })
       .expect(201);
     const catResAbody = catResA.body as VehicleCategoryResponse;
     categoryIdA = catResAbody.id;
 
-    const typeResA = await request(server)
+    const typeResA = await authedRequest(server)
       .post('/api/v1/vehicle-types')
       .send({ name: 'Sedan', categoryId: categoryIdA })
       .expect(201);
     const typeResAbody = typeResA.body as VehicleTypeResponse;
     typeIdA = typeResAbody.id;
 
-    const catResB = await request(server)
+    const catResB = await authedRequest(server)
       .post('/api/v1/vehicle-categories')
       .send({ name: 'Truck' })
       .expect(201);
     const catResBbody = catResB.body as VehicleCategoryResponse;
     categoryIdB = catResBbody.id;
 
-    const typeResB = await request(server)
+    const typeResB = await authedRequest(server)
       .post('/api/v1/vehicle-types')
       .send({ name: 'Mini-Truck', categoryId: categoryIdB })
       .expect(201);
     const typeResBbody = typeResB.body as VehicleTypeResponse;
     typeIdB = typeResBbody.id;
 
-    const ownerRes = await request(server)
+    const ownerRes = await authedRequest(server)
       .post('/api/v1/owners')
       .send({ name: 'Fleet Owner' })
       .expect(201);
     const ownerResbody = ownerRes.body as OwnerResponse;
     ownerId = ownerResbody.id;
 
-    const driverRes = await request(server)
+    const driverRes = await authedRequest(server)
       .post('/api/v1/drivers')
       .send({ name: 'Driver One', phone: '7001112222' })
       .expect(201);
     const driverResbody = driverRes.body as DriverResponse;
     driverId = driverResbody.id;
 
-    const locRes = await request(server)
+    const locRes = await authedRequest(server)
       .post('/api/v1/locations')
       .send({ name: 'Main Depot' })
       .expect(201);
@@ -130,7 +110,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Create Vehicle - validations and happy path', () => {
     it('should create vehicle A (happy path) and auto-generate name', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ab1234',
@@ -155,7 +135,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should create vehicle B', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'CD9999',
@@ -173,14 +153,14 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should reject creation with missing required fields (400)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({ licensePlate: 'X1' }) // too few required fields
         .expect(400);
     });
 
     it('should reject creation when categoryId/typeId invalid (404)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ZZ1111',
@@ -192,7 +172,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
         })
         .expect(404);
 
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ZZ2222',
@@ -207,7 +187,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
     it('should enforce uniqueness on licensePlate / rc / chassis / engine (409)', async () => {
       // try duplicate license plate in different case -> should conflict
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'ab1234', // same as vehicleA (case-insensitive)
@@ -220,7 +200,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
         .expect(409);
 
       // duplicate rcNumber
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: 'UNQ1',
@@ -239,7 +219,9 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('List and fetch vehicles', () => {
     it('GET /vehicles returns array and includes created vehicles', async () => {
-      const res = await request(server).get('/api/v1/vehicles').expect(200);
+      const res = await authedRequest(server)
+        .get('/api/v1/vehicles')
+        .expect(200);
       const arr = res.body as PaginatedVehicleResponseDto;
       expect(Array.isArray(arr.items)).toBe(true);
       expect(arr.items.some((v) => v.id === vehicleA.id)).toBe(true);
@@ -247,18 +229,20 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('GET /vehicles/:id should return the vehicle (200)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/vehicles/${vehicleA.id}`)
         .expect(200);
       expect((res.body as VehicleResponse).id).toBe(vehicleA.id);
     });
 
     it('GET /vehicles/:id with invalid uuid -> 400', async () => {
-      await request(server).get('/api/v1/vehicles/invalid-uuid').expect(400);
+      await authedRequest(server)
+        .get('/api/v1/vehicles/invalid-uuid')
+        .expect(400);
     });
 
     it('GET /vehicles/:id non-existent -> 404', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/vehicles/047529c1-5f9e-43e0-9929-d9e56e7d32e6')
         .expect(404);
     });
@@ -266,7 +250,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     it('should support basic pagination params skip & take (smoke)', async () => {
       // create a few more vehicles for pagination
       for (let i = 0; i < 5; i++) {
-        await request(server)
+        await authedRequest(server)
           .post('/api/v1/vehicles')
           .send({
             licensePlate: `PAG${i}${Math.floor(Math.random() * 1000)}`,
@@ -280,12 +264,14 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
       }
 
       // default listing
-      const all = await request(server).get('/api/v1/vehicles').expect(200);
+      const all = await authedRequest(server)
+        .get('/api/v1/vehicles')
+        .expect(200);
       const allBody = all.body as PaginatedVehicleResponseDto;
       expect(Array.isArray(allBody.items)).toBe(true);
 
       // try skip/take if supported (controller likely maps query to skip/take)
-      const paged = await request(server)
+      const paged = await authedRequest(server)
         .get('/api/v1/vehicles?skip=0&take=3')
         .expect(200);
       const body = paged.body as PaginatedVehicleResponseDto;
@@ -305,21 +291,21 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
     beforeAll(async () => {
       // Create supporting entities
-      const cat = await request(server)
+      const cat = await authedRequest(server)
         .post('/api/v1/vehicle-categories')
         .send({ name: `SearchCat-${Date.now()}` })
         .expect(201);
       const catBody = cat.body as VehicleCategoryResponse;
       ScategoryId = catBody.id; // Add type assertion
 
-      const type = await request(server)
+      const type = await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: `SearchType-${Date.now()}`, categoryId: ScategoryId })
         .expect(201);
       const typeBody = type.body as VehicleTypeResponse;
       StypeId = typeBody.id; // Add type assertion
 
-      const loc = await request(server)
+      const loc = await authedRequest(server)
         .post('/api/v1/locations')
         .send({ name: `SearchLoc-${Date.now()}` })
         .expect(201);
@@ -327,7 +313,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
       SlocationId = locBody.id; // Add type assertion
 
       // Create a test vehicle to search/filter/sort
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: `SRCH-${Math.floor(Math.random() * 10000)}`,
@@ -343,7 +329,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should support full-text search via ?search=', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicles?search=${encodeURIComponent(searchVehicle.name)}`,
         )
@@ -360,7 +346,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
         locationId: SlocationId,
       };
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicles?filters=${encodeURIComponent(JSON.stringify(filters))}`,
         )
@@ -378,10 +364,10 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should support sorting by createdAt asc/desc', async () => {
-      const asc = await request(server)
+      const asc = await authedRequest(server)
         .get('/api/v1/vehicles?sortBy=createdAt&order=asc&take=3')
         .expect(200);
-      const desc = await request(server)
+      const desc = await authedRequest(server)
         .get('/api/v1/vehicles?sortBy=createdAt&order=desc&take=3')
         .expect(200);
 
@@ -397,7 +383,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
     it('should allow combining search + filter + pagination', async () => {
       const filters = { categoryId: ScategoryId };
 
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(
           `/api/v1/vehicles?search=${encodeURIComponent(
             'Searchable',
@@ -414,7 +400,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Update Vehicle', () => {
     it('should update licensePlate and regenerate name accordingly', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicles/${vehicleA.id}`)
         .send({ licensePlate: 'NEWPLT1' })
         .expect(200);
@@ -425,7 +411,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
     it('should update categoryId/typeId and regenerate name', async () => {
       // change vehicleA to Truck / Mini-Truck (categoryIdB / typeIdB)
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/vehicles/${vehicleA.id}`)
         .send({ categoryId: categoryIdB, typeId: typeIdB })
         .expect(200);
@@ -435,27 +421,27 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
     it('should reject update when changing to duplicate identifiers (409)', async () => {
       // attempt to update vehicleA to have the same rcNumber as vehicleB
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicles/${vehicleA.id}`)
         .send({ rcNumber: vehicleB.rcNumber })
         .expect(409);
     });
 
     it('should return 404 when updating non-existent vehicle', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/vehicles/047529c1-5f9e-43e0-9929-d9e56e7d32e6')
         .send({ notes: 'ghost' })
         .expect(404);
     });
 
     it('should reject update with invalid FK (409)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicles/${vehicleB.id}`)
         .send({ categoryId: categoryIdA, typeId: typeIdB })
         .expect(409);
     });
     it('should reject update with invalid category(404)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicles/${vehicleB.id}`)
         .send({ categoryId: '047529c1-5f9e-43e0-9929-d9e56e7d32e6' })
         .expect(404);
@@ -463,13 +449,13 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
 
     it('changing category/type name externally should NOT retroactively change vehicle name (expected current behaviour)', async () => {
       // update the type name via API
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/vehicle-types/${typeIdB}`)
         .send({ name: 'MiniTruckX' })
         .expect(200);
 
       // fetch vehicleB without updating it — under current logic name isn't auto-updated
-      const ven = await request(server)
+      const ven = await authedRequest(server)
         .get(`/api/v1/vehicles/${vehicleB.id}`)
         .expect(200);
       const fetched = ven.body as VehicleResponse;
@@ -484,20 +470,22 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Delete Vehicle', () => {
     it('should delete vehicleB successfully', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicles/${vehicleB.id}`)
         .expect(200);
-      await request(server).get(`/api/v1/vehicles/${vehicleB.id}`).expect(404);
+      await authedRequest(server)
+        .get(`/api/v1/vehicles/${vehicleB.id}`)
+        .expect(404);
     });
 
     it('deleting already-deleted vehicle should return 404', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete(`/api/v1/vehicles/${vehicleB.id}`)
         .expect(404);
     });
 
     it('should return 404 when deleting non-existent random id', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete('/api/v1/vehicles/047529c1-5f9e-43e0-9929-d9e56e7d32e6')
         .expect(404);
     });
@@ -508,7 +496,7 @@ describe('Vehicles E2E (Comprehensive & Production-grade)', () => {
   // -----------------------------
   describe('Edge cases & stress scenarios', () => {
     it('should normalize whitespace and cases for input fields (trim/uppercase)', async () => {
-      const r = await request(server)
+      const r = await authedRequest(server)
         .post('/api/v1/vehicles')
         .send({
           licensePlate: '  zz999 ',

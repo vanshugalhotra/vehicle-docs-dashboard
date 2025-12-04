@@ -62,4 +62,9 @@ export const apiRoutes = {
   reminder_reschedule: {
     base: `${API_URL}/reminders/reschedule`,
   },
+  auth: {
+    login: `${API_URL}/auth/login`,
+    logout: `${API_URL}/auth/logout`,
+    me: `${API_URL}/auth/me`,
+  },
 };

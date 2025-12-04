@@ -1,15 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import { AppModule } from 'src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
-import * as request from 'supertest';
 import { Express } from 'express';
 import { DocumentTypeResponse } from 'src/common/types';
 import { PaginatedDocumentTypeResponseDto } from '../src/modules/document-type/dto/document-type-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('DocumentType E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -19,27 +14,10 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
   let documentTypeB: DocumentTypeResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
-
+    await setupTestAuth(server);
     // Cleanup before running tests
     await prisma.documentType.deleteMany({});
   });
@@ -55,7 +33,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
 
   describe('POST /api/v1/document-types', () => {
     it('should create a document type successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'Insurance Certificate' })
         .expect(201);
@@ -66,7 +44,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should trim leading/trailing spaces', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: '   Pollution Certificate  ' })
         .expect(201);
@@ -76,28 +54,28 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should reject duplicate name (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'insurance certificate' })
         .expect(409);
     });
 
     it('should reject empty name', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: '' })
         .expect(400);
     });
 
     it('should reject extra fields', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'Fitness Certificate', extra: 'oops' })
         .expect(400);
     });
 
     it('should reject name with special characters', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'Insurance@Certificate#' })
         .expect(400);
@@ -110,7 +88,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
 
   describe('GET /api/v1/document-types', () => {
     it('should fetch all document types (sorted by default)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/document-types')
         .expect(200);
       const body = res.body as PaginatedDocumentTypeResponseDto;
@@ -120,7 +98,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
 
     it('should return empty array when no document types exist', async () => {
       await prisma.documentType.deleteMany({});
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/document-types')
         .expect(200);
       const body = res.body as PaginatedDocumentTypeResponseDto;
@@ -137,7 +115,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should filter by search query (case-insensitive)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/document-types?search=insur')
         .expect(200);
       const body = res.body as PaginatedDocumentTypeResponseDto;
@@ -146,7 +124,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should support pagination', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/document-types?skip=1&take=1')
         .expect(200);
       const body = res.body as PaginatedDocumentTypeResponseDto;
@@ -161,7 +139,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
 
   describe('GET /api/v1/document-types/:id', () => {
     it('should fetch a single document type by ID', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/document-types/${documentTypeA.id}`)
         .expect(200);
       const body = res.body as DocumentTypeResponse;
@@ -170,13 +148,13 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 for non-existent document type', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/document-types/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
 
     it('should return 400 for invalid UUID', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/document-types/invalid-uuid')
         .expect(400);
     });
@@ -188,7 +166,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
 
   describe('PATCH /api/v1/document-types/:id', () => {
     it('should update a document type name successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/document-types/${documentTypeA.id}`)
         .send({ name: 'Updated Insurance Certificate' })
         .expect(200);
@@ -202,34 +180,34 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should reject duplicate update (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/document-types/${documentTypeA.id}`)
         .send({ name: 'POLLUTION CERTIFICATE' })
         .expect(409);
     });
     it('should reject duplicate update (case-insensitive and trimmed)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/document-types/${documentTypeA.id}`)
         .send({ name: 'POLLUTION CERTIFICATE      ' })
         .expect(409);
     });
 
     it('should reject empty name', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/document-types/${documentTypeA.id}`)
         .send({ name: '' })
         .expect(400);
     });
 
     it('should return 404 for updating non-existent document type', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/document-types/00000000-0000-0000-0000-000000000000')
         .send({ name: 'Ghost Document Type' })
         .expect(404);
     });
 
     it('should allow same name (idempotent)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/document-types/${documentTypeB.id}`)
         .send({ name: 'Pollution Certificate' })
         .expect(200);
@@ -247,7 +225,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
       const newDocumentType = await prisma.documentType.create({
         data: { name: 'Fitness Certificate' },
       });
-      const res = await request(server)
+      const res = await authedRequest(server)
         .delete(`/api/v1/document-types/${newDocumentType.id}`)
         .expect(200);
 
@@ -259,7 +237,7 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 for non-existent document type', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete('/api/v1/document-types/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });

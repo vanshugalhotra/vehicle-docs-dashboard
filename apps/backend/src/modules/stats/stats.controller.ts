@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import {
@@ -16,8 +16,10 @@ import {
 } from './dto/stats-response.dto';
 
 import { StatsService } from './stats.service';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Stats')
+@UseGuards(AuthGuard)
 @Controller({ path: 'stats', version: '1' })
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}

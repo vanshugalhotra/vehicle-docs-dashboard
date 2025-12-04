@@ -9,6 +9,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import * as crypto from 'crypto';
 import helmet from 'helmet';
 import * as express from 'express';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +21,8 @@ async function bootstrap() {
   // Core Security
   // ----------------------
   app.use(helmet());
+
+  app.use(cookieParser());
 
   // Body limit
   app.use(express.json({ limit: '2mb' }));

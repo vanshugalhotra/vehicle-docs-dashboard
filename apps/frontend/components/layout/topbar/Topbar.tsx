@@ -4,25 +4,19 @@ import React, { FC, ReactNode } from "react";
 import clsx from "clsx";
 import { componentTokens } from "@/styles/design-system";
 import { AppText } from "@/components/ui/AppText";
-import { TopbarAction } from "./TopbarAction";
-
-export interface TopbarActionItem {
-  icon: React.ElementType;
-  tooltip?: string;
-  onClick?: () => void;
-}
 
 interface TopbarProps {
   title?: string;
-  actions?: TopbarActionItem[];
   showShadow?: boolean;
   children?: ReactNode;
+  /** Custom actions to render on the right side */
+  rightActions?: ReactNode;
 }
 
 export const Topbar: FC<TopbarProps> = ({
   title,
-  actions,
   children,
+  rightActions,
   showShadow = false,
 }) => {
   return (
@@ -34,14 +28,16 @@ export const Topbar: FC<TopbarProps> = ({
       )}
     >
       {/* Left: Title */}
-      <div className={clsx(
-        componentTokens.topbar.titleSection,
-        "flex items-center gap-4 pr-6 border-r border-border-subtle/20"
-      )}>
+      <div
+        className={clsx(
+          componentTokens.topbar.titleSection,
+          "flex items-center gap-4 pr-6 border-r border-border-subtle/20"
+        )}
+      >
         {title && (
-          <AppText 
-            as="h1" 
-            size="heading1" 
+          <AppText
+            as="h1"
+            size="heading1"
             className="font-bold text-text-primary drop-shadow-sm"
           >
             {title}
@@ -49,21 +45,23 @@ export const Topbar: FC<TopbarProps> = ({
         )}
       </div>
 
+      {/* Center: Children (custom content) */}
+      {children && (
+        <div className="flex items-center flex-1 px-6">{children}</div>
+      )}
+
       {/* Right: Actions */}
-      <div className={clsx(
-        componentTokens.topbar.actionsSection,
-        "flex items-center gap-3 pl-6"
-      )}>
-        {actions?.map((action, i) => (
-          <TopbarAction
-            key={i}
-            icon={action.icon}
-            tooltip={action.tooltip}
-            onClick={action.onClick}
-          />
-        ))}
-        {children}
-      </div>
+      {rightActions || children ? (
+        <div
+          className={clsx(
+            componentTokens.topbar.actionsSection,
+            "flex items-center gap-3 pl-6",
+            !children && "ml-auto"
+          )}
+        >
+          {rightActions}
+        </div>
+      ) : null}
     </header>
   );
 };

@@ -1,15 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
-import * as request from 'supertest';
 import { Express } from 'express';
 import { OwnerResponse } from 'src/common/types';
 import { PaginatedOwnerResponseDto } from 'src/modules/owner/dto/owner-response.dto';
+import { setupTestAuth, authedRequest } from './utils/e2e-setup/auth-test';
+import { createTestApp } from './utils/e2e-setup/app-setup';
 
 describe('Owner E2E (comprehensive + extended)', () => {
   let app: INestApplication;
@@ -19,26 +14,11 @@ describe('Owner E2E (comprehensive + extended)', () => {
   let ownerB: OwnerResponse;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'api/v',
-    });
-
-    prisma = moduleFixture.get(PrismaService);
-    await app.init();
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
     server = app.getHttpServer() as unknown as Express;
+
+    await setupTestAuth(server);
 
     // Cleanup before running tests
     await prisma.owner.deleteMany({});
@@ -55,7 +35,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
 
   describe('POST /api/v1/owners', () => {
     it('should create an owner successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: 'Tata Motors' })
         .expect(201);
@@ -66,7 +46,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should trim leading/trailing spaces', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: '   Maruti Suzuki  ' })
         .expect(201);
@@ -76,21 +56,21 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should reject duplicate name (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: 'tata motors' })
         .expect(409);
     });
 
     it('should reject empty name', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: '' })
         .expect(400);
     });
 
     it('should reject extra fields', async () => {
-      await request(server)
+      await authedRequest(server)
         .post('/api/v1/owners')
         .send({ name: 'Hyundai', extra: 'oops' })
         .expect(400);
@@ -103,7 +83,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
 
   describe('GET /api/v1/owners', () => {
     it('should fetch all owners (sorted asc)', async () => {
-      const res = await request(server).get('/api/v1/owners').expect(200);
+      const res = await authedRequest(server).get('/api/v1/owners').expect(200);
       const body = res.body as PaginatedOwnerResponseDto;
       const names = body.items.map((o: OwnerResponse) => o.name);
       expect(names).toEqual(['Maruti Suzuki', 'Tata Motors']); // sorted asc
@@ -111,7 +91,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
 
     it('should return empty array when no owners exist', async () => {
       await prisma.owner.deleteMany({});
-      const res = await request(server).get('/api/v1/owners').expect(200);
+      const res = await authedRequest(server).get('/api/v1/owners').expect(200);
       const body = res.body as PaginatedOwnerResponseDto;
       expect(body.items).toEqual([]);
       // recreate owners for next tests
@@ -120,7 +100,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should filter by search query (case-insensitive)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get('/api/v1/owners?search=tA')
         .expect(200);
       const body = res.body as PaginatedOwnerResponseDto;
@@ -135,7 +115,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
 
   describe('GET /api/v1/owners/:id', () => {
     it('should fetch a single owner by ID', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .get(`/api/v1/owners/${ownerA.id}`)
         .expect(200);
       const body = res.body as OwnerResponse;
@@ -144,7 +124,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 for non-existent owner', async () => {
-      await request(server)
+      await authedRequest(server)
         .get('/api/v1/owners/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
@@ -156,7 +136,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
 
   describe('PATCH /api/v1/owners/:id', () => {
     it('should update an owner name successfully', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/owners/${ownerA.id}`)
         .send({ name: 'Tata Group' })
         .expect(200);
@@ -170,40 +150,40 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should reject duplicate update (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/owners/${ownerA.id}`)
         .send({ name: 'MARUTI SUZUKI' })
         .expect(409);
     });
     it('should reject duplicate update (case-insensitive and trimmed)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/owners/${ownerA.id}`)
         .send({ name: 'MARUTI SUZUKI     ' })
         .expect(409);
     });
     it('should reject duplicate update (case-insensitive)', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/owners/${ownerA.id}`)
         .send({ name: 'MARUTI SUZUKI' })
         .expect(409);
     });
 
     it('should reject empty name', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch(`/api/v1/owners/${ownerA.id}`)
         .send({ name: '' })
         .expect(400);
     });
 
     it('should return 404 for updating non-existent owner', async () => {
-      await request(server)
+      await authedRequest(server)
         .patch('/api/v1/owners/00000000-0000-0000-0000-000000000000')
         .send({ name: 'Ghost Owner' })
         .expect(404);
     });
 
     it('should allow same name (idempotent)', async () => {
-      const res = await request(server)
+      const res = await authedRequest(server)
         .patch(`/api/v1/owners/${ownerB.id}`)
         .send({ name: 'Maruti Suzuki' })
         .expect(200);
@@ -221,7 +201,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
       const newOwner = await prisma.owner.create({
         data: { name: 'Ford India' },
       });
-      const res = await request(server)
+      const res = await authedRequest(server)
         .delete(`/api/v1/owners/${newOwner.id}`)
         .expect(200);
 
@@ -233,7 +213,7 @@ describe('Owner E2E (comprehensive + extended)', () => {
     });
 
     it('should return 404 for non-existent owner', async () => {
-      await request(server)
+      await authedRequest(server)
         .delete('/api/v1/owners/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });

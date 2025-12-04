@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { VehicleService } from './vehicle.service';
@@ -19,8 +20,10 @@ import {
 } from './dto/vehicle-response.dto';
 import { VehicleResponse } from 'src/common/types';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
+import { AuthGuard } from '../auth/auth.gaurd';
 
 @ApiTags('Vehicles')
+@UseGuards(AuthGuard)
 @Controller({ path: 'vehicles', version: '1' })
 export class VehicleController {
   constructor(private readonly vehiclesService: VehicleService) {}

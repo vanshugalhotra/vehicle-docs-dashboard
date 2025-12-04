@@ -17,6 +17,7 @@ import { ValidationModule } from './common/validation/validation.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { HealthModule } from './health/health.module';
 import { RemindersModule } from './modules/reminder/reminders.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RemindersModule } from './modules/reminder/reminders.module';
     StatsModule,
     HealthModule,
     RemindersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
