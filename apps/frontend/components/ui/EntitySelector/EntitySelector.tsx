@@ -7,6 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { componentTokens } from "@/styles/design-system";
 import { Search } from "lucide-react";
 import clsx from "clsx";
+import { fetchWithAuth } from "@/lib/utils/fetchWithAuth";
 
 export interface FieldDefinition {
   label: string;
@@ -63,13 +64,11 @@ export const EntitySelector = <T extends { id: string }>({
       }
 
       try {
-        const res = await fetch(`${endpoint}/${selectedId}`);
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data: T = await res.json();
+        const data = await fetchWithAuth<T>(`${endpoint}/${selectedId}`);
         setSelectedItem(data);
-        onSelect?.(data);
+        onSelect?.(data ?? null);
       } catch (err) {
-        console.error("EntitySelector fetch error:", err);
+        console.error("EntitySelector fetchWithAuth error:", err);
         setSelectedItem(null);
         onSelect?.(null);
       }
