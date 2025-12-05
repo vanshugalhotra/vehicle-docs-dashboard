@@ -69,3 +69,16 @@ export function calculateDaysRemaining(expiryDate: Date): number {
 
   return Math.ceil(diffDays);
 }
+
+export function formatReadableDate(input?: string | Date | null): string {
+  if (!input) return '-';
+
+  const date = input instanceof Date ? input : new Date(input);
+  if (isNaN(date.getTime())) return '-';
+
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
