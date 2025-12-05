@@ -101,6 +101,7 @@ export default function VehicleTypesPage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Vehicle Type"
+      exportTable={vehicleTypeCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

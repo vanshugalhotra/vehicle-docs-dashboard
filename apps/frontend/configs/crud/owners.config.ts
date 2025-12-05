@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { ExportType } from "@/lib/types/export.types";
 
 export const ownerSchema = z.object({
   name: z.string().min(1, "Owner name is required"),
@@ -56,4 +57,5 @@ export const ownerCrudConfig = {
   columns: getColumns,
   layout: ownerLayout,
   defaultPageSize: 5,
+  exportTable: "owners" as ExportType,
 };

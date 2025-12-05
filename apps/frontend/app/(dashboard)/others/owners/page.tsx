@@ -95,6 +95,7 @@ export default function OwnersPage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Owner"
+      exportTable={ownerCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

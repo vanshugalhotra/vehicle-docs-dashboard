@@ -1,4 +1,4 @@
-import { AuthActions } from "@/components/auth/AuthActions";
+import { AuthActions } from "@/components/actions/AuthActions";
 import { AppLayout } from "@/components/layout/applayout";
 
 interface DashboardLayoutProps {

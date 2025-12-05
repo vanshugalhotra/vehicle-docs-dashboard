@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Res,
-  BadRequestException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Res } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ExportService } from './export.service';
 import { ExportType, EXPORT_WHITELIST } from './export.config';
@@ -35,42 +27,52 @@ export class ExportController {
   async export(
     @Param('type') type: string,
     @Query('asFile') asFile: string,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
     if (!EXPORT_WHITELIST.includes(type as ExportType)) {
-      throw new BadRequestException(`Unsupported export type "${type}"`);
+      res.status(400).json({ message: `Unsupported export type "${type}"` });
+      return;
     }
 
     const downloadFile = asFile === 'true';
 
-    const result = await this.exportService.export(
-      type as ExportType,
-      downloadFile,
-    );
+    try {
+      const result = await this.exportService.export(
+        type as ExportType,
+        downloadFile,
+      );
 
-    if (downloadFile) {
-      if (!('buffer' in result)) {
-        throw new BadRequestException('Failed to generate Excel file');
+      if (downloadFile) {
+        if (!('buffer' in result)) {
+          res.status(500).json({ message: 'Failed to generate Excel file' });
+          return;
+        }
+
+        const buffer = Buffer.from(result.buffer);
+
+        res.setHeader(
+          'Content-Type',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        );
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${result.filename}"`,
+        );
+        res.setHeader('Content-Length', buffer.byteLength.toString());
+
+        res.send(buffer);
+        return;
       }
 
-      // Convert ArrayBuffer to Node.js Buffer
-      const buffer = Buffer.from(result.buffer);
-
-      // Set headers for download
-      res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      );
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${result.filename}"`,
-      );
-      res.setHeader('Content-Length', buffer.byteLength.toString());
-
-      return res.send(buffer);
+      // JSON response for asFile=false
+      res.json(result);
+    } catch (error) {
+      console.error('Export error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      res
+        .status(500)
+        .json({ message: 'Error generating export', error: errorMessage });
     }
-
-    // Return JSON if not downloading file
-    return result;
   }
 }

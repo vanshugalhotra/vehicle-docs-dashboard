@@ -42,3 +42,45 @@ export async function fetchWithAuth<T = unknown>(
     return null;
   }
 }
+
+/**
+ * Fetch a file with authentication (for XLSX or other binary responses).
+ * Returns the raw Response object.
+ */
+export async function fetchFile(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
+
+  const headers: HeadersInit = {
+    ...(options.headers || {}),
+  };
+
+  const res = await fetch(fullUrl, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    let message: string;
+    try {
+      const text = await res.text();
+      const json = JSON.parse(text);
+      if (json?.message) {
+        message = Array.isArray(json.message)
+          ? json.message.join(", ")
+          : json.message;
+      } else {
+        message = text || `Request failed: ${res.status}`;
+      }
+    } catch {
+      message = `Request failed: ${res.status}`;
+    }
+    throw new Error(message);
+  }
+
+  return res; // return raw Response for blob() handling
+}

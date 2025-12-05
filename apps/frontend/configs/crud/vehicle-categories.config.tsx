@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
+import { ExportType } from "@/lib/types/export.types";
 
 export const vehicleCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -65,4 +66,5 @@ export const vehicleCategoryCrudConfig = {
   columns: getColumns,
   defaultPageSize: 5,
   layout: categoryLayout,
+  exportTable: "vehicle_categories" as ExportType,
 };

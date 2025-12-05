@@ -8,6 +8,7 @@ import { AppBadge } from "@/components/ui/AppBadge";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
 import { statusToExpiryFilter } from "@/lib/utils/statusFilterCalculation";
+import { ExportType } from "@/lib/types/export.types";
 
 // =====================
 // 🔹 Schema
@@ -281,4 +282,5 @@ export const linkageCrudConfig = {
   filters: linkageFiltersConfig,
   businessFilters: linkageBusinessFiltersConfig,
   sortOptions: linkageSortOptions,
+  exportTable: "vehicle_documents" as ExportType,
 };

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { ExportType } from "@/lib/types/export.types";
 
 export const driverSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -80,4 +81,5 @@ export const driverCrudConfig = {
   columns: getColumns,
   layout: driverLayout,
   defaultPageSize: 5,
+  exportTable: "drivers" as ExportType,
 };

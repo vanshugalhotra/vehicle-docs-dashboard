@@ -38,7 +38,10 @@ export default function DocumentTypePage() {
   return (
     <EntityViewPage<DocumentType>
       title="Document Types"
-      columns={documentTypeCrudConfig.columns(controller.page, controller.pageSize)}
+      columns={documentTypeCrudConfig.columns(
+        controller.page,
+        controller.pageSize
+      )}
       data={controller.data}
       loading={controller.isLoading}
       /* ---- Filters ---- */
@@ -56,7 +59,7 @@ export default function DocumentTypePage() {
       }
       /* ---- Add / Export ---- */
       onAdd={() => router.push("/document-types/add")}
-      onExport={() => console.log("Export Document Types clicked")}
+      exportTable={documentTypeCrudConfig.exportTable}
       /* ---- Pagination ---- */
       page={controller.page}
       pageSize={controller.pageSize}

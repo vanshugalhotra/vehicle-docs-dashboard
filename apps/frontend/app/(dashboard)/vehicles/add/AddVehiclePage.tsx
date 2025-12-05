@@ -105,6 +105,7 @@ export default function AddVehiclesPage() {
       onAdd={formCtrl.openCreate}
       addLabel="Add Vehicle"
       layout="stacked"
+      exportTable={vehicleCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

@@ -67,4 +67,7 @@ export const apiRoutes = {
     logout: `${API_URL}/auth/logout`,
     me: `${API_URL}/auth/me`,
   },
+  export: {
+    base: `${API_URL}/export`,
+  },
 };

@@ -4,6 +4,7 @@ import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { SortOption } from "@/lib/types/filter.types";
 import { FilterConfig } from "@/lib/types/filter.types";
+import { ExportType } from "@/lib/types/export.types";
 
 // -------------------------------
 // Schema
@@ -89,4 +90,5 @@ export const documentTypeCrudConfig = {
   filters: documentTypeFilters,
   sortOptions: documentTypeSortOptions,
   defaultPageSize: 5,
+  exportTable: "document_types" as ExportType,
 };
