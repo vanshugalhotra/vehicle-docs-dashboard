@@ -106,7 +106,7 @@ export default function LinkagePage() {
         onEdit={(item) => router.push(`/linkages/add?editId=${item.id}`)}
         onView={() => {}}
         onRenew={handleRenew}
-        onExport={() => console.log("Export Linkages clicked")}
+        exportTable={linkageCrudConfig.exportTable}
         deleteDescription={(item) =>
           `Are you sure you want to delete the document "${item.documentNo}" linked to vehicle "${item.vehicleName}"?`
         }

@@ -61,7 +61,7 @@ export default function VehiclesPage() {
         controller.setFilters((prev) => ({ ...prev, search: val }))
       }
       onAdd={() => router.push("/vehicles/add")}
-      onExport={() => console.log("Export Vehicles clicked")}
+      exportTable={vehicleCrudConfig.exportTable}
       page={controller.page}
       pageSize={controller.pageSize}
       totalCount={controller.total}

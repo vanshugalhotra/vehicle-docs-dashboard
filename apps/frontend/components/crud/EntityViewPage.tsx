@@ -6,8 +6,7 @@ import { DataTable } from "../crud/DataTable/DataTable";
 import { PaginationBar } from "../crud/PaginationBar.tsx/PaginationBar";
 import { TableToolbar } from "../crud/filter/TableToolbar/TableToolbar";
 import { HeaderBar } from "./HeaderBar/HeaderBar";
-import { AppButton } from "@/components/ui/AppButton";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import ConfirmDialog from "@/components/dialog/ConfirmDialog";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -16,6 +15,9 @@ import {
   SortOption,
   SortState,
 } from "@/lib/types/filter.types";
+import { ExportType } from "@/lib/types/export.types";
+import { ExportAction } from "../actions/ExportAction";
+import { AppButton } from "../ui/AppButton";
 
 interface EntityViewPageProps<TData extends { id?: string | number }> {
   title: string;
@@ -43,10 +45,12 @@ interface EntityViewPageProps<TData extends { id?: string | number }> {
 
   // Actions
   onAdd?: () => void;
-  onExport?: () => void;
   onEdit?: (item: TData) => void;
   onView?: (item: TData) => void;
   onRenew?: (item: TData) => void;
+
+  // Export
+  exportTable?: ExportType;
 
   // Delete Flow (external control)
   handleDelete?: (item: TData) => void;
@@ -88,10 +92,10 @@ export function EntityViewPage<TData extends { id?: string | number }>({
   search,
   onSearchChange,
   onAdd,
-  onExport,
   onEdit,
   onView,
   onRenew,
+  exportTable,
   handleDelete,
   confirmDelete,
   deleteLoading,
@@ -113,20 +117,12 @@ export function EntityViewPage<TData extends { id?: string | number }>({
         onSearchChange={onSearchChange}
         rightActions={
           <div className="flex items-center gap-2">
-            {onExport && (
-              <AppButton
-                variant="outline"
-                size="md"
-                onClick={onExport}
-                startIcon={<Download className="h-4 w-4" />}
-              >
-                Export
-              </AppButton>
-            )}
+            <ExportAction exportTable={exportTable} />
             {onAdd && (
               <AppButton
                 size="md"
                 onClick={onAdd}
+                variant="secondary"
                 startIcon={<Plus className="h-4 w-4" />}
               >
                 Add {title}

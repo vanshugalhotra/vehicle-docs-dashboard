@@ -99,6 +99,7 @@ export default function LocationsPage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Location"
+      exportTable={locationCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

@@ -4,9 +4,8 @@ import React from "react";
 import { componentTokens } from "@/styles/design-system/componentTokens";
 import { HeaderBar } from "./HeaderBar/HeaderBar";
 import { AppCard } from "@/components/ui/AppCard";
-import { AppButton } from "../ui/AppButton";
-import { toastUtils } from "@/lib/utils/toastUtils";
-import { Download } from "lucide-react";
+import { ExportType } from "@/lib/types/export.types";
+import { ExportAction } from "../actions/ExportAction";
 
 interface CRUDPageLayoutProps {
   title: string;
@@ -20,8 +19,8 @@ interface CRUDPageLayoutProps {
   table: React.ReactNode;
   footer?: React.ReactNode;
   layout?: "side-by-side" | "stacked";
-
   rightActions?: React.ReactNode;
+  exportTable?: ExportType;
 }
 
 /**
@@ -39,21 +38,11 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
   footer,
   layout = "side-by-side",
   rightActions,
+  exportTable,
 }) => {
-  const exportAction = (
-    <AppButton
-      variant="primary"
-      size="md"
-      onClick={() => toastUtils.info("Export feature coming soon")}
-      endIcon={<Download size={16} />}
-    >
-      Export
-    </AppButton>
-  );
-
   const mergedRightActions = (
     <div className="flex items-center gap-2">
-      {exportAction}
+      <ExportAction exportTable={exportTable} />
       {rightActions}
     </div>
   );
@@ -63,7 +52,6 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
       {/* Conditional Layout */}
       {layout === "side-by-side" ? (
         <>
-          {/* Header */}
           <HeaderBar
             title={title}
             isEditing={isEditing}
@@ -75,12 +63,10 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
           />
 
           <div className="grid lg:grid-cols-3 gap-4 min-h-0 h-full">
-            {/* Left Column: Form */}
             <div className="lg:col-span-1">
               <div className="sticky top-0">{form}</div>
             </div>
 
-            {/* Right Column: Table */}
             <div className="lg:col-span-2 flex flex-col min-h-0">
               <AppCard
                 className={
@@ -95,10 +81,8 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
         </>
       ) : (
         <>
-          {/* Top: Form */}
           <div>{form}</div>
 
-          {/* Middle: Header */}
           <HeaderBar
             title={title}
             isEditing={isEditing}
@@ -109,7 +93,6 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
             rightActions={mergedRightActions}
           />
 
-          {/* Bottom: Table */}
           <div className="flex-1 flex flex-col min-h-0">
             <AppCard
               className={
@@ -123,7 +106,6 @@ export const CRUDPageLayout: React.FC<CRUDPageLayoutProps> = ({
         </>
       )}
 
-      {/* Optional Footer (modals / dialogs) */}
       {footer && <div>{footer}</div>}
     </div>
   );

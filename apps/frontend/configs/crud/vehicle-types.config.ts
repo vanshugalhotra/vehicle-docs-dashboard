@@ -4,6 +4,7 @@ import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
+import { ExportType } from "@/lib/types/export.types";
 
 export const vehicleTypeSchema = z.object({
   name: z.string().min(1, "Type name is required"),
@@ -114,4 +115,5 @@ export const vehicleTypeCrudConfig = {
   layout: typeLayout,
   filters: vehicleTypeFiltersConfig,
   sortOptions: vehicleTypeSortOptions,
+  exportTable: "vehicle_types" as ExportType,
 };

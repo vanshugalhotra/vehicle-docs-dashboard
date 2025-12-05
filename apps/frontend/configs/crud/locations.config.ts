@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatReadableDate } from "@/lib/utils/dateUtils";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { ExportType } from "@/lib/types/export.types";
 
 export const locationSchema = z.object({
   name: z.string().min(1, "Location name is required"),
@@ -56,4 +57,5 @@ export const locationCrudConfig = {
   columns: getColumns,
   defaultPageSize: 5,
   layout: locationLayout,
+  exportTable: "locations" as ExportType,
 };

@@ -13,6 +13,7 @@ import { locationFields, locationSchema } from "./locations.config";
 import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
 import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
+import { ExportType } from "@/lib/types/export.types";
 
 // =====================
 // 🔹 Schema
@@ -316,4 +317,5 @@ export const vehicleCrudConfig = {
   filters: vehicleFiltersConfig,
   sortOptions: vehicleSortOptions,
   businessFilters: vehicleBusinessFiltersConfig,
+  exportTable: "vehicles" as ExportType,
 };

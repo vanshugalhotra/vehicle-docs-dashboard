@@ -104,6 +104,7 @@ export default function DriversPage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Driver"
+      exportTable={driverCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

@@ -109,6 +109,7 @@ export default function AddDocumentTypePage() {
       onSearchChange={(value) => setFilters({ ...filters, search: value })}
       onAdd={formCtrl.openCreate}
       addLabel="Add Document Type"
+      exportTable={documentTypeCrudConfig.exportTable}
       form={
         formCtrl.isOpen && (
           <div ref={formRef}>

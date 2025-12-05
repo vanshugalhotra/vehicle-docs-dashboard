@@ -18,6 +18,7 @@ import { StatsModule } from './modules/stats/stats.module';
 import { HealthModule } from './health/health.module';
 import { RemindersModule } from './modules/reminder/reminders.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AuthModule } from './modules/auth/auth.module';
     HealthModule,
     RemindersModule,
     AuthModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
