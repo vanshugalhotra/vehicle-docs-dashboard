@@ -62,10 +62,13 @@ export class VehicleDocumentService {
           expiryDate: expiry,
           link: dto.link ?? null,
           notes: dto.notes ?? null,
+          amount:
+            dto.amount !== undefined && dto.amount !== null
+              ? new Prisma.Decimal(dto.amount)
+              : null,
         },
         include: { vehicle: true, documentType: true },
       });
-
       this.logger.logInfo('Vehicle document created', {
         ...ctx,
         additional: { id: created.id },
@@ -229,6 +232,10 @@ export class VehicleDocumentService {
           expiryDate: expiry,
           link: dto.link ?? undefined,
           notes: dto.notes ?? undefined,
+          amount:
+            dto.amount !== undefined && dto.amount !== null
+              ? new Prisma.Decimal(dto.amount)
+              : null,
           vehicleId: dto.vehicleId ?? undefined,
           documentTypeId: dto.documentTypeId ?? undefined,
         },

@@ -137,6 +137,7 @@ model VehicleDocument {
   documentNo     String   @unique
   startDate      DateTime
   expiryDate     DateTime
+  amount         Decimal? @db.Decimal(12, 2)
   notes          String?
   link           String?
   createdById    String?

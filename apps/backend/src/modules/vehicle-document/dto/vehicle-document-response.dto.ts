@@ -34,6 +34,12 @@ export class VehicleDocumentResponseDto {
   })
   notes?: string | null;
 
+  @ApiProperty({
+    example: '15000.50',
+    required: false,
+  })
+  amount?: string | null;
+
   @ApiProperty({ example: '2025-01-20T10:30:00.000Z' })
   createdAt: Date | string;
 

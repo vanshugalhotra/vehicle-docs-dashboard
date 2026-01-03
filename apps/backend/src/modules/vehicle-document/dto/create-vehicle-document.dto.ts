@@ -6,6 +6,7 @@ import {
   IsOptional,
   MaxLength,
   Matches,
+  IsNumberString,
 } from 'class-validator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
@@ -71,4 +72,17 @@ export class CreateVehicleDocumentDto {
   @MaxLength(500)
   @Trim()
   notes?: string;
+  @ApiProperty({
+    description: 'Optional amount associated with the document',
+    example: '12500.03493',
+    required: false,
+  })
+  @IsOptional()
+  @IsNumberString(
+    {},
+    {
+      message: 'Amount must be a valid number string',
+    },
+  )
+  amount?: string;
 }
