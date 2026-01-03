@@ -31,6 +31,20 @@ export const linkageSchema = z.object({
     ),
   notes: z.string().optional().nullable(),
   link: z.string().optional().nullable(),
+  amount: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => {
+        if (!val || val.trim() === "") return true;
+        if (!/^-?\d+(\.\d+)?$/.test(val)) return false;
+
+        const beforeDecimal = val.split(".")[0].replace("-", "");
+        return beforeDecimal.length <= 10;
+      },
+      { message: "Invalid Amount" }
+    ),
 });
 
 export const renewalSchema = z.object({
@@ -107,6 +121,13 @@ export const linkageFields = [
     placeholder: "Optional notes",
     required: false,
   },
+  {
+    key: "amount",
+    label: "Amount",
+    type: "text" as const,
+    placeholder: "Amount",
+    required: false,
+  },
 ];
 
 export const linkageLayout = {
@@ -162,6 +183,10 @@ export const getColumns = (
     enableSorting: true,
   },
   {
+    accessorKey: "amount",
+    header: "Amount",
+  },
+  {
     accessorKey: "link",
     header: "Link",
     cell: ({ getValue }) => {
@@ -181,6 +206,7 @@ export const getColumns = (
     minSize: 100,
     maxSize: 200,
   },
+
   { accessorKey: "notes", header: "Notes", minSize: 250, maxSize: 300 },
 ];
 

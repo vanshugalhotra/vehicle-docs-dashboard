@@ -80,7 +80,10 @@ export class VehicleDocumentService {
         ...ctx,
         additional: { error },
       });
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError
+      ) {
         handlePrismaError(error, this.entity);
       }
       throw error;
@@ -253,7 +256,10 @@ export class VehicleDocumentService {
         ...ctx,
         additional: { error },
       });
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError
+      ) {
         handlePrismaError(error, this.entity);
       }
       throw error;
