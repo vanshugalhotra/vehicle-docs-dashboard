@@ -18,6 +18,18 @@ enum AuditAction {
   DELETE
 }
 
+enum AuditEntity {
+  USER
+  VEHICLE
+  VEHICLE_DOCUMENT
+  OWNER
+  DRIVER
+  LOCATION
+  DOCUMENT_TYPE
+  REMINDER
+}
+
+
 //////////////////////////////////////////////////////
 // Models
 //////////////////////////////////////////////////////
@@ -196,14 +208,21 @@ model ReminderQueue {
 }
 
 model AuditLog {
-  id          String      @id @default(uuid())
-  entityType  String
-  entityId    String?
-  action      AuditAction
-  performedBy String?
-  payload     Json?
-  timestamp   DateTime    @default(now())
+  id            String      @id @default(uuid())
+
+  entityType    AuditEntity
+  entityId      String
+
+  action        AuditAction
+  actorUserId   String?     
+
+  summary       String      // Human-readable
+  context       Json?       // Business meaning, optional
+
+  createdAt     DateTime    @default(now())
 
   @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
   @@map("audit_logs")
 }
