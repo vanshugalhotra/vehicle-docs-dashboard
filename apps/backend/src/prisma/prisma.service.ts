@@ -21,7 +21,7 @@ export class PrismaService
           ? ['warn', 'error']
           : ['warn', 'error'],
     });
-    process.setMaxListeners(20);
+    process.setMaxListeners(30);
   }
 
   async onModuleInit(): Promise<void> {

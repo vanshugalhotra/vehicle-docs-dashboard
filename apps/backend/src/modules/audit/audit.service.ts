@@ -12,6 +12,7 @@ import {
   AuditLogRecord,
   AuditRecordParams,
 } from 'src/common/types/audit.types';
+import { computeChanges, resolveEvent, buildRelated } from './helpers';
 
 @Injectable()
 export class AuditService {
@@ -22,7 +23,7 @@ export class AuditService {
     private readonly logger: LoggerService,
   ) {}
 
-  async record<T = any>(params: AuditRecordParams<T>): Promise<AuditLogRecord> {
+  async record<T>(params: AuditRecordParams<T>): Promise<AuditLogRecord> {
     const ctx: LogContext = {
       entity: this.entity,
       action: 'record',
@@ -69,7 +70,7 @@ export class AuditService {
         additional: { auditLogId: record.id },
       });
 
-      console.log('Audit log recorded:', record);
+      console.log('Audit log recorded:', JSON.stringify(record, null, 2));
 
       return record;
     } catch (error) {
@@ -90,16 +91,25 @@ export class AuditService {
   // CONTEXT GENERATION
   // ============================
 
-  private buildContext<T = any>(input: {
+  private buildContext<T>(input: {
     entityType: AuditEntity;
     action: AuditAction;
     oldRecord?: T | null;
     newRecord?: T | null;
   }): AuditContext {
+    const event = resolveEvent(input);
+    const changes = computeChanges<T>({
+      oldRecord: input.oldRecord,
+      newRecord: input.newRecord,
+    });
+    const related = buildRelated<T>({
+      entityType: input.entityType,
+      record: input.newRecord ?? input.oldRecord ?? null,
+    });
     const context: AuditContext = {
-      event: `${input.entityType}.${input.action}`,
-      changes: {}, // TODO diff logic
-      related: {}, // TODO relationships
+      event: event,
+      changes: changes,
+      related: related,
       meta: {}, // TODO request metadata
     };
 
@@ -130,7 +140,7 @@ export class AuditService {
         action: payload.action,
         actorUserId: payload.actorUserId ?? null,
         summary: payload.summary,
-        context: payload.context,
+        context: payload.context as unknown as Prisma.InputJsonValue,
       },
     });
 

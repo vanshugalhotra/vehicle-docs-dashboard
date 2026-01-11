@@ -22,15 +22,15 @@ export enum AuditEntity {
 // ==============================
 
 export interface AuditContextChange {
-  from: Prisma.JsonValue;
-  to: Prisma.JsonValue;
+  from: Prisma.InputJsonValue | null;
+  to: Prisma.InputJsonValue | null;
 }
 
-export type AuditContext = Prisma.InputJsonObject & {
+export type AuditContext = {
   event: string;
   changes: Record<string, AuditContextChange>;
-  related: Record<string, Prisma.JsonValue>;
-  meta: Record<string, Prisma.JsonValue>;
+  related: Record<string, Prisma.InputJsonValue>;
+  meta: Record<string, Prisma.InputJsonValue>;
 };
 
 // ==============================
@@ -77,3 +77,29 @@ export interface AuditRecordParams<T = any> {
   oldRecord?: T | null;
   newRecord?: T | null;
 }
+
+export interface RelatedField {
+  idField: string; // the key in the record that stores the id
+  nameField?: string; // optional human-readable field from nested object
+  label?: string; // key in `related` output
+}
+
+export const RELATED_FIELDS: Record<AuditEntity, RelatedField[]> = {
+  VEHICLE_DOCUMENT: [
+    { idField: 'vehicleId', nameField: 'vehicle.name', label: 'vehicleName' },
+    {
+      idField: 'documentTypeId',
+      nameField: 'documentType.name',
+      label: 'documentTypeName',
+    },
+  ],
+  VEHICLE: [],
+  USER: [],
+  OWNER: [],
+  DRIVER: [],
+  LOCATION: [],
+  DOCUMENT_TYPE: [],
+  REMINDER: [],
+};
+
+export type JsonObject = Record<string, Prisma.InputJsonValue>;

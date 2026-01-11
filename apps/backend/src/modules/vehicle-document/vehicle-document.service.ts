@@ -16,6 +16,8 @@ import { parseBusinessFilters } from 'src/common/business-filters/parser';
 import { createLinkageBusinessEngine } from './business-resolver/business-engine.factory';
 import { LINKAGE_ALLOWED_BUSINESS_FILTERS } from 'src/common/types';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class VehicleDocumentService {
@@ -25,6 +27,7 @@ export class VehicleDocumentService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly validationService: VehicleDocumentValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   // -----------------------
@@ -72,6 +75,16 @@ export class VehicleDocumentService {
       this.logger.logInfo('Vehicle document created', {
         ...ctx,
         additional: { id: created.id },
+      });
+
+      // audit
+      await this.auditService.record<typeof created>({
+        entityType: AuditEntity.VEHICLE_DOCUMENT,
+        entityId: created.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: created,
       });
 
       return mapVehicleDocumentToResponse(created);
@@ -226,6 +239,14 @@ export class VehicleDocumentService {
         dto.startDate ? new Date(dto.startDate) : undefined,
         dto.expiryDate ? new Date(dto.expiryDate) : undefined,
       );
+      // get record before update
+      const before = await this.prisma.vehicleDocument.findUnique({
+        where: { id },
+        include: { vehicle: true, documentType: true },
+      });
+
+      if (!before)
+        throw new NotFoundException(`VehicleDocument with id ${id} not found`);
 
       const updated = await this.prisma.vehicleDocument.update({
         where: { id },
@@ -248,6 +269,16 @@ export class VehicleDocumentService {
       this.logger.logInfo('Vehicle document updated', {
         ...ctx,
         additional: { updatedId: updated.id },
+      });
+
+      // audit
+      await this.auditService.record<typeof before>({
+        entityType: AuditEntity.VEHICLE_DOCUMENT,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: before,
+        newRecord: updated,
       });
 
       return mapVehicleDocumentToResponse(updated);
@@ -289,6 +320,17 @@ export class VehicleDocumentService {
 
       await this.prisma.vehicleDocument.delete({ where: { id } });
       this.logger.logInfo('Vehicle document deleted', ctx);
+
+      // audit
+      await this.auditService.record<typeof doc>({
+        entityType: AuditEntity.VEHICLE_DOCUMENT,
+        entityId: id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: doc,
+        newRecord: null,
+      });
+
       return { success: true };
     } catch (error) {
       this.logger.logError('Failed to delete vehicle document', {
