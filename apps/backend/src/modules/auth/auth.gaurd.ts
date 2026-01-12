@@ -7,6 +7,7 @@ import {
 import { ConfigService } from 'src/config/config.service';
 import { Request } from 'express';
 import { verifyJwt, JwtPayload } from 'src/common/utils/auth-utils';
+import { CurrentUserService } from 'src/common/current-user/current-user.service';
 
 // Extend Express Request to include user property
 declare module 'express' {
@@ -33,7 +34,10 @@ export class AdminSecretGuard implements CanActivate {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly currentUser: CurrentUserService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
@@ -48,6 +52,9 @@ export class AuthGuard implements CanActivate {
     try {
       const payload: JwtPayload = verifyJwt(token, this.config);
       request.user = payload;
+
+      this.currentUser.userId = payload.sub;
+      this.currentUser.email = payload.email;
       return true;
     } catch (err: unknown) {
       if (err instanceof Error) {

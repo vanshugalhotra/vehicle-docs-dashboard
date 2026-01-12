@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { Prisma } from '@prisma/client';
 import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { CurrentUserService } from 'src/common/current-user/current-user.service';
 
 import {
   AuditAction,
@@ -21,6 +22,7 @@ export class AuditService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly currentUser: CurrentUserService,
   ) {}
 
   async record<T>(params: AuditRecordParams<T>): Promise<AuditLogRecord> {
@@ -56,8 +58,8 @@ export class AuditService {
       // write event back to context
       context.event = event;
 
-      // 3) Resolve actorUserId (for now just passthrough — later auto-detect)
-      const actorUserId = params.actorUserId ?? null;
+      // 3) Determine actor user ID
+      const actorUserId = params.actorUserId ?? this.currentUser.userId ?? null;
 
       // 4) Persist to DB
       const record = await this.persist({
@@ -110,11 +112,15 @@ export class AuditService {
       entityType: input.entityType,
       record: input.newRecord ?? input.oldRecord ?? null,
     });
+
+    const meta = {
+      source: this.currentUser.email ?? 'SYSTEM',
+    };
     const context: AuditContext = {
       event: event,
       changes: changes,
       related: related,
-      meta: {}, // TODO request metadata
+      meta: meta, // TODO request metadata
     };
 
     return context;
