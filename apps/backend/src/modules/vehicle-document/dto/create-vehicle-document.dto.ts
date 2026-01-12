@@ -9,7 +9,7 @@ import {
   IsNumberString,
 } from 'class-validator';
 import { Trim } from 'src/common/decorators/trim.decorator';
-
+import { Transform } from 'class-transformer';
 export class CreateVehicleDocumentDto {
   @ApiProperty({
     description: 'Vehicle ID to which this document belongs',
@@ -78,6 +78,9 @@ export class CreateVehicleDocumentDto {
     required: false,
   })
   @IsOptional()
+  @Transform(({ value }: { value: string }) =>
+    value === '' ? undefined : value,
+  )
   @IsNumberString(
     {},
     {

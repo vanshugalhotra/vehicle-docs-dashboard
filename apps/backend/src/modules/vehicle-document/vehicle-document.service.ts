@@ -68,7 +68,7 @@ export class VehicleDocumentService {
           amount:
             dto.amount !== undefined && dto.amount !== null
               ? new Prisma.Decimal(dto.amount)
-              : null,
+              : undefined,
         },
         include: { vehicle: true, documentType: true },
       });
@@ -259,7 +259,7 @@ export class VehicleDocumentService {
           amount:
             dto.amount !== undefined && dto.amount !== null
               ? new Prisma.Decimal(dto.amount)
-              : null,
+              : undefined,
           vehicleId: dto.vehicleId ?? undefined,
           documentTypeId: dto.documentTypeId ?? undefined,
         },
