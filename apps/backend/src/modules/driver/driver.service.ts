@@ -15,6 +15,8 @@ import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { PaginatedDriverResponseDto } from './dto/driver-response.dto';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { DriverValidationService } from './validation/driver-validation.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class DriverService {
@@ -24,6 +26,7 @@ export class DriverService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly driverValidation: DriverValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(dto: CreateDriverDto): Promise<DriverResponse> {
@@ -48,6 +51,16 @@ export class DriverService {
       this.logger.logInfo(`Driver created`, {
         ...ctx,
         additional: { id: driver.id },
+      });
+
+      // audit
+      await this.auditService.record<typeof driver>({
+        entityType: AuditEntity.DRIVER,
+        entityId: driver.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: driver,
       });
       return mapDriverToResponse(driver);
     } catch (error) {
@@ -160,6 +173,16 @@ export class DriverService {
         ...ctx,
         additional: { updatedId: updated.id },
       });
+
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.DRIVER,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: driver,
+        newRecord: updated,
+      });
       return mapDriverToResponse(updated);
     } catch (error) {
       this.logger.logError('Error updating driver', {
@@ -204,6 +227,16 @@ export class DriverService {
       this.logger.logInfo(`Driver deleted`, {
         ...ctx,
         additional: { deletedId: id },
+      });
+
+      // audit
+      await this.auditService.record<typeof driver>({
+        entityType: AuditEntity.DRIVER,
+        entityId: driver.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: driver,
+        newRecord: null,
       });
       return { success: true };
     } catch (error) {

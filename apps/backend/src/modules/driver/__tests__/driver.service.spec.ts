@@ -4,6 +4,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/unit-setup/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/unit-setup/mock-logger';
 import { DriverValidationService } from '../validation/driver-validation.service';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 const mockDriverValidationService = {
   validateCreate: jest.fn().mockResolvedValue(null),
@@ -17,6 +18,10 @@ const mockDriverValidationService = {
     })),
 };
 
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('DriverService', () => {
   let service: DriverService;
   let prisma: MockedPrisma;
@@ -25,6 +30,7 @@ describe('DriverService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockDriverValidationService.validateCreate.mockResolvedValue(null);
+    mockAuditService.record.mockResolvedValue(undefined);
     mockDriverValidationService.validateUpdate.mockImplementation(
       (id: unknown, phone: unknown, email: unknown) => ({
         id,
@@ -38,6 +44,10 @@ describe('DriverService', () => {
       {
         provide: DriverValidationService,
         useValue: mockDriverValidationService,
+      },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
       },
     ]);
     service = setup.service;

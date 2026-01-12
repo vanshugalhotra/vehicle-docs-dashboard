@@ -15,6 +15,8 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedDocumentTypeResponseDto } from './dto/document-type-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { DocumentTypeValidationService } from './validation/document-type-validation.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class DocumentTypesService {
@@ -24,6 +26,7 @@ export class DocumentTypesService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly validationService: DocumentTypeValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(dto: CreateDocumentTypeDto): Promise<DocumentTypeResponse> {
@@ -44,7 +47,15 @@ export class DocumentTypesService {
         ...ctx,
         additional: { id: documentType.id },
       });
-
+      // audit
+      await this.auditService.record<typeof documentType>({
+        entityType: AuditEntity.DOCUMENT_TYPE,
+        entityId: documentType.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: documentType,
+      });
       return mapDocumentTypeToResponse(documentType);
     } catch (error) {
       this.logger.logError('Failed to create document type', {
@@ -155,6 +166,15 @@ export class DocumentTypesService {
         ...ctx,
         additional: { id: updated.id },
       });
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.DOCUMENT_TYPE,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: documentType,
+        newRecord: updated,
+      });
       return mapDocumentTypeToResponse(updated);
     } catch (error) {
       this.logger.logError('Failed to update document type', {
@@ -199,7 +219,15 @@ export class DocumentTypesService {
 
       await this.prisma.documentType.delete({ where: { id } });
       this.logger.logInfo(`Document type deleted`, ctx);
-
+      // audit
+      await this.auditService.record<typeof documentType>({
+        entityType: AuditEntity.DOCUMENT_TYPE,
+        entityId: documentType.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: documentType,
+        newRecord: null,
+      });
       return { success: true };
     } catch (error) {
       this.logger.logError('Failed to delete document type', {

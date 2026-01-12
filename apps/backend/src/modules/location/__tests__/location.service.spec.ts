@@ -5,12 +5,16 @@ import { MockedPrisma } from '../../../../test/utils/unit-setup/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/unit-setup/mock-logger';
 import { LocationValidationService } from '../validation/location-validation.service';
 import { Location } from '@prisma/client';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 const mockLocationValidationService = {
   validateCreate: jest.fn().mockResolvedValue(null),
   validateUpdate: jest.fn(),
 };
 
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
+};
 describe('LocationService', () => {
   let service: LocationService;
   let prisma: MockedPrisma;
@@ -26,6 +30,7 @@ describe('LocationService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockLocationValidationService.validateCreate.mockResolvedValue(null);
+    mockAuditService.record.mockResolvedValue(undefined);
     mockLocationValidationService.validateUpdate.mockImplementation(
       (id: string, name: string) =>
         ({
@@ -39,6 +44,10 @@ describe('LocationService', () => {
       {
         provide: LocationValidationService,
         useValue: mockLocationValidationService,
+      },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
       },
     ]);
     service = setup.service;

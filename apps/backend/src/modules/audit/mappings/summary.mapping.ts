@@ -180,7 +180,7 @@ export const UPDATE_RULES: UpdateRulesMap = {
     },
     {
       fields: ['licensePlate', 'rcNumber', 'chassisNumber', 'engineNumber'],
-      message: 'vehicle identifiers updated',
+      message: 'identifiers updated',
       priority: 4,
     },
   ],

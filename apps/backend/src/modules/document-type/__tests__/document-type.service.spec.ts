@@ -5,6 +5,7 @@ import { MockedPrisma } from '../../../../test/utils/unit-setup/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/unit-setup/mock-logger';
 import { DocumentTypeValidationService } from '../validation/document-type-validation.service';
 import { DocumentType } from '@prisma/client';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 const mockDocumentType: DocumentType = {
   id: 'doc1',
@@ -12,7 +13,9 @@ const mockDocumentType: DocumentType = {
   createdAt: new Date(),
   updatedAt: new Date(),
 };
-
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
+};
 const mockDocumentTypeValidationService = {
   validateCreate: jest.fn().mockResolvedValue(null),
   validateUpdate: jest.fn().mockImplementation(
@@ -33,6 +36,7 @@ describe('DocumentTypesService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockDocumentTypeValidationService.validateCreate.mockResolvedValue(null);
+    mockAuditService.record.mockResolvedValue(undefined);
     mockDocumentTypeValidationService.validateUpdate.mockImplementation(
       (id: string, name?: string) =>
         ({
@@ -46,6 +50,10 @@ describe('DocumentTypesService', () => {
       {
         provide: DocumentTypeValidationService,
         useValue: mockDocumentTypeValidationService,
+      },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
       },
     ]);
     service = setup.service;
