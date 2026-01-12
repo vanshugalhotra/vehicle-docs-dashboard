@@ -99,11 +99,11 @@ function buildBeforeAfterForFields(
   return { before, after };
 }
 
-function buildUpdateSummary<K extends keyof UpdateRulesMap>(params: {
+function buildUpdateSummaryAndEvent<K extends keyof UpdateRulesMap>(params: {
   entityType: K;
   subject: string;
   context: AuditContext;
-}): string {
+}): { summary: string; event: string } {
   const { entityType, subject, context } = params;
 
   // Correctly typed rule list
@@ -144,26 +144,32 @@ function buildUpdateSummary<K extends keyof UpdateRulesMap>(params: {
   }
 
   if (matched.length === 0) {
-    return `${subject} was updated`;
+    return {
+      summary: `${subject} was updated`,
+      event: `${String(entityType).toLowerCase()}.updated`,
+    };
   }
 
   matched.sort((a, b) => Number(a.priority ?? 999) - Number(b.priority ?? 999));
 
   const mainMessage = matched[0]?.message ?? 'was updated';
+  const summary =
+    matched.length > 1
+      ? `${subject} ${mainMessage} + other updates`
+      : `${subject} ${mainMessage}`;
+  const event = matched[0]?.event
+    ? `${String(entityType).toLowerCase()}.${matched[0].event.toLowerCase()}`
+    : `${String(entityType).toLowerCase()}.updated`; // fallback
 
-  if (matched.length > 1) {
-    return `${subject} ${mainMessage} + other updates`;
-  }
-
-  return `${subject} ${mainMessage}`;
+  return { summary, event };
 }
 
-export function buildSummary<T>(params: {
+export function buildSummaryAndEvent<T>(params: {
   entityType: AuditEntity;
   action: AuditAction;
   context: AuditContext;
   record: T | null;
-}): string {
+}): { summary: string; event: string } {
   const { entityType, action, context, record } = params;
 
   const subject = buildSubjectFromMapping(
@@ -175,19 +181,27 @@ export function buildSummary<T>(params: {
 
   switch (action) {
     case AuditAction.CREATE:
-      return `${fallbackSubject} was created`;
+      return {
+        summary: `${fallbackSubject} was created`,
+        event: `${entityType.toLowerCase()}.created`,
+      };
 
     case AuditAction.DELETE:
-      return `${fallbackSubject} was deleted`;
-
+      return {
+        summary: `${fallbackSubject} was deleted`,
+        event: `${entityType.toLowerCase()}.deleted`,
+      };
     case AuditAction.UPDATE:
-      return buildUpdateSummary({
+      return buildUpdateSummaryAndEvent({
         entityType: entityType as keyof UpdateRulesMap,
         subject: fallbackSubject,
         context,
       });
 
     default:
-      return `${fallbackSubject} was updated`;
+      return {
+        summary: `${fallbackSubject} was updated`,
+        event: `${entityType.toLowerCase()}.updated`,
+      };
   }
 }

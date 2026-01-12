@@ -103,6 +103,8 @@ export interface UpdateRule<T> {
   condition?: (before: T, after: T) => boolean;
   message: string; // Text to replace "was updated"
   priority: number; // Lower number = higher priority
+
+  event: string; // for context.event
 }
 
 export type EntityModelMap = {
@@ -132,6 +134,7 @@ export const UPDATE_RULES: UpdateRulesMap = {
         new Date(after.expiryDate) > new Date(before.expiryDate),
       message: 'was renewed',
       priority: 1,
+      event: 'renewed',
     },
     {
       fields: ['expiryDate'],
@@ -139,26 +142,31 @@ export const UPDATE_RULES: UpdateRulesMap = {
         new Date(after.expiryDate) < new Date(before.expiryDate),
       message: 'was preponed',
       priority: 2,
+      event: 'expiry_preponed',
     },
     {
       fields: ['documentNo'],
       message: 'document number updated',
       priority: 3,
+      event: 'number_changed',
     },
     {
       fields: ['amount'],
       message: 'amount updated',
       priority: 4,
+      event: 'amount_changed',
     },
     {
       fields: ['startDate'],
       message: 'start date updated',
       priority: 5,
+      event: 'start_date_changed',
     },
     {
       fields: ['notes'],
       message: 'notes updated',
       priority: 6,
+      event: 'notes_changed',
     },
   ],
 
@@ -167,36 +175,88 @@ export const UPDATE_RULES: UpdateRulesMap = {
       fields: ['driverId'],
       message: 'driver assigned',
       priority: 1,
+      event: 'driver_assigned',
     },
     {
       fields: ['ownerId'],
       message: 'owner assigned',
       priority: 2,
+      event: 'owner_assigned',
     },
     {
       fields: ['locationId'],
       message: 'location updated',
       priority: 3,
+      event: 'location_changed',
     },
     {
       fields: ['licensePlate', 'rcNumber', 'chassisNumber', 'engineNumber'],
       message: 'identifiers updated',
       priority: 4,
+      event: 'identifiers_changed',
     },
   ],
 
   DRIVER: [
-    { fields: ['name'], message: 'name updated', priority: 1 },
-    { fields: ['phone'], message: 'phone number updated', priority: 2 },
-    { fields: ['email'], message: 'email updated', priority: 3 },
+    {
+      fields: ['name'],
+      message: 'name updated',
+      priority: 1,
+      event: 'name_changed',
+    },
+    {
+      fields: ['phone'],
+      message: 'phone number updated',
+      priority: 2,
+      event: 'phone_changed',
+    },
+    {
+      fields: ['email'],
+      message: 'email updated',
+      priority: 3,
+      event: 'email_changed',
+    },
   ],
 
-  OWNER: [{ fields: ['name'], message: 'name updated', priority: 1 }],
-  LOCATION: [{ fields: ['name'], message: 'name updated', priority: 1 }],
-  DOCUMENT_TYPE: [{ fields: ['name'], message: 'name updated', priority: 1 }],
+  OWNER: [
+    {
+      fields: ['name'],
+      message: 'name updated',
+      priority: 1,
+      event: 'name_changed',
+    },
+  ],
+
+  LOCATION: [
+    {
+      fields: ['name'],
+      message: 'name updated',
+      priority: 1,
+      event: 'name_changed',
+    },
+  ],
+
+  DOCUMENT_TYPE: [
+    {
+      fields: ['name'],
+      message: 'name updated',
+      priority: 1,
+      event: 'name_changed',
+    },
+  ],
 
   USER: [
-    { fields: ['email'], message: 'email updated', priority: 1 },
-    { fields: ['passwordHash'], message: 'password updated', priority: 2 },
+    {
+      fields: ['email'],
+      message: 'email updated',
+      priority: 1,
+      event: 'email_changed',
+    },
+    {
+      fields: ['passwordHash'],
+      message: 'password updated',
+      priority: 2,
+      event: 'password_changed',
+    },
   ],
 };

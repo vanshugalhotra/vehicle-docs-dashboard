@@ -12,12 +12,7 @@ import {
   AuditLogRecord,
   AuditRecordParams,
 } from 'src/common/types/audit.types';
-import {
-  computeChanges,
-  resolveEvent,
-  buildRelated,
-  buildSummary,
-} from './helpers';
+import { computeChanges, buildRelated, buildSummaryAndEvent } from './helpers';
 
 @Injectable()
 export class AuditService {
@@ -50,13 +45,16 @@ export class AuditService {
         newRecord: params.newRecord,
       });
 
-      // 2) Build human-readable summary
-      const summary = this.generateSummary<T>({
+      // 2) Build event + summary together
+      const { summary, event } = this.generateSummaryAndEvent<T>({
         entityType: params.entityType,
         action: params.action,
-        context: context,
+        context,
         record: params.newRecord ?? params.oldRecord ?? null,
       });
+
+      // write event back to context
+      context.event = event;
 
       // 3) Resolve actorUserId (for now just passthrough — later auto-detect)
       const actorUserId = params.actorUserId ?? null;
@@ -103,7 +101,7 @@ export class AuditService {
     oldRecord?: T | null;
     newRecord?: T | null;
   }): AuditContext {
-    const event = resolveEvent(input);
+    const event = ''; // blank for now, later summary will return it then we will update
     const changes = computeChanges<T>({
       oldRecord: input.oldRecord,
       newRecord: input.newRecord,
@@ -113,7 +111,7 @@ export class AuditService {
       record: input.newRecord ?? input.oldRecord ?? null,
     });
     const context: AuditContext = {
-      event: event, // TODO detailed event info
+      event: event,
       changes: changes,
       related: related,
       meta: {}, // TODO request metadata
@@ -126,19 +124,18 @@ export class AuditService {
   // SUMMARY GENERATION
   // ============================
 
-  private generateSummary<T>(input: {
+  private generateSummaryAndEvent<T>(input: {
     entityType: AuditEntity;
     action: AuditAction;
     context: AuditContext;
     record?: T | null;
-  }): string {
-    const summary = buildSummary<T>({
+  }): { summary: string; event: string } {
+    return buildSummaryAndEvent<T>({
       entityType: input.entityType,
       action: input.action,
       context: input.context,
       record: input.record ?? null,
     });
-    return summary;
   }
 
   // ============================
