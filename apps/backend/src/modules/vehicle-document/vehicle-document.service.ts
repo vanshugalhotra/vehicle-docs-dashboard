@@ -311,6 +311,7 @@ export class VehicleDocumentService {
     try {
       const doc = await this.prisma.vehicleDocument.findUnique({
         where: { id },
+        include: { vehicle: true, documentType: true },
       });
 
       if (!doc) {

@@ -1,18 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { AuditEntity, RELATED_FIELDS } from 'src/common/types/audit.types';
-
-/**
- * Safely read nested value using dotted path (e.g. "vehicle.name")
- */
-function getByPath(obj: unknown, path: string | undefined): unknown {
-  if (!obj || !path) return undefined;
-
-  return path.split('.').reduce<unknown>((acc, key) => {
-    if (acc == null || typeof acc !== 'object') return undefined;
-
-    return (acc as Record<string, unknown>)[key];
-  }, obj);
-}
+import { AuditEntity } from 'src/common/types/audit.types';
+import { RELATED_FIELDS } from '../mappings';
+import { getByPath } from 'src/common/utils/path-utils';
 
 function normalizeToJson(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;

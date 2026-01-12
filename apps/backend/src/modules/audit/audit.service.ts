@@ -12,7 +12,12 @@ import {
   AuditLogRecord,
   AuditRecordParams,
 } from 'src/common/types/audit.types';
-import { computeChanges, resolveEvent, buildRelated } from './helpers';
+import {
+  computeChanges,
+  resolveEvent,
+  buildRelated,
+  buildSummary,
+} from './helpers';
 
 @Injectable()
 export class AuditService {
@@ -46,10 +51,11 @@ export class AuditService {
       });
 
       // 2) Build human-readable summary
-      const summary = this.generateSummary({
+      const summary = this.generateSummary<T>({
         entityType: params.entityType,
         action: params.action,
-        context,
+        context: context,
+        record: params.newRecord ?? params.oldRecord ?? null,
       });
 
       // 3) Resolve actorUserId (for now just passthrough — later auto-detect)
@@ -107,7 +113,7 @@ export class AuditService {
       record: input.newRecord ?? input.oldRecord ?? null,
     });
     const context: AuditContext = {
-      event: event,
+      event: event, // TODO detailed event info
       changes: changes,
       related: related,
       meta: {}, // TODO request metadata
@@ -120,12 +126,19 @@ export class AuditService {
   // SUMMARY GENERATION
   // ============================
 
-  private generateSummary(input: {
+  private generateSummary<T>(input: {
     entityType: AuditEntity;
     action: AuditAction;
     context: AuditContext;
+    record?: T | null;
   }): string {
-    return `${input.entityType} ${input.action}`;
+    const summary = buildSummary<T>({
+      entityType: input.entityType,
+      action: input.action,
+      context: input.context,
+      record: input.record ?? null,
+    });
+    return summary;
   }
 
   // ============================
