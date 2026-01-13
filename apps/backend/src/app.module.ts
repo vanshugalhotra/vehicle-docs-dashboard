@@ -20,6 +20,7 @@ import { RemindersModule } from './modules/reminder/reminders.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExportModule } from './modules/export/export.module';
 import { CurrentUserModule } from './common/current-user/current-user.module';
+import { AuditQueryModule } from './modules/audit/audit-query.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CurrentUserModule } from './common/current-user/current-user.module';
     AuthModule,
     ExportModule,
     CurrentUserModule,
+    AuditQueryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
