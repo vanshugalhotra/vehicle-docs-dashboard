@@ -11,8 +11,10 @@ import { Driver, driverCrudConfig } from "@/configs/crud/drivers.config";
 import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar";
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useRouter } from "next/navigation";
 
 export default function DriversPage() {
+  const router = useRouter();
   const formCtrl = useFormStateController<Driver>("embedded");
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -131,6 +133,10 @@ export default function DriversPage() {
             loading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onView={(item) => {
+              if (!item.id) return;
+              router.push(`/entities/driver/${item.id}`);
+            }}
             sort={sort}
             setSort={setSort}
           />

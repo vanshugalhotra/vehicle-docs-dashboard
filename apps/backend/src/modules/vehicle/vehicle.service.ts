@@ -225,7 +225,11 @@ export class VehicleService {
           owner: true,
           driver: true,
           location: true,
-          documents: true,
+          documents: {
+            include: {
+              documentType: true,
+            },
+          },
         },
       });
 

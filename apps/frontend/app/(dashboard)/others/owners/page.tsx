@@ -11,8 +11,10 @@ import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Owner, ownerCrudConfig } from "@/configs/crud/owners.config";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useRouter } from "next/navigation";
 
 export default function OwnersPage() {
+  const router = useRouter();
   const formCtrl = useFormStateController<Owner>("embedded");
   const [ownerToDelete, setOwnerToDelete] = useState<Owner | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -124,6 +126,10 @@ export default function OwnersPage() {
             onDelete={handleDelete}
             sort={sort}
             setSort={setSort}
+            onView={(item) => {
+              if (!item.id) return;
+              router.push(`/entities/owner/${item.id}`);
+            }}
           />
           <PaginationBar
             page={page}

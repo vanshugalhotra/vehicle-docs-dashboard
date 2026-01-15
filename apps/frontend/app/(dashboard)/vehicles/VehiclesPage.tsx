@@ -74,7 +74,10 @@ export default function VehiclesPage() {
       itemToDelete={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onEdit={(item) => router.push(`/vehicles/add?editId=${item.id}`)}
-      onView={() => {}}
+      onView={(item) => {
+        if (!item.id) return;
+        router.push(`/entities/vehicles/${item.id}`);
+      }}
       deleteDescription={(item) =>
         `Are you sure you want to delete this vehicle "${item.name}"?`
       }

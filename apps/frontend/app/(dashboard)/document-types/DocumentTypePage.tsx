@@ -74,7 +74,10 @@ export default function DocumentTypePage() {
       onCancelDelete={() => setItemToDelete(null)}
       /* ---- Edit / View placeholders ---- */
       onEdit={(item) => router.push(`/document-types/add?editId=${item.id}`)}
-      onView={() => {}}
+      onView={(item) => {
+        if (!item.id) return;
+        router.push(`/entities/document_type/${item.id}`);
+      }}
       deleteDescription={(item) =>
         `Are you sure you want to delete the document "${item.name}"?`
       }
