@@ -143,6 +143,12 @@
   /* Fonts (keep your existing) */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-foreground: var(--color-text-primary);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-muted: var(--color-text-tertiary);
+  --color-accent-foreground: var(--color-primary);
+  --color-accent: var(--color-primary-light);
 }
 
 body {
