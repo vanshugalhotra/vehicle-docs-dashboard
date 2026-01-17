@@ -15,6 +15,7 @@ import {
   MapPin,
   ClipboardPlus,
   NotebookText,
+  ClipboardList,
 } from "lucide-react";
 
 export type SidebarSize = "expanded" | "collapsed";
@@ -110,5 +111,10 @@ export const sidebarConfig: SidebarItemConfig[] = [
     label: "Reminders",
     icon: <Bell size={24} />,
     path: "/reminders",
+  },
+  {
+    label: "Audit Trail",
+    icon: <ClipboardList size={24} />,
+    path: "/audit",
   },
 ];

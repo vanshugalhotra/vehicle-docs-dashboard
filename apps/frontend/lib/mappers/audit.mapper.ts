@@ -18,6 +18,9 @@ export interface AuditLogResponseDto {
   createdAt: Date | string;
 }
 
+/* ======================================================
+ * Mapper
+ * ====================================================== */
 export function mapAuditLogDtoToUI(dto: AuditLogResponseDto): AuditLogUI {
   const date = new Date(dto.createdAt);
 
@@ -49,7 +52,6 @@ export function mapAuditLogDtoToUI(dto: AuditLogResponseDto): AuditLogUI {
 /* ======================================================
  * Helpers
  * ====================================================== */
-
 function resolveActorLabel(dto: AuditLogResponseDto): string {
   if (!dto.actorUserId) return "System";
 
@@ -59,6 +61,9 @@ function resolveActorLabel(dto: AuditLogResponseDto): string {
   return "Unknown";
 }
 
+/* --------------------
+ * Context normalization
+ * -------------------- */
 function normalizeContext(
   context: AuditLogResponseDto["context"]
 ): AuditLogUI["context"] | undefined {
@@ -96,7 +101,7 @@ function normalizeChanges(
       from: stringify(value.from),
       to: stringify(value.to),
     }))
-    .filter((c) => c.from !== c.to);
+    .filter((c) => c.from !== c.to && (c.from !== null || c.to !== null));
 }
 
 function normalizeKeyValue(
@@ -114,10 +119,39 @@ function normalizeKeyValue(
       })
   );
 }
+
+/* --------------------
+ * Stringify / format values
+ * -------------------- */
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUUID(value: string): boolean {
+  return UUID_REGEX.test(value);
+}
+
+function isDateString(value: string): boolean {
+  const parsed = Date.parse(value);
+  return !Number.isNaN(parsed);
+}
+
 function stringify(value: unknown): string | null {
   if (value === null || value === undefined) return null;
-  if (typeof value === "string") return value;
-  if (value instanceof Date) return value.toISOString();
+
+  if (value instanceof Date) {
+    return format(value, "dd MMM yyyy, hh:mm a");
+  }
+
+  if (typeof value === "string") {
+    if (isUUID(value)) return null;
+    if (isDateString(value))
+      return format(new Date(value), "dd MMM yyyy, hh:mm a");
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
 
   try {
     return JSON.stringify(value);

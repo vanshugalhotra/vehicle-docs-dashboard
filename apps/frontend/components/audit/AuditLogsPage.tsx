@@ -82,22 +82,29 @@ export function AuditLogsPage({
       />
 
       {/* ---------- Filters + Sort ---------- */}
-      <TableToolbar
-        showSearch={false} // handled by HeaderBar
-        showFilters={!!filtersConfig?.length}
-        showSort={!!sortOptions?.length}
-        showReset={true}
-        filtersConfig={filtersConfig}
-        filters={filters}
-        setFilters={onFiltersChange}
-        sortOptions={sortOptions}
-        sort={sort}
-        setSort={onSortChange}
-      />
+      <div className="relative z-20">
+        <TableToolbar
+          showSearch={false} // handled by HeaderBar
+          showFilters={!!filtersConfig?.length}
+          showSort={!!sortOptions?.length}
+          showReset={true}
+          filtersConfig={filtersConfig}
+          filters={filters}
+          setFilters={onFiltersChange}
+          sortOptions={sortOptions}
+          sort={sort}
+          setSort={onSortChange}
+        />
+      </div>
 
       {/* ---------- Audit Logs ---------- */}
       <AppCard className="p-0 overflow-hidden">
-        <AuditLogList logs={data} loading={loading} />
+        <AuditLogList
+          logs={data}
+          loading={loading}
+          page={page}
+          pageSize={pageSize}
+        />
 
         <div className="border-t border-border/40">
           <PaginationBar

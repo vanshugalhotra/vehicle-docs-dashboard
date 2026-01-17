@@ -8,7 +8,7 @@ import { AppCard } from "@/components/ui/AppCard";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { AppButton } from "@/components/ui/AppButton";
 
-import { ChevronDown, ArrowRight } from "lucide-react";
+import { ChevronDown, ArrowRight, User, Clock, Database } from "lucide-react";
 import clsx from "clsx";
 
 interface AuditLogItemProps {
@@ -35,88 +35,114 @@ export function AuditLogItem({
   return (
     <AppCard
       className={clsx(
-        "hover:shadow-md transition-all duration-200 border-border/60 hover:border-border-hover",
+        "hover:shadow-sm transition-all duration-200 border-border-subtle hover:border-border",
+        expanded && "shadow-xs border-border bg-surface",
         className
       )}
     >
-      <div className="flex items-start gap-5">
-        <div className="flex flex-col items-center gap-2 shrink-0">
-          <div
-            className={clsx(
-              "rounded-xl p-2.5 transition-colors shadow-sm",
-              badgeVariant === "success" && "bg-success-light text-success",
-              badgeVariant === "warning" && "bg-warning-light text-warning",
-              badgeVariant === "danger" && "bg-danger-light text-danger",
-              badgeVariant === "neutral" &&
-                "bg-surface-subtle text-text-secondary",
-              log.action === "CREATE" && "animate-pulse-subtle"
-            )}
-          >
-            <Icon className="h-4.5 w-4.5" />
+      <div className="flex items-start gap-4">
+        {/* Icon Container */}
+        <div className="relative shrink-0">
+          <div className="relative">
+            <div
+              className={clsx(
+                "rounded-xl p-3 transition-all duration-300",
+                badgeVariant === "success" &&
+                  "bg-success-light/80 text-success border border-success/10",
+                badgeVariant === "warning" &&
+                  "bg-warning-light/80 text-warning border border-warning/10",
+                badgeVariant === "danger" &&
+                  "bg-danger-light/80 text-danger border border-danger/10",
+                badgeVariant === "neutral" &&
+                  "bg-surface-subtle text-text-secondary border border-border-subtle",
+                log.action === "CREATE" &&
+                  "animate-pulse-subtle ring-1 ring-primary/20"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            {/* Status Indicator Dot */}
+            <div
+              className={clsx(
+                "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-surface",
+                badgeVariant === "success" && "bg-success",
+                badgeVariant === "warning" && "bg-warning",
+                badgeVariant === "danger" && "bg-danger",
+                badgeVariant === "neutral" && "bg-border"
+              )}
+            />
           </div>
-          {/* Visual vertical connector for a timeline feel */}
-          <div className="w-px h-full bg-border-subtle min-h-5" />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-start">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <AppBadge
-                  variant={badgeVariant}
-                  className="text-[10px] uppercase tracking-wider px-2 py-0 h-5 font-bold border-transparent"
-                >
-                  {log.action}
-                </AppBadge>
-                <h4 className="font-semibold text-sm text-text-primary tracking-tight">
-                  {log.summary}
-                </h4>
-              </div>
-
-              <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 text-xs text-text-secondary">
-                {/* Entity Type*/}
-                <AppBadge
-                  variant="neutral"
-                  size="sm"
-                >
-                  {log.entityType}
-                </AppBadge>
-
-                {/* Actor */}
-                <div className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-border-hover" />
-                  <span className="font-medium">{log.actor.label}</span>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+            {/* Left Column */}
+            <div className="space-y-3">
+              {/* Header with Badge and Summary */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <AppBadge
+                    variant={badgeVariant}
+                    className="text-[10px] uppercase tracking-wider px-2.5 py-0.5 h-5 font-semibold border-transparent shadow-xs"
+                  >
+                    {log.action}
+                  </AppBadge>
+                  <h4 className="font-semibold text-sm text-text-primary leading-tight">
+                    {log.summary}
+                  </h4>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-border-hover" />
-                  <time
-                    dateTime={log.timestamp.date.toISOString()}
-                    className="tabular-nums font-medium text-text-primary"
-                  >
-                    {log.timestamp.relative}
-                  </time>
-                  <span className="text-text-tertiary">
-                    ({log.timestamp.absolute})
-                  </span>
+                {/* Metadata Row */}
+                <div className="flex items-center flex-wrap gap-3 text-xs">
+                  {/* Entity Type */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle">
+                    <Database className="h-3 w-3 text-text-tertiary" />
+                    <span className="font-medium text-text-secondary">
+                      {log.entityType}
+                    </span>
+                  </div>
+
+                  {/* Actor */}
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-primary/10 border border-border-subtle">
+                    <User className="h-3 w-3 text-text-tertiary" />
+                    <span className="font-medium text-text-secondary">
+                      {log.actor.label}
+                    </span>
+                  </div>
+
+                  {/* Timestamp */}
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle">
+                    <Clock className="h-3 w-3 text-text-tertiary" />
+                    <time
+                      dateTime={log.timestamp.date.toISOString()}
+                      className="font-bold text-text-secondary tabular-nums"
+                    >
+                      {log.timestamp.relative}
+                    </time>
+                    <span className="text-text-tertiary text-[11px] font-medium">
+                      ({log.timestamp.absolute})
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Right Column - Expand Button */}
             <div className="flex items-center justify-end">
               {hasExpandableContent && (
                 <AppButton
                   size="sm"
                   variant="ghost"
                   className={clsx(
-                    "h-8 px-3 gap-2 text-xs font-semibold hover:bg-surface-subtle transition-all",
+                    "h-8 px-3 gap-2 text-xs font-medium transition-all duration-200",
                     expanded
-                      ? "text-primary bg-primary-light"
-                      : "text-text-secondary"
+                      ? "text-primary bg-primary/5 hover:bg-primary/10"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface-subtle"
                   )}
                   onClick={() => setExpanded((v) => !v)}
                 >
-                  {expanded ? "Hide Details" : "View Details"}
+                  {expanded ? "Collapse" : "Details"}
                   <ChevronDown
                     className={clsx(
                       "h-3.5 w-3.5 transition-transform duration-300",
@@ -127,71 +153,87 @@ export function AuditLogItem({
               )}
             </div>
           </div>
+
+          {/* Expanded Content */}
+          {expanded && (
+            <div className="mt-4 pt-4 border-t border-border-subtle space-y-6 animate-fade-in">
+              {hasChanges && (
+                <Section title="Data Changes">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {log.context!.changes!.map((change) => (
+                      <div
+                        key={change.field}
+                        className="p-3 rounded-xl border border-border-subtle bg-surface space-y-2 hover:border-border transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">
+                            {change.field}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-text-tertiary">
+                              From
+                            </span>
+                            <ArrowRight className="h-2.5 w-2.5 text-text-tertiary" />
+                            <span className="text-[10px] text-text-tertiary">
+                              To
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ValueBox
+                            value={change.from}
+                            variant="from"
+                            isEmpty={!change.from}
+                            label="Previous"
+                          />
+                          <ArrowRight className="h-3 w-3 text-text-tertiary shrink-0 mx-1" />
+                          <ValueBox
+                            value={change.to}
+                            variant="to"
+                            isEmpty={!change.to}
+                            label="Current"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
+              {hasRelated && (
+                <Section title="Related Entities">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(log.context!.related!).map(
+                      ([key, value]) =>
+                        value && (
+                          <button
+                            key={key}
+                            onClick={() =>
+                              onEntityClick?.(
+                                key
+                                  .replace(/Id$/, "")
+                                  .toUpperCase() as AuditEntity,
+                                value
+                              )
+                            }
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-subtle border border-border-subtle text-xs hover:bg-surface hover:border-primary/30 hover:shadow-xs transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          >
+                            <span className="text-text-tertiary font-medium uppercase text-[10px] tracking-tighter">
+                              {key.replace(/([A-Z])/g, " $1").trim()}:
+                            </span>
+                            <span className="text-text-primary font-semibold group-hover:text-primary transition-colors">
+                              {value}
+                            </span>
+                          </button>
+                        )
+                    )}
+                  </div>
+                </Section>
+              )}
+            </div>
+          )}
         </div>
       </div>
-
-      {expanded && (
-        <div className="mt-5 pt-5 border-t border-border-subtle space-y-6 animate-fade-in">
-          {hasChanges && (
-            <Section title="Data Changes">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {log.context!.changes!.map((change) => (
-                  <div
-                    key={change.field}
-                    className="flex flex-col gap-2 p-3 rounded-xl border border-border-subtle bg-surface-hover/50"
-                  >
-                    <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest px-1">
-                      {change.field}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <ValueBox
-                        value={change.from}
-                        variant="from"
-                        isEmpty={!change.from}
-                      />
-                      <ArrowRight className="h-3 w-3 text-text-tertiary shrink-0" />
-                      <ValueBox
-                        value={change.to}
-                        variant="to"
-                        isEmpty={!change.to}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {hasRelated && (
-            <Section title="Relationships">
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(log.context!.related!).map(
-                  ([key, value]) =>
-                    value && (
-                      <div
-                        key={key}
-                        onClick={() =>
-                          onEntityClick?.(
-                            key.replace(/Id$/, "").toUpperCase() as AuditEntity,
-                            value
-                          )
-                        }
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-subtle border border-border text-xs hover:border-primary/30 hover:bg-white hover:shadow-sm transition-all cursor-pointer group"
-                      >
-                        <span className="text-text-secondary font-medium uppercase text-[10px] tracking-tighter">
-                          {key.replace(/([A-Z])/g, " $1").trim()}:
-                        </span>
-                        <span className="text-text-primary font-bold group-hover:text-primary">
-                          {value}
-                        </span>
-                      </div>
-                    )
-                )}
-              </div>
-            </Section>
-          )}
-        </div>
-      )}
     </AppCard>
   );
 }
@@ -210,9 +252,12 @@ function Section({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-text-tertiary">
-          {title}
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            {title}
+          </span>
+        </div>
         <div className="h-px flex-1 bg-border-subtle" />
       </div>
       {children}
@@ -224,23 +269,32 @@ function ValueBox({
   value,
   variant,
   isEmpty,
+  label,
 }: {
   value?: string | null;
   variant: "from" | "to";
   isEmpty: boolean;
+  label?: string;
 }) {
   return (
-    <div
-      className={clsx(
-        "flex-1 min-w-0 px-3 py-2 rounded-lg text-xs font-medium border transition-all truncate",
-        isEmpty
-          ? "bg-surface-subtle border-dashed border-border-hover text-text-tertiary italic"
-          : variant === "from"
-          ? "bg-danger-light/30 border-danger/10 text-danger-text"
-          : "bg-success-light/30 border-success/10 text-success-text"
+    <div className="flex-1 min-w-0">
+      {label && (
+        <span className="text-[10px] font-medium text-text-tertiary mb-1 block">
+          {label}
+        </span>
       )}
-    >
-      {isEmpty ? "none" : value}
+      <div
+        className={clsx(
+          "px-3 py-2 rounded-lg text-sm font-medium border transition-all truncate",
+          isEmpty
+            ? "bg-surface-subtle border-dashed border-border-subtle text-text-tertiary italic"
+            : variant === "from"
+            ? "bg-danger-light/20 border-danger/10 text-danger-text"
+            : "bg-success-light/20 border-success/10 text-success-text"
+        )}
+      >
+        {isEmpty ? "Empty" : value}
+      </div>
     </div>
   );
 }
