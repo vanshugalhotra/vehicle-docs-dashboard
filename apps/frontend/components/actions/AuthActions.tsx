@@ -7,6 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { routes } from "@/lib/routes";
 
 interface AuthActionsProps {
   className?: string;
@@ -36,7 +37,7 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
           size="sm"
           variant="outline"
           startIcon={<LogIn size={16} />}
-          onClick={() => (window.location.href = "/login")}
+          onClick={() => (window.location.href = routes.login)}
           className="transition-all duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label="Sign in to your account"
         >
@@ -83,7 +84,7 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
         startIcon={<LogOut size={16} />}
         onClick={() => {
           logout();
-          router.push("/login");
+          router.push(routes.login);
         }}
         className="hover:bg-error/5 hover:text-error hover:border-error/20 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
         aria-label={`Sign out as ${getDisplayName()}`}

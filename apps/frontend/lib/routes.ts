@@ -1,0 +1,18 @@
+export const routes = {
+  home: "/",
+  login: "/auth/login",
+  register: "/auth/register",
+  verifyRegister: "/auth/register/verify",
+  forgotPassword: "/auth/forgot-password",
+  verifyForgotPassword: "/auth/forgot-password/verify",
+  audit: "/audit",
+  document_types: "/document-types",
+  linkages: "/linkages",
+  reminders: "/reminders",
+  vehicles: "/vehicles",
+  drivers: "/others/drivers",
+  locations: "/others/locations",
+  owners: "/others/owners",
+  vehicle_categories: "/others/vehicle-categories",
+  vehicle_types: "/others/vehicle-types",
+};
