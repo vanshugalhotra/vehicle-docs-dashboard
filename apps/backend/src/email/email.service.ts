@@ -49,10 +49,10 @@ export class EmailService {
       return;
     }
 
-    // Check if we're in testing environment
-    const isTesting = this.config.get('NODE_ENV') === 'test';
+    // Check if we're in production
+    const isProd = this.config.get('NODE_ENV') === 'production';
 
-    if (isTesting) {
+    if (!isProd) {
       this.saveHtmlToFile(html, subject);
       return;
     }
@@ -88,14 +88,14 @@ export class EmailService {
 
   private saveHtmlToFile(html: string, subject: string) {
     try {
-      const filename = `linkage_test.html`;
+      const filename = `email_test.html`;
 
       const saveDir = process.cwd();
       const filePath = path.join(saveDir, filename);
 
       fs.writeFileSync(filePath, html, 'utf-8');
 
-      this.logger.info('HTML saved to file (testing mode)', {
+      this.logger.debug('HTML saved to file (testing mode)', {
         filePath,
         subject,
         fileSize: `${(html.length / 1024).toFixed(2)} KB`,

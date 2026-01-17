@@ -29,6 +29,10 @@ enum AuditEntity {
   REMINDER
 }
 
+enum OtpPurpose {
+  REGISTRATION
+  PASSWORD_RESET
+}
 
 //////////////////////////////////////////////////////
 // Models
@@ -37,11 +41,27 @@ enum AuditEntity {
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
+  mobile       String?
+  fullName     String?
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("users")
+}
+
+model Otp {
+  id          String   @id @default(uuid())
+
+  email       String
+  purpose     OtpPurpose
+  codeHash    String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model VehicleCategory {

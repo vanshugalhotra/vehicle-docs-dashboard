@@ -34,6 +34,7 @@ export interface AppConfig {
   AUTH_COOKIE_SAMESITE: string;
   AUTH_COOKIE_PATH: string;
   AUTH_ADMIN_SECRET: string;
+  OTP_EXPIRES_IN_MINUTES: number;
 }
 
 @Injectable()
@@ -83,6 +84,7 @@ export class ConfigService {
       AUTH_COOKIE_SAMESITE: Joi.string().required(),
       AUTH_COOKIE_PATH: Joi.string().required(),
       AUTH_ADMIN_SECRET: Joi.string().required(),
+      OTP_EXPIRES_IN_MINUTES: Joi.number().required(),
     }).unknown(true);
 
     const result = schema.validate(process.env, { abortEarly: false });

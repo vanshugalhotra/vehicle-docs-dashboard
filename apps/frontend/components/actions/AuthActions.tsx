@@ -17,7 +17,8 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
   const router = useRouter();
 
   const getDisplayName = () => {
-    if (user?.email) return user.email.split("@")[0];
+    if (user?.fullName) return user.fullName;
+    else if (user?.email) return user.email.split("@")[0];
     return "User";
   };
 

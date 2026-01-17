@@ -7,6 +7,8 @@ import { apiRoutes } from "@/lib/apiRoutes";
 export interface User {
   id: string;
   email: string;
+  fullName?: string;
+  mobile?: string;
   createdAt?: string;
   updatedAt?: string;
 }

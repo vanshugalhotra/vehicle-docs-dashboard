@@ -18,7 +18,7 @@ export const setupTestAuth = async (server: any) => {
   await prisma.user.deleteMany({});
 
   await request(server as App)
-    .post('/api/v1/auth/create-user')
+    .post('/api/v1/users')
     .set('x-admin-secret', process.env.AUTH_ADMIN_SECRET!)
     .send({ email, password })
     .expect(201);
