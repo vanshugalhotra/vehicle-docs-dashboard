@@ -70,4 +70,10 @@ export const apiRoutes = {
   export: {
     base: `${API_URL}/export`,
   },
+  audit: {
+    base: `${API_URL}/audit-logs`,
+    entity: (entityType: string, entityId: string) =>
+      `${API_URL}/entity/${entityType}/${entityId}`,
+    detail: (id: string) => `${API_URL}/${id}`,
+  },
 };
