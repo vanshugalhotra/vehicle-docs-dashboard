@@ -133,6 +133,7 @@ export class VehicleService {
           'rcNumber',
           'chassisNumber',
           'engineNumber',
+          'notes',
         ]);
 
       const include: Prisma.VehicleInclude = {

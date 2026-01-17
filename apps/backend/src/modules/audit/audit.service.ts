@@ -76,8 +76,6 @@ export class AuditService {
         additional: { auditLogId: record.id },
       });
 
-      console.log('Audit log recorded:', JSON.stringify(record, null, 2));
-
       return record;
     } catch (error) {
       this.logger.logError('Failed to record audit log', {
