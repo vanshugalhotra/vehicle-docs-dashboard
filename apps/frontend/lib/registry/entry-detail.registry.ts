@@ -16,6 +16,7 @@ import {
   documentTypeDetailConfig,
   DocumentType,
 } from "@/configs/crud/document-types.config";
+import { AuditEntity } from "../types/audit.types";
 
 export type EntityTypeMap = {
   vehicles: Vehicle;
@@ -25,6 +26,19 @@ export type EntityTypeMap = {
   location: Location;
   document_type: DocumentType;
 };
+
+export function mapToAuditEntity(entityKey: keyof EntityTypeMap): AuditEntity {
+  const map: Record<keyof EntityTypeMap, AuditEntity> = {
+    vehicles: AuditEntity.VEHICLE,
+    vehicle_documents: AuditEntity.VEHICLE_DOCUMENT,
+    driver: AuditEntity.DRIVER,
+    owner: AuditEntity.OWNER,
+    location: AuditEntity.LOCATION,
+    document_type: AuditEntity.DOCUMENT_TYPE,
+  };
+
+  return map[entityKey];
+}
 
 export type EntityDetailRegistryItem<T> = {
   fetcher: (id: string) => string;

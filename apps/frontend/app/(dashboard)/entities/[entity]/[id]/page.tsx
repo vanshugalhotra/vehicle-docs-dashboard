@@ -1,16 +1,28 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import React from "react";
+
 import { EntityDetailsPage } from "@/components/crud/EntityDetailsPage";
 import { EntityDetailsCard } from "@/components/crud/EntityDetailsCard/EntityDetailsCard";
 import { useEntityDetail } from "@/hooks/useEntityDetails";
 import { AppButton } from "@/components/ui/AppButton";
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+
 import {
   ENTITY_DETAIL_REGISTRY,
   EntityTypeMap,
+  mapToAuditEntity,
 } from "@/lib/registry/entry-detail.registry";
 import { EntityDetailConfig } from "@/lib/types/entity-details.types";
+
+import { useAuditLogsController } from "@/hooks/useAuditLogsController";
+import { AuditLogsPage } from "@/components/audit/AuditLogsPage";
+import {
+  getAuditFiltersConfig,
+  auditSortOptions,
+  auditDefaults,
+} from "@/configs/audit.config";
 
 export default function EntityDetailsRoutePage() {
   const router = useRouter();
@@ -30,7 +42,15 @@ export default function EntityDetailsRoutePage() {
     enabled: !!registryEntry && !!id,
   });
 
-  // Loading state
+  const auditEntity = mapToAuditEntity(entity);
+
+  const auditController = useAuditLogsController({
+    mode: "entity",
+    entityType: auditEntity,
+    entityId: id,
+    defaultPageSize: auditDefaults.pageSize,
+  });
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
@@ -47,7 +67,6 @@ export default function EntityDetailsRoutePage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
@@ -86,7 +105,6 @@ export default function EntityDetailsRoutePage() {
     );
   }
 
-  // Unsupported entity
   if (!registryEntry) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
@@ -120,35 +138,64 @@ export default function EntityDetailsRoutePage() {
     <EntityDetailsPage
       title={registryEntry.title}
       actions={
-        <>
-          <AppButton
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="gap-1.5"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </AppButton>
-        </>
+        <AppButton
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="gap-1.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </AppButton>
       }
-      tabs={[{ key: "details", label: "Details" }]}
+      tabs={[
+        { key: "details", label: "Details" },
+        { key: "history", label: "History" },
+      ]}
       initialTabKey="details"
-      renderTab={() => {
-        if (!data) return null;
+      renderTab={(tabKey) => {
+        if (tabKey === "details") {
+          const typedData = data as EntityTypeMap[typeof entity];
+          const typedConfig = registryEntry.detailConfig as EntityDetailConfig<
+            typeof typedData
+          >;
+          return (
+            <EntityDetailsCard
+              data={typedData}
+              loading={isLoading}
+              config={typedConfig}
+            />
+          );
+        }
 
-        const typedData = data as EntityTypeMap[typeof entity];
-        const typedConfig = registryEntry.detailConfig as EntityDetailConfig<
-          typeof typedData
-        >;
+        if (tabKey === "history") {
+          return (
+            <AuditLogsPage
+              title="Audit History"
+              data={auditController.data}
+              loading={auditController.isLoading}
+              filtersConfig={getAuditFiltersConfig({
+                includeEntityFilters: false,
+              })}
+              filters={auditController.filters}
+              onFiltersChange={auditController.setFilters}
+              sortOptions={auditSortOptions}
+              sort={auditController.sort}
+              onSortChange={auditController.setSort}
+              search={auditController.filters.search as string}
+              onSearchChange={(val) =>
+                auditController.setFilters((prev) => ({ ...prev, search: val }))
+              }
+              page={auditController.page}
+              pageSize={auditController.pageSize}
+              totalCount={auditController.total}
+              onPageChange={auditController.setPage}
+              onPageSizeChange={auditController.setPageSize}
+            />
+          );
+        }
 
-        return (
-          <EntityDetailsCard<EntityTypeMap[typeof entity]>
-            data={typedData}
-            loading={isLoading}
-            config={typedConfig}
-          />
-        );
+        return null;
       }}
     />
   );

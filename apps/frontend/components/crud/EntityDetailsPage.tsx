@@ -51,7 +51,7 @@ export const EntityDetailsPage: React.FC<EntityDetailsPageProps> = ({
             className={clsx(
               "truncate",
               "bg-linear-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent",
-              "tracking-tight -ml-0.5" 
+              "tracking-tight -ml-0.5"
             )}
           >
             {title}
@@ -85,7 +85,6 @@ export const EntityDetailsPage: React.FC<EntityDetailsPageProps> = ({
         )}
       </header>
 
-      {/* Mobile subtitle - more compact */}
       {hasSubtitle && (
         <AppText
           size="body"
@@ -99,9 +98,9 @@ export const EntityDetailsPage: React.FC<EntityDetailsPageProps> = ({
       {/* ──────── Card + Tabs ──────── */}
       <AppCard
         className={clsx(
-          "overflow-hidden shadow-sm", // softer shadow
+          "overflow-hidden shadow-sm",
           "border border-border-subtle/40",
-          "bg-card/98 backdrop-blur-[1px]" // very light glass effect (nice on light/dark)
+          "bg-card/98 backdrop-blur-[1px]"
         )}
       >
         <TabbedSection

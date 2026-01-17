@@ -31,7 +31,6 @@ export enum AuditEntity {
   DRIVER = "DRIVER",
   LOCATION = "LOCATION",
   DOCUMENT_TYPE = "DOCUMENT_TYPE",
-  REMINDER = "REMINDER",
 }
 
 type JsonPrimitive = string | number | boolean | null;

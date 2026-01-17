@@ -360,6 +360,11 @@ export const vehicleDetailConfig: EntityDetailConfig<Vehicle> = {
           key: "typeName",
           label: "Type Name",
         },
+        {
+          key: "notes",
+          label: "Notes",
+          span: 3,
+        },
       ],
     },
     {

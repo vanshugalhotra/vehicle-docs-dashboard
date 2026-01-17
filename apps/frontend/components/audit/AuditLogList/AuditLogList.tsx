@@ -34,15 +34,14 @@ export function AuditLogList({
           className
         )}
       >
-        <div className="h-12 w-12 rounded-full bg-surface-subtle flex items-center justify-center mb-4">
-          <Inbox className="h-6 w-6 text-text-tertiary" />
+        <div className="flex items-center justify-center flex-col">
+          <div className="h-12 w-12 rounded-full bg-surface-subtle flex items-center justify-center mb-4">
+            <Inbox className="h-6 w-6 text-text-tertiary" />
+          </div>
+          <h3 className="text-sm font-semibold text-text-primary">
+            No activity found
+          </h3>
         </div>
-        <h3 className="text-sm font-semibold text-text-primary">
-          No activity found
-        </h3>
-        <p className="text-xs text-text-secondary mt-1">
-          Audit logs will appear here once system actions are performed.
-        </p>
       </AppCard>
     );
   }
