@@ -22,6 +22,7 @@ import { AuditLogList } from "./AuditLogList/AuditLogList";
 
 export interface AuditLogsPageProps {
   title: string;
+  showHeader?: boolean;
 
   /* ---------- Data ---------- */
   data: AuditLogUI[];
@@ -71,20 +72,17 @@ export function AuditLogsPage({
   totalCount,
   onPageChange,
   onPageSizeChange,
+  showHeader = true,
 }: AuditLogsPageProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* ---------- Header ---------- */}
-      <HeaderBar
-        title={title}
-        search={search}
-        onSearchChange={onSearchChange}
-      />
+      {showHeader && <HeaderBar title={title} />}
 
       {/* ---------- Filters + Sort ---------- */}
       <div className="relative z-20">
         <TableToolbar
-          showSearch={false} // handled by HeaderBar
+          showSearch={true}
           showFilters={!!filtersConfig?.length}
           showSort={!!sortOptions?.length}
           showReset={true}
@@ -94,6 +92,8 @@ export function AuditLogsPage({
           sortOptions={sortOptions}
           sort={sort}
           setSort={onSortChange}
+          search={search}
+          onSearchChange={onSearchChange}
         />
       </div>
 

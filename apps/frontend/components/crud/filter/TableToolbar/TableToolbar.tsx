@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useCallback, useMemo } from "react";
-import { ArrowUpDown, X, Search, Filter } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { ArrowUpDown, X, Filter, Search } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppSelect, Option } from "@/components/ui/AppSelect";
 import { AppInput } from "@/components/ui/AppInput";
@@ -11,37 +9,33 @@ import type {
   SortOption,
   FiltersObject,
 } from "@/lib/types/filter.types";
+import { debounce } from "@/lib/utils/debounce";
 
 interface TableToolbarProps {
-  /** Config-driven optional elements */
   showSearch?: boolean;
   showFilters?: boolean;
   showSort?: boolean;
   showReset?: boolean;
 
-  /** Filter configuration */
   filtersConfig?: FilterConfig[];
   filters: FiltersObject;
   setFilters: (filters: FiltersObject) => void;
 
-  /** Business filters configuration */
   businessFiltersConfig?: FilterConfig[];
   businessFilters?: FiltersObject;
   setBusinessFilters?: (filters: FiltersObject) => void;
 
-  /** Sort configuration */
   sortOptions?: SortOption[];
   sort?: { field?: string; order?: "asc" | "desc" };
   setSort?: (sort: { field?: string; order?: "asc" | "desc" }) => void;
 
-  /** Layout control */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+
+  debounceMs?: number;
   compact?: boolean;
 }
 
-/**
- * Flexible TableToolbar — supports:
- * search, filters, business filters, sort, reset
- */
 export const TableToolbar: React.FC<TableToolbarProps> = ({
   showSearch = false,
   showFilters = true,
@@ -56,27 +50,43 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   sortOptions = [],
   sort = {},
   setSort,
+  search = "",
+  onSearchChange,
+  debounceMs = 400,
 }) => {
   // -------------------
-  // Handlers
+  // Local state + debounce for search
   // -------------------
-  const handleSearch = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFilters({ ...filters, search: e.target.value });
-    },
-    [filters, setFilters]
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // Sync prop -> local state
+  useEffect(() => setLocalSearch(search), [search]);
+
+  // Debounced call to onSearchChange
+  const debouncedSearch = useMemo(
+    () => (onSearchChange ? debounce(onSearchChange, debounceMs) : undefined),
+    [onSearchChange, debounceMs]
   );
 
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalSearch(e.target.value);
+      debouncedSearch?.(e.target.value);
+    },
+    [debouncedSearch]
+  );
+
+  // -------------------
+  // Filter / Business Filter Handlers
+  // -------------------
   const handleFiltersChange = useCallback(
     (newFilters: FiltersObject) => {
       const normalized: FiltersObject = {};
-
       Object.entries(newFilters).forEach(([key, value]) => {
         if (value !== "" && value !== null && value !== undefined) {
           normalized[key] = value;
         }
       });
-
       setFilters(normalized);
     },
     [setFilters]
@@ -85,18 +95,19 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   const handleBusinessFiltersChange = useCallback(
     (newFilters: FiltersObject) => {
       const normalized: FiltersObject = {};
-
       Object.entries(newFilters).forEach(([key, value]) => {
         if (value !== "" && value !== null && value !== undefined) {
           normalized[key] = value;
         }
       });
-
       setBusinessFilters?.(normalized);
     },
     [setBusinessFilters]
   );
 
+  // -------------------
+  // Sort Handlers
+  // -------------------
   const selectedSort = useMemo(
     () => sortOptions.find((opt) => opt.field === sort.field) ?? null,
     [sortOptions, sort.field]
@@ -117,32 +128,30 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   const handleReset = useCallback(() => {
     setFilters({});
     setBusinessFilters?.({});
-    setSort?.({
-      field: sortOptions[0]?.field ?? "createdAt",
-      order: "desc",
-    });
-  }, [setFilters, setBusinessFilters, setSort, sortOptions]);
+    setSort?.({ field: sortOptions[0]?.field ?? "createdAt", order: "desc" });
+    setLocalSearch("");
+    onSearchChange?.("");
+  }, [setFilters, setBusinessFilters, setSort, sortOptions, onSearchChange]);
 
-  // Count active filters for badge
+  // -------------------
+  // Active filter count
+  // -------------------
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    
-    // Count normal filters (excluding search)
     Object.entries(filters).forEach(([key, value]) => {
-      if (key !== 'search' && value !== "" && value !== null && value !== undefined) {
+      if (
+        key !== "search" &&
+        value !== "" &&
+        value !== null &&
+        value !== undefined
+      )
         count++;
-      }
     });
-    
-    // Count business filters
     if (businessFilters) {
-      Object.values(businessFilters).forEach(value => {
-        if (value !== "" && value !== null && value !== undefined) {
-          count++;
-        }
+      Object.values(businessFilters).forEach((value) => {
+        if (value !== "" && value !== null && value !== undefined) count++;
       });
     }
-    
     return count;
   }, [filters, businessFilters]);
 
@@ -153,17 +162,17 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
   // -------------------
   return (
     <div className="w-full flex flex-col gap-4">
-      {/* Sort & Reset Bar - FIRST */}
-      {(showSort || showReset) && (
+      {/* Sort + Reset + Search Bar */}
+      {(showSort || showReset || showSearch) && (
         <div className="w-full flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-surface p-4 border border-border rounded-lg shadow-sm">
-          {/* Left side - Sort controls */}
+          {/* Left: Sort */}
           {showSort && sortOptions.length > 0 && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ArrowUpDown className="h-4 w-4" />
                 <span className="font-medium">Sort by</span>
               </div>
-              
+
               <AppSelect
                 placeholder="Select field..."
                 options={sortOptions.map((s) => ({
@@ -184,7 +193,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={toggleSortOrder}
-                  aria-label={`Sort ${sort.order === 'asc' ? 'descending' : 'ascending'}`}
+                  aria-label={`Sort ${
+                    sort.order === "asc" ? "descending" : "ascending"
+                  }`}
                   className="flex items-center gap-2"
                 >
                   <ArrowUpDown className="h-4 w-4" />
@@ -194,7 +205,25 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
             </div>
           )}
 
-          {/* Right side - Reset button */}
+          {/* Middle: Search */}
+          {showSearch && (
+            <div className="max-w-full flex-1">
+              <AppInput
+                value={localSearch}
+                onChange={handleSearchChange}
+                placeholder="Search....."
+                className="w-full pr-10 transition-all duration-200 group-focus-within:w-72"
+                prefixIcon={
+                  <Search
+                    size={18}
+                    className="text-text-tertiary group-focus-within:text-primary"
+                  />
+                }
+              />
+            </div>
+          )}
+
+          {/* Right: Reset */}
           {showReset && (
             <AppButton
               variant="outline"
@@ -209,12 +238,10 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
         </div>
       )}
 
-      {/* Filters Section - SECOND */}
-      {(showFilters && filtersConfig.length > 0) || 
-       (businessFiltersConfig.length > 0 && setBusinessFilters) || 
-       showSearch ? (
+      {/* Filters Section */}
+      {(showFilters && filtersConfig.length > 0) ||
+      (businessFiltersConfig.length > 0 && setBusinessFilters) ? (
         <div className="w-full flex flex-col gap-4 bg-surface p-4 border border-border rounded-lg shadow-sm">
-          {/* Header with filter count */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Filter className="h-4 w-4" />
@@ -228,18 +255,6 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* Search */}
-            {showSearch && (
-              <div className="max-w-sm">
-                <AppInput
-                  placeholder="Search..."
-                  value={(filters.search as string) ?? ""}
-                  onChange={handleSearch}
-                  prefixIcon={<Search className="h-4 w-4 text-muted-foreground" />}
-                />
-              </div>
-            )}
-
             {/* Normal Filters */}
             {showFilters && filtersConfig.length > 0 && (
               <FilterPanel

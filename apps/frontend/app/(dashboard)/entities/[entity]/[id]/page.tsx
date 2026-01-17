@@ -172,6 +172,7 @@ export default function EntityDetailsRoutePage() {
           return (
             <AuditLogsPage
               title="Audit History"
+              showHeader={false}
               data={auditController.data}
               loading={auditController.isLoading}
               filtersConfig={getAuditFiltersConfig({
