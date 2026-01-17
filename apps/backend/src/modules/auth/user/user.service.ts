@@ -15,6 +15,8 @@ import {
   UserResponseDto,
 } from '../dto/user-response.dto';
 import { hashPassword } from 'src/common/utils/auth-utils';
+import { AuditService } from 'src/modules/audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class UserService {
@@ -23,6 +25,7 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly auditService: AuditService,
   ) {}
 
   // ──────────────────────────────
@@ -57,6 +60,16 @@ export class UserService {
           email: dto.email,
           passwordHash,
         },
+      });
+
+      // audit
+      await this.auditService.record<typeof user>({
+        entityType: AuditEntity.USER,
+        entityId: user.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: user,
       });
 
       this.logger.logInfo('User created successfully', {
@@ -245,6 +258,16 @@ export class UserService {
         additional: { updatedId: updated.id },
       });
 
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.USER,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: existing,
+        newRecord: updated,
+      });
+
       return updated as UserResponseDto;
     } catch (error) {
       this.logger.logError('Error updating user', {
@@ -290,6 +313,16 @@ export class UserService {
         additional: { deletedId: id },
       });
 
+      // audit
+      await this.auditService.record<typeof user>({
+        entityType: AuditEntity.USER,
+        entityId: user.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: user,
+        newRecord: null,
+      });
+
       return { success: true };
     } catch (error) {
       this.logger.logError('Error deleting user', {
@@ -306,11 +339,32 @@ export class UserService {
   }
 
   async updatePassword(email: string, password: string): Promise<void> {
-    const passwordHash = await hashPassword(password);
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'updatePassword',
+      additional: { email },
+    };
 
-    await this.prisma.user.update({
-      where: { email },
-      data: { passwordHash },
-    });
+    this.logger.logInfo('Updating user password', ctx);
+
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        this.logger.logWarn('User not found for password update', ctx);
+        throw new NotFoundException(`User with email ${email} not found`);
+      }
+
+      await this.update(user.id, { password });
+    } catch (error) {
+      this.logger.logError('Error updating user password', {
+        ...ctx,
+        additional: { error },
+      });
+
+      throw error;
+    }
   }
 }
