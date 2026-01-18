@@ -255,7 +255,7 @@ export const linkageFiltersConfig: FilterConfig[] = [
   {
     key: "expiryDate",
     label: "Expiry Date",
-    type: "dateRange", // new date range filter
+    type: "dateRange",
   },
   {
     key: "expiryDate",

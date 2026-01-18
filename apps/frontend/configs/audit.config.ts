@@ -41,8 +41,8 @@ export const auditGlobalOnlyFiltersConfig: FilterConfig[] = [
   {
     key: "entityType",
     label: "Entity Type",
-    type: "select",
-    options: enumToOptions(AuditEntity),
+    type: "tab",
+    options: [{ label: "All", value: "" }, ...enumToOptions(AuditEntity)],
     ui: {
       compact: true,
     },

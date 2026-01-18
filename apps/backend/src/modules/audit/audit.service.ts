@@ -36,6 +36,7 @@ export class AuditService {
       },
     };
 
+    // Use debug for routine audit logging
     this.logger.logDebug('Recording audit log', ctx);
 
     try {
@@ -71,6 +72,7 @@ export class AuditService {
         context,
       });
 
+      // Debug is appropriate; info is optional since audit is routine
       this.logger.logDebug('Audit log written', {
         ...ctx,
         additional: { auditLogId: record.id },
@@ -78,10 +80,7 @@ export class AuditService {
 
       return record;
     } catch (error) {
-      this.logger.logError('Failed to record audit log', {
-        ...ctx,
-        additional: { error },
-      });
+      this.logger.logError('Failed to record audit log', ctx, error);
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, this.entity);
@@ -94,14 +93,13 @@ export class AuditService {
   // ============================
   // CONTEXT GENERATION
   // ============================
-
   private buildContext<T>(input: {
     entityType: AuditEntity;
     action: AuditAction;
     oldRecord?: T | null;
     newRecord?: T | null;
   }): AuditContext {
-    const event = ''; // blank for now, later summary will return it then we will update
+    const event = ''; // placeholder
     const changes = computeChanges<T>({
       oldRecord: input.oldRecord,
       newRecord: input.newRecord,
@@ -114,20 +112,18 @@ export class AuditService {
     const meta = {
       source: this.currentUser.email ?? 'SYSTEM',
     };
-    const context: AuditContext = {
-      event: event,
-      changes: changes,
-      related: related,
-      meta: meta, // TODO request metadata
-    };
 
-    return context;
+    return {
+      event,
+      changes,
+      related,
+      meta,
+    };
   }
 
   // ============================
   // SUMMARY GENERATION
   // ============================
-
   private generateSummaryAndEvent<T>(input: {
     entityType: AuditEntity;
     action: AuditAction;
@@ -145,7 +141,6 @@ export class AuditService {
   // ============================
   // DB PERSISTENCE
   // ============================
-
   private async persist(payload: AuditPayload): Promise<AuditLogRecord> {
     const record = await this.prisma.auditLog.create({
       data: {

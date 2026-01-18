@@ -70,6 +70,7 @@ export class AuthService {
       dto.email,
       OtpPurpose.REGISTRATION,
     );
+
     const expiresInMinutes =
       Number(this.config.get('OTP_EXPIRES_IN_MINUTES')) || 10;
 
@@ -127,6 +128,9 @@ export class AuthService {
     return user;
   }
 
+  /* ──────────────────────────────
+   * PASSWORD RESET
+   * ────────────────────────────── */
   async requestPasswordResetOtp(
     dto: ForgotPasswordRequestDto,
   ): Promise<{ success: true }> {
@@ -140,7 +144,7 @@ export class AuthService {
 
     const user = await this.userService.findByEmail(dto.email);
     if (!user) {
-      // IMPORTANT: do NOT leak existence
+      // do NOT leak existence
       this.logger.logWarn(
         'Password reset requested for non-existing email',
         ctx,

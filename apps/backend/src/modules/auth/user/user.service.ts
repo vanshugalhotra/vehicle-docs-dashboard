@@ -41,7 +41,6 @@ export class UserService {
     this.logger.logInfo('Creating user', ctx);
 
     try {
-      // Enforce uniqueness (email)
       const existing = await this.prisma.user.findUnique({
         where: { email: dto.email },
       });
@@ -62,7 +61,6 @@ export class UserService {
         },
       });
 
-      // audit
       await this.auditService.record<typeof user>({
         entityType: AuditEntity.USER,
         entityId: user.id,
@@ -97,12 +95,7 @@ export class UserService {
   // FIND ALL USERS
   // ──────────────────────────────
   async findAll(): Promise<UserResponseDto[]> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'findAll',
-    };
-
-    this.logger.logDebug('Fetching all users', ctx);
+    const ctx: LogContext = { entity: this.entity, action: 'findAll' };
 
     try {
       const users = await this.prisma.user.findMany({
@@ -120,11 +113,8 @@ export class UserService {
         ...ctx,
         additional: { error },
       });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
         handlePrismaError(error, this.entity);
-      }
-
       throw new InternalServerErrorException('Failed to fetch users');
     }
   }
@@ -139,12 +129,8 @@ export class UserService {
       additional: { id },
     };
 
-    this.logger.logInfo('Fetching user by id', ctx);
-
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id },
-      });
+      const user = await this.prisma.user.findUnique({ where: { id } });
 
       if (!user) {
         this.logger.logWarn('User not found', ctx);
@@ -157,11 +143,8 @@ export class UserService {
         ...ctx,
         additional: { error },
       });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
         handlePrismaError(error, this.entity);
-      }
-
       throw error;
     }
   }
@@ -176,22 +159,13 @@ export class UserService {
       additional: { email },
     };
 
-    this.logger.logDebug('Fetching user by email', ctx);
-
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-      });
+      const user = await this.prisma.user.findUnique({ where: { email } });
 
       if (!user) {
         this.logger.logWarn('User not found by email', ctx);
         return null;
       }
-
-      this.logger.logDebug('User found by email', {
-        ...ctx,
-        additional: { userId: user.id },
-      });
 
       return user as PrivateUserResponseDto;
     } catch (error) {
@@ -199,11 +173,8 @@ export class UserService {
         ...ctx,
         additional: { error },
       });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
         handlePrismaError(error, this.entity);
-      }
-
       throw new InternalServerErrorException('Failed to fetch user by email');
     }
   }
@@ -221,24 +192,17 @@ export class UserService {
     this.logger.logInfo('Updating user', ctx);
 
     try {
-      const existing = await this.prisma.user.findUnique({
-        where: { id },
-      });
-
+      const existing = await this.prisma.user.findUnique({ where: { id } });
       if (!existing) {
         this.logger.logWarn('Update failed, user not found', ctx);
         throw new NotFoundException(`User with id ${id} not found`);
       }
 
-      // Email uniqueness check if email is being updated
       if (dto.email && dto.email !== existing.email) {
         const emailTaken = await this.prisma.user.findUnique({
           where: { email: dto.email },
         });
-
-        if (emailTaken) {
-          throw new ConflictException('Email already in use');
-        }
+        if (emailTaken) throw new ConflictException('Email already in use');
       }
 
       const updated = await this.prisma.user.update({
@@ -253,12 +217,6 @@ export class UserService {
         },
       });
 
-      this.logger.logInfo('User updated', {
-        ...ctx,
-        additional: { updatedId: updated.id },
-      });
-
-      // audit
       await this.auditService.record<typeof updated>({
         entityType: AuditEntity.USER,
         entityId: updated.id,
@@ -268,18 +226,20 @@ export class UserService {
         newRecord: updated,
       });
 
+      this.logger.logInfo('User updated', {
+        ...ctx,
+        additional: { updatedId: updated.id },
+      });
+
       return updated as UserResponseDto;
     } catch (error) {
       this.logger.logError('Error updating user', {
         ...ctx,
         additional: { error },
       });
-
       if (error instanceof ConflictException) throw error;
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
         handlePrismaError(error, this.entity);
-      }
-
       throw new InternalServerErrorException('Failed to update user');
     }
   }
@@ -297,10 +257,7 @@ export class UserService {
     this.logger.logInfo('Deleting user', ctx);
 
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id },
-      });
-
+      const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) {
         this.logger.logWarn('Delete failed, user not found', ctx);
         throw new NotFoundException(`User with id ${id} not found`);
@@ -308,12 +265,6 @@ export class UserService {
 
       await this.prisma.user.delete({ where: { id } });
 
-      this.logger.logInfo('User deleted', {
-        ...ctx,
-        additional: { deletedId: id },
-      });
-
-      // audit
       await this.auditService.record<typeof user>({
         entityType: AuditEntity.USER,
         entityId: user.id,
@@ -323,21 +274,26 @@ export class UserService {
         newRecord: null,
       });
 
+      this.logger.logInfo('User deleted', {
+        ...ctx,
+        additional: { deletedId: id },
+      });
+
       return { success: true };
     } catch (error) {
       this.logger.logError('Error deleting user', {
         ...ctx,
         additional: { error },
       });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
         handlePrismaError(error, this.entity);
-      }
-
       throw new InternalServerErrorException('Failed to delete user');
     }
   }
 
+  // ──────────────────────────────
+  // UPDATE PASSWORD
+  // ──────────────────────────────
   async updatePassword(email: string, password: string): Promise<void> {
     const ctx: LogContext = {
       entity: this.entity,
@@ -348,10 +304,7 @@ export class UserService {
     this.logger.logInfo('Updating user password', ctx);
 
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-      });
-
+      const user = await this.prisma.user.findUnique({ where: { email } });
       if (!user) {
         this.logger.logWarn('User not found for password update', ctx);
         throw new NotFoundException(`User with email ${email} not found`);
@@ -363,7 +316,6 @@ export class UserService {
         ...ctx,
         additional: { error },
       });
-
       throw error;
     }
   }

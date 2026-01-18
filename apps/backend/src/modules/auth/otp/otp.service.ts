@@ -37,7 +37,6 @@ export class OtpService {
 
       const ttlMinutes =
         Number(this.config.get('OTP_EXPIRES_IN_MINUTES')) || 10;
-
       const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
       await this.prisma.otp.create({
@@ -51,15 +50,9 @@ export class OtpService {
 
       this.logger.logInfo('OTP generated successfully', ctx);
 
-      // IMPORTANT:
-      // We return OTP here so caller (Auth/Registration flow)
-      // can send it via EmailService.
-      return { otp };
+      return { otp }; // Caller responsible for sending via email
     } catch (error) {
-      this.logger.logError('Failed to generate OTP', {
-        ...ctx,
-        additional: { error },
-      });
+      this.logger.logError('Failed to generate OTP', ctx, error);
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new InternalServerErrorException('OTP persistence failed');
@@ -79,21 +72,15 @@ export class OtpService {
       additional: { email, purpose },
     };
 
-    this.logger.logDebug('Verifying OTP', ctx);
-
     try {
       const record = await this.prisma.otp.findFirst({
         where: {
           email,
           purpose,
           usedAt: null,
-          expiresAt: {
-            gt: new Date(),
-          },
+          expiresAt: { gt: new Date() },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
       });
 
       if (!record) {
@@ -115,15 +102,11 @@ export class OtpService {
 
       this.logger.logInfo('OTP verified successfully', ctx);
     } catch (error) {
-      this.logger.logError('OTP verification failed', {
-        ...ctx,
-        additional: { error },
-      });
-
       if (error instanceof BadRequestException) {
         throw error;
       }
 
+      this.logger.logError('OTP verification failed', ctx, error);
       throw new InternalServerErrorException('Failed to verify OTP');
     }
   }

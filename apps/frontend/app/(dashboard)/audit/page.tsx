@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useSearchParams } from "next/navigation";
 
 import { useAuditLogsController } from "@/hooks/useAuditLogsController";
 import {
@@ -15,16 +14,10 @@ import { AuditLogsPage } from "@/components/audit/AuditLogsPage";
  * Global Audit Logs Page
  */
 export default function AuditPage() {
-  const searchParams = useSearchParams();
-
-  const initialFilters = searchParams.has("filters")
-    ? JSON.parse(searchParams.get("filters")!)
-    : {};
-
   const controller = useAuditLogsController({
     mode: "global",
     defaultPageSize: auditDefaults.pageSize,
-    defaultFilters: initialFilters,
+    defaultFilters: undefined,
   });
 
   return (
