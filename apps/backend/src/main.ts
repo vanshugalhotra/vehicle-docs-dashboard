@@ -52,11 +52,20 @@ async function bootstrap() {
   // CORS
   // ----------------------
   const allowedOrigins = configService.get('ALLOWED_ORIGINS')?.split(',') || [];
+  if (!allowedOrigins.length) {
+    throw new Error('ALLOWED_ORIGINS not configured');
+  }
+
   app.enableCors({
     origin: allowedOrigins.length ? allowedOrigins : 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+    ],
   });
 
   // ----------------------

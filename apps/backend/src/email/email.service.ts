@@ -36,6 +36,28 @@ export class EmailService {
       additional: { host, port, secure },
     };
     this.logger.logInfo('EmailService initialized', ctx);
+
+    // --- Verify SMTP connection ---
+    void this.verifyTransport();
+  }
+
+  private async verifyTransport() {
+    try {
+      await this.transporter.verify();
+      this.logger.logInfo('SMTP connection verified successfully', {
+        entity: 'EmailService',
+        action: 'verifyTransport',
+      });
+    } catch (error: unknown) {
+      this.logger.logError(
+        'SMTP verification failed',
+        {
+          entity: 'EmailService',
+          action: 'verifyTransport',
+        },
+        error,
+      );
+    }
   }
 
   async sendEmail(
@@ -89,7 +111,8 @@ export class EmailService {
     };
 
     try {
-      const filename = `email_test.html`;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `email_test_${timestamp}.html`;
       const filePath = path.join(process.cwd(), filename);
 
       fs.writeFileSync(filePath, html, 'utf-8');
