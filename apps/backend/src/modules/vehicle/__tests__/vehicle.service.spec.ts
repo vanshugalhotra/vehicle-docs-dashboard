@@ -7,10 +7,15 @@ import { CreateVehicleDto } from '../dto/create-vehicle.dto';
 import { UpdateVehicleDto } from '../dto/update-vehicle.dto';
 import { Vehicle } from '@prisma/client';
 import { VehicleValidationService } from '../validation/vehicle-validation.service';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 const mockVehicleValidationService = {
   validateCreate: jest.fn().mockResolvedValue(null),
   validateUpdate: jest.fn(),
+};
+
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
 };
 
 jest.mock('../vehicle.mapper', () => ({
@@ -49,6 +54,7 @@ describe('VehicleService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockVehicleValidationService.validateCreate.mockResolvedValue(null);
+    mockAuditService.record.mockResolvedValue(undefined);
     mockVehicleValidationService.validateUpdate.mockImplementation(
       (
         id: string,
@@ -78,6 +84,10 @@ describe('VehicleService', () => {
       {
         provide: VehicleValidationService,
         useValue: mockVehicleValidationService,
+      },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
       },
     ]);
     service = setup.service;

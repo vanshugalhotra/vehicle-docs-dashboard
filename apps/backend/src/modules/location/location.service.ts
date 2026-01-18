@@ -15,6 +15,8 @@ import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedLocationResponseDto } from './dto/location-response';
 import { LocationValidationService } from './validation/location-validation.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class LocationService {
@@ -24,6 +26,7 @@ export class LocationService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly validationService: LocationValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(dto: CreateLocationDto): Promise<LocationResponse> {
@@ -44,6 +47,15 @@ export class LocationService {
       this.logger.logInfo(`Location created`, {
         ...ctx,
         additional: { id: location.id },
+      });
+      // audit
+      await this.auditService.record<typeof location>({
+        entityType: AuditEntity.LOCATION,
+        entityId: location.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: location,
       });
       return mapLocationToResponse(location);
     } catch (error) {
@@ -152,6 +164,15 @@ export class LocationService {
         ...ctx,
         additional: { updatedId: updated.id },
       });
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.LOCATION,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: location,
+        newRecord: updated,
+      });
       return mapLocationToResponse(updated);
     } catch (error) {
       this.logger.logError('Failed to update location', {
@@ -195,6 +216,15 @@ export class LocationService {
 
       await this.prisma.location.delete({ where: { id } });
       this.logger.logInfo('Location deleted', ctx);
+      // audit
+      await this.auditService.record<typeof location>({
+        entityType: AuditEntity.LOCATION,
+        entityId: location.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: location,
+        newRecord: null,
+      });
       return { success: true };
     } catch (error) {
       this.logger.logError('Failed to delete location', {

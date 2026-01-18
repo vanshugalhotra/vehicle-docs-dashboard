@@ -82,6 +82,7 @@ export default function AddLinkagePage() {
       startDate: values.startDate!,
       expiryDate: values.expiryDate!,
       notes: values.notes ?? "",
+      amount: values.amount ?? "",
       vehicleId: selectedVehicle.id,
       documentTypeId: selectedDocumentType.id,
       link: values.link,

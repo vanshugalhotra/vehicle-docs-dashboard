@@ -8,6 +8,7 @@ export interface VehicleDocumentResponse {
   documentNo: string;
   startDate: string | Date;
   expiryDate: string | Date;
+  amount?: string | null;
   notes?: string | null;
   link?: string | null;
   createdById?: string | null;

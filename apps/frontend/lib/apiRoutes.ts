@@ -66,8 +66,18 @@ export const apiRoutes = {
     login: `${API_URL}/auth/login`,
     logout: `${API_URL}/auth/logout`,
     me: `${API_URL}/auth/me`,
+    register_requestOTP: `${API_URL}/auth/register/request-otp`,
+    register_verifyOTP: `${API_URL}/auth/register/verify-otp`,
+    forgetpass_requestOTP: `${API_URL}/auth/forgot-password/request-otp`,
+    forgetpass_verifyOTP: `${API_URL}/auth/forgot-password/reset`,
   },
   export: {
     base: `${API_URL}/export`,
+  },
+  audit: {
+    base: `${API_URL}/audit-logs`,
+    entity: (entityType: string, entityId: string) =>
+      `${API_URL}/audit-logs/entity/${entityType}/${entityId}`,
+    detail: (id: string) => `${API_URL}/${id}`,
   },
 };

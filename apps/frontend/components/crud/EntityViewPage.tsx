@@ -113,8 +113,6 @@ export function EntityViewPage<TData extends { id?: string | number }>({
       {/* ---------- Header Bar ---------- */}
       <HeaderBar
         title={title}
-        search={search}
-        onSearchChange={onSearchChange}
         rightActions={
           <div className="flex items-center gap-2">
             <ExportAction exportTable={exportTable} />
@@ -134,7 +132,9 @@ export function EntityViewPage<TData extends { id?: string | number }>({
 
       {/* ---------- Filters + Sorting ---------- */}
       <TableToolbar
-        showSearch={false} // handled by HeaderBar
+        showSearch={true}
+        search={search}
+        onSearchChange={onSearchChange}
         showFilters={!!filtersConfig?.length}
         showSort={!!sortOptions?.length}
         showReset={true}

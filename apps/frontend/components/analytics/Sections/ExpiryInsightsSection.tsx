@@ -99,6 +99,7 @@ export function ExpiryInsightsSection({
 
     const topLinkages =
       tabData?.data.items.slice(0, 3).map((item: VehicleDocumentItem) => ({
+        id: item.id,
         documentType: item.documentTypeName,
         vehicleName: item.vehicleName,
         expireStatus: getExpireStatus(String(item.expiryDate)),
@@ -125,7 +126,10 @@ export function ExpiryInsightsSection({
               vehicleName={linkage.vehicleName}
               expireStatus={linkage.expireStatus}
               title={cardTitle}
-              onViewDetails={() => {}}
+              onViewDetails={() => {
+                if (!linkage.id) return;
+                router.push(`/entities/vehicle_documents/${linkage.id}`);
+              }}
             />
           ))}
         </div>

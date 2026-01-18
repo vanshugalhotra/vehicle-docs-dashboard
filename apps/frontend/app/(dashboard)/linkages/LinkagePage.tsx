@@ -104,7 +104,10 @@ export default function LinkagePage() {
         onCancelDelete={() => setItemToDelete(null)}
         onAdd={() => router.push("/linkages/add")}
         onEdit={(item) => router.push(`/linkages/add?editId=${item.id}`)}
-        onView={() => {}}
+        onView={(item) => {
+          if (!item.id) return;
+          router.push(`/entities/vehicle_documents/${item.id}`);
+        }}
         onRenew={handleRenew}
         exportTable={linkageCrudConfig.exportTable}
         deleteDescription={(item) =>

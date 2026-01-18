@@ -3,7 +3,7 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService, LogContext } from 'src/common/logger/logger.service';
 import { ConfigService } from 'src/config/config.service';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
@@ -19,24 +19,23 @@ export class EmailService {
     const port = this.config.get('SMTP_PORT') ?? 587;
     const user = this.config.get('SMTP_USER');
     const pass = this.config.get('SMTP_PASS');
-
     const secure = port === 465;
 
     const transporterConfig: SMTPTransport.Options = {
       host,
       port,
       secure,
-      auth: {
-        user,
-        pass,
-      },
+      auth: { user, pass },
     };
 
     this.transporter = nodemailer.createTransport(transporterConfig);
 
-    this.logger.info(
-      `EmailService initialized with SMTP host ${host}:${port} (secure: ${secure})`,
-    );
+    const ctx: LogContext = {
+      entity: 'EmailService',
+      action: 'init',
+      additional: { host, port, secure },
+    };
+    this.logger.logInfo('EmailService initialized', ctx);
   }
 
   async sendEmail(
@@ -44,15 +43,20 @@ export class EmailService {
     subject: string,
     html: string,
   ): Promise<void> {
+    const ctx: LogContext = {
+      entity: 'EmailService',
+      action: 'sendEmail',
+      additional: { recipientsCount: recipients.length, subject },
+    };
+
     if (!recipients.length) {
-      this.logger.warn('No recipients provided. Skipping email send.');
+      this.logger.logWarn('No recipients provided. Skipping email send.', ctx);
       return;
     }
 
-    // Check if we're in testing environment
-    const isTesting = this.config.get('NODE_ENV') === 'test';
+    const isProd = this.config.get('NODE_ENV') === 'production';
 
-    if (isTesting) {
+    if (!isProd) {
       this.saveHtmlToFile(html, subject);
       return;
     }
@@ -67,45 +71,38 @@ export class EmailService {
 
       const info = await this.transporter.sendMail(mailOptions);
 
-      this.logger.info('Email sent successfully', {
-        messageId: info.messageId,
-        recipientsCount: recipients.length,
-        subject,
+      this.logger.logInfo('Email sent successfully', {
+        ...ctx,
+        additional: { ...ctx.additional, messageId: info.messageId },
       });
     } catch (error: unknown) {
-      // FIX: safe narrowing
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-
-      this.logger.error('Failed to send email', {
-        error: msg,
-        recipientsCount: recipients.length,
-        subject,
-      });
-
+      this.logger.logError('Failed to send email', ctx, error);
       throw error;
     }
   }
 
   private saveHtmlToFile(html: string, subject: string) {
-    try {
-      const filename = `linkage_test.html`;
+    const ctx: LogContext = {
+      entity: 'EmailService',
+      action: 'saveHtmlToFile',
+      additional: { subject },
+    };
 
-      const saveDir = process.cwd();
-      const filePath = path.join(saveDir, filename);
+    try {
+      const filename = `email_test.html`;
+      const filePath = path.join(process.cwd(), filename);
 
       fs.writeFileSync(filePath, html, 'utf-8');
 
-      this.logger.info('HTML saved to file (testing mode)', {
-        filePath,
-        subject,
-        fileSize: `${(html.length / 1024).toFixed(2)} KB`,
+      this.logger.logDebug('HTML saved to file (testing mode)', {
+        ...ctx,
+        additional: {
+          filePath,
+          fileSize: `${(html.length / 1024).toFixed(2)} KB`,
+        },
       });
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('Failed to save HTML to file', {
-        error: msg,
-        subject,
-      });
+      this.logger.logError('Failed to save HTML to file', ctx, error);
     }
   }
 }

@@ -34,7 +34,7 @@ export class ReminderSchedulerService {
   ) {
     const configs = await this.repo.getActiveConfigs();
     if (!configs.length) {
-      this.logger.debug('No active ReminderConfigs.');
+      this.logger.error('No active ReminderConfigs.');
       return;
     }
 

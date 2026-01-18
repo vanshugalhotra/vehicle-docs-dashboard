@@ -22,6 +22,7 @@ export function mapVehicleDocumentToResponse(
     daysRemaining,
     link: doc.link ?? null,
     notes: doc.notes ?? null,
+    amount: doc.amount ? doc.amount.toString() : null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     vehicleId: doc.vehicleId,

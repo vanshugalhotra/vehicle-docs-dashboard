@@ -18,6 +18,22 @@ enum AuditAction {
   DELETE
 }
 
+enum AuditEntity {
+  USER
+  VEHICLE
+  VEHICLE_DOCUMENT
+  OWNER
+  DRIVER
+  LOCATION
+  DOCUMENT_TYPE
+  REMINDER
+}
+
+enum OtpPurpose {
+  REGISTRATION
+  PASSWORD_RESET
+}
+
 //////////////////////////////////////////////////////
 // Models
 //////////////////////////////////////////////////////
@@ -25,11 +41,27 @@ enum AuditAction {
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
+  mobile       String?
+  fullName     String?
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("users")
+}
+
+model Otp {
+  id          String   @id @default(uuid())
+
+  email       String
+  purpose     OtpPurpose
+  codeHash    String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model VehicleCategory {
@@ -137,6 +169,7 @@ model VehicleDocument {
   documentNo     String   @unique
   startDate      DateTime
   expiryDate     DateTime
+  amount         Decimal? @db.Decimal(12, 2)
   notes          String?
   link           String?
   createdById    String?
@@ -195,14 +228,21 @@ model ReminderQueue {
 }
 
 model AuditLog {
-  id          String      @id @default(uuid())
-  entityType  String
-  entityId    String?
-  action      AuditAction
-  performedBy String?
-  payload     Json?
-  timestamp   DateTime    @default(now())
+  id            String      @id @default(uuid())
+
+  entityType    AuditEntity
+  entityId      String
+
+  action        AuditAction
+  actorUserId   String?     
+
+  summary       String      // Human-readable
+  context       Json?       // Business meaning, optional
+
+  createdAt     DateTime    @default(now())
 
   @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
   @@map("audit_logs")
 }

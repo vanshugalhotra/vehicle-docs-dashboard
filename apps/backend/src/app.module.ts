@@ -19,6 +19,10 @@ import { HealthModule } from './health/health.module';
 import { RemindersModule } from './modules/reminder/reminders.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExportModule } from './modules/export/export.module';
+import { CurrentUserModule } from './common/current-user/current-user.module';
+import { AuditQueryModule } from './modules/audit/audit-query.module';
+import { UserModule } from './modules/auth/user/user.module';
+import { OtpAdminModule } from './modules/auth/otp/otp-admin.module';
 
 @Module({
   imports: [
@@ -40,6 +44,10 @@ import { ExportModule } from './modules/export/export.module';
     RemindersModule,
     AuthModule,
     ExportModule,
+    CurrentUserModule,
+    AuditQueryModule,
+    UserModule,
+    OtpAdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

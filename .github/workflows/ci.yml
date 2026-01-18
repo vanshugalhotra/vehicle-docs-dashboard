@@ -67,6 +67,8 @@ jobs:
           echo "AUTH_COOKIE_SAMESITE=Strict" >> .env
           echo "AUTH_COOKIE_PATH=/" >> .env
           echo "AUTH_ADMIN_SECRET=${{ secrets.AUTH_ADMIN_SECRET }}" >> .env
+          echo "AUTH_ADMIN_SECRET=${{ secrets.AUTH_ADMIN_SECRET }}" >> .env
+          echo "OTP_EXPIRES_IN_MINUTES=5" >> .env
           echo "DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public" >> .env.test
           echo "" >> .env.test
           echo "NODE_ENV=test" >> .env.test
@@ -97,6 +99,7 @@ jobs:
           echo "AUTH_COOKIE_SAMESITE=Strict" >> .env.test
           echo "AUTH_COOKIE_PATH=/" >> .env.test
           echo "AUTH_ADMIN_SECRET=${{ secrets.AUTH_ADMIN_SECRET }}" >> .env.test
+          echo "OTP_EXPIRES_IN_MINUTES=5" >> .env.test
 
       - name: Install root dependencies
         working-directory: .

@@ -6,9 +6,10 @@ import {
   IsOptional,
   MaxLength,
   Matches,
+  IsNumberString,
 } from 'class-validator';
 import { Trim } from 'src/common/decorators/trim.decorator';
-
+import { Transform } from 'class-transformer';
 export class CreateVehicleDocumentDto {
   @ApiProperty({
     description: 'Vehicle ID to which this document belongs',
@@ -71,4 +72,20 @@ export class CreateVehicleDocumentDto {
   @MaxLength(500)
   @Trim()
   notes?: string;
+  @ApiProperty({
+    description: 'Optional amount associated with the document',
+    example: '12500.03493',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }: { value: string }) =>
+    value === '' ? undefined : value,
+  )
+  @IsNumberString(
+    {},
+    {
+      message: 'Amount must be a valid number string',
+    },
+  )
+  amount?: string;
 }

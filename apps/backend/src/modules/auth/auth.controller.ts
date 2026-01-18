@@ -3,34 +3,83 @@ import {
   Post,
   Body,
   Res,
+  Req,
   UseGuards,
+  Get,
   HttpCode,
   HttpStatus,
-  Get,
-  Req,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import { Response, Request } from 'express';
-import { AuthService } from './auth.service';
-import { CreateUserDto, LoginDto, UserResponseDto } from './dto/auth.dto';
-import { AdminSecretGuard, AuthGuard } from './auth.gaurd';
 
-@ApiTags('Auth')
+import { AuthService } from './auth.service';
+import {
+  LoginDto,
+  RegisterRequestDto,
+  VerifyRegistrationOtpDto,
+  ForgotPasswordRequestDto,
+  ResetPasswordDto,
+} from './dto/auth.dto';
+
+import { AuthGuard } from './auth.gaurd';
+
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  // ──────────────────────────────
+  // REGISTRATION – STEP 1
+  // Request OTP
+  // ──────────────────────────────
+  @Post('register/request-otp')
+  @HttpCode(HttpStatus.OK)
+  async requestRegistrationOtp(
+    @Body() dto: RegisterRequestDto,
+  ): Promise<{ success: true }> {
+    return this.authService.requestRegistrationOtp(dto);
+  }
+
+  // ──────────────────────────────
+  // REGISTRATION – STEP 2
+  // Verify OTP + Create User
+  // ──────────────────────────────
+  @Post('register/verify-otp')
+  @HttpCode(HttpStatus.CREATED)
+  async verifyRegistrationOtp(
+    @Body() dto: VerifyRegistrationOtpDto & RegisterRequestDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyRegistrationOtp(dto, res);
+  }
+
+  // ──────────────────────────────
+  // FORGOT PASSWORD – STEP 1
+  // Request OTP
+  // ──────────────────────────────
+  @Post('forgot-password/request-otp')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordResetOtp(
+    @Body() dto: ForgotPasswordRequestDto,
+  ): Promise<{ success: true }> {
+    return this.authService.requestPasswordResetOtp(dto);
+  }
+
+  // ──────────────────────────────
+  // FORGOT PASSWORD – STEP 2
+  // Verify OTP + Reset Password
+  // ──────────────────────────────
+  @Post('forgot-password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ success: true }> {
+    return this.authService.resetPassword(dto);
+  }
 
   // ──────────────────────────────
   // LOGIN
   // ──────────────────────────────
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiResponse({
-    status: 200,
-    description: 'Login successful',
-    type: UserResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Invalid email or password' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -39,50 +88,24 @@ export class AuthController {
   }
 
   // ──────────────────────────────
-  // CREATE USER
-  // ──────────────────────────────
-  @Post('create-user')
-  @UseGuards(AdminSecretGuard)
-  @ApiHeader({
-    name: 'x-admin-secret',
-    description: 'Admin secret header',
-    required: true,
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'User created',
-    type: UserResponseDto,
-  })
-  @ApiResponse({ status: 409, description: 'User already exists' })
-  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    return this.authService.createUser(dto);
-  }
-
-  // ──────────────────────────────
   // LOGOUT
   // ──────────────────────────────
   @Post('logout')
-  @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  @ApiResponse({ status: 200, description: 'Logout successful' })
+  @HttpCode(HttpStatus.OK)
   logout(
     @Res({ passthrough: true }) res: Response,
-    @Body('userId') userId: string,
+    @Req() req: Request & { user?: { sub: string } },
   ) {
-    return this.authService.logout(res, userId);
+    return this.authService.logout(res, req.user?.sub);
   }
 
+  // ──────────────────────────────
+  // ME
+  // ──────────────────────────────
   @Get('me')
   @UseGuards(AuthGuard)
-  @ApiResponse({
-    status: 200,
-    description: 'Authenticated user information',
-    type: UserResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  me(
-    @Req() req: Request & { user: { sub: string } },
-  ): Promise<UserResponseDto> {
+  async me(@Req() req: Request & { user: { sub: string } }) {
     return this.authService.me(req.user.sub);
   }
 }

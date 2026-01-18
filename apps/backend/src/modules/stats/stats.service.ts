@@ -30,6 +30,8 @@ export class StatsService {
     private readonly logger: LoggerService,
   ) {}
 
+  /* ================= FILTER BUILDERS ================= */
+
   private buildVehicleFilter(query: {
     categoryId?: string;
     typeId?: string;
@@ -57,11 +59,9 @@ export class StatsService {
     };
 
     if (startDate || endDate) {
-      const start = startDate ? new Date(startDate) : undefined;
-      const end = endDate ? new Date(endDate) : undefined;
       filter.createdAt = {
-        ...(start && { gte: start }),
-        ...(end && { lte: end }),
+        ...(startDate && { gte: new Date(startDate) }),
+        ...(endDate && { lte: new Date(endDate) }),
       };
     }
 
@@ -78,22 +78,17 @@ export class StatsService {
 
   private buildDocumentFilter(
     vehicleFilter: Prisma.VehicleWhereInput,
-    additionalFilters: Prisma.VehicleDocumentWhereInput = {},
+    additional: Prisma.VehicleDocumentWhereInput = {},
   ): Prisma.VehicleDocumentWhereInput {
-    return { vehicle: vehicleFilter, ...additionalFilters };
+    return { vehicle: vehicleFilter, ...additional };
   }
+
+  /* ================= INTERNAL HELPERS (NO INFO LOGS) ================= */
 
   private async getCountsByField(
     field: Prisma.VehicleScalarFieldEnum,
     where: Prisma.VehicleWhereInput,
   ): Promise<CountResponseDto[]> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'grouped',
-      additional: { field, where },
-    };
-    this.logger.logDebug(`Getting counts by field`, ctx);
-
     try {
       const grouped = await this.prisma.vehicle.groupBy({
         by: [field],
@@ -101,34 +96,31 @@ export class StatsService {
         _count: { id: true },
       });
 
-      if (grouped.length === 0) {
-        this.logger.logDebug(`No data found for field`, ctx);
-        return [];
-      }
+      if (!grouped.length) return [];
 
       const ids = grouped.map((g) => g[field] as string).filter(Boolean);
       const labelsMap = await this.getLabelsForField(field, ids);
 
-      const result = grouped.map((g) => {
-        const idKey = g[field] as string | null;
+      return grouped.map((g) => {
+        const id = g[field] as string | null;
         return {
-          label: idKey ? (labelsMap[idKey] ?? 'Unknown') : 'Unassigned',
+          label: id ? (labelsMap[id] ?? 'Unknown') : 'Unassigned',
           count: g._count.id ?? 0,
         };
       });
-
-      this.logger.logDebug(`Retrieved groups for field`, {
-        ...ctx,
-        additional: { groupCount: result.length },
-      });
-      return result;
     } catch (error) {
-      this.logger.logError(`Error getting counts by field`, {
-        ...ctx,
-        additional: { error },
-      });
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
+      this.logger.logError(
+        'Failed grouping vehicles',
+        {
+          entity: this.entity,
+          action: 'groupBy',
+        },
+        error,
+      );
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, this.entity);
+      }
       throw error;
     }
   }
@@ -137,62 +129,63 @@ export class StatsService {
     field: Prisma.VehicleScalarFieldEnum,
     ids: string[],
   ): Promise<Record<string, string>> {
-    if (ids.length === 0) return {};
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'labels',
-      additional: { field, ids },
-    };
+    if (!ids.length) return {};
 
     try {
       switch (field) {
-        case 'categoryId': {
-          const categories = await this.prisma.vehicleCategory.findMany({
-            where: { id: { in: ids } },
-            select: { id: true, name: true },
-          });
-          return Object.fromEntries(categories.map((c) => [c.id, c.name]));
-        }
-        case 'locationId': {
-          const locations = await this.prisma.location.findMany({
-            where: { id: { in: ids } },
-            select: { id: true, name: true },
-          });
-          return Object.fromEntries(locations.map((l) => [l.id, l.name]));
-        }
-        case 'ownerId': {
-          const owners = await this.prisma.owner.findMany({
-            where: { id: { in: ids } },
-            select: { id: true, name: true },
-          });
-          return Object.fromEntries(owners.map((o) => [o.id, o.name]));
-        }
-        case 'driverId': {
-          const drivers = await this.prisma.driver.findMany({
-            where: { id: { in: ids } },
-            select: { id: true, name: true },
-          });
-          return Object.fromEntries(drivers.map((d) => [d.id, d.name]));
-        }
+        case 'categoryId':
+          return Object.fromEntries(
+            (
+              await this.prisma.vehicleCategory.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, name: true },
+              })
+            ).map((c) => [c.id, c.name]),
+          );
+
+        case 'locationId':
+          return Object.fromEntries(
+            (
+              await this.prisma.location.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, name: true },
+              })
+            ).map((l) => [l.id, l.name]),
+          );
+
+        case 'ownerId':
+          return Object.fromEntries(
+            (
+              await this.prisma.owner.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, name: true },
+              })
+            ).map((o) => [o.id, o.name]),
+          );
+
+        case 'driverId':
+          return Object.fromEntries(
+            (
+              await this.prisma.driver.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, name: true },
+              })
+            ).map((d) => [d.id, d.name]),
+          );
+
         default:
           return {};
       }
-    } catch (error) {
-      this.logger.logError(`Error getting labels for field`, {
-        ...ctx,
-        additional: { error },
-      });
+    } catch {
       return {};
     }
   }
 
+  /* ================= PUBLIC METHODS ================= */
+
   async getOverview(query: OverviewQueryDto): Promise<OverviewResponseDto> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'overview',
-      additional: { query },
-    };
-    this.logger.logInfo('Getting stats overview', ctx);
+    const ctx: LogContext = { entity: this.entity, action: 'overview' };
+    this.logger.logInfo('Fetching stats overview', ctx);
 
     try {
       const { expiringDays = 30 } = query;
@@ -202,17 +195,9 @@ export class StatsService {
       const vehicleFilter = this.buildVehicleFilter(query);
       const documentFilter = this.buildDocumentFilter(vehicleFilter);
 
-      this.logger.logDebug('Applying vehicle filter', {
+      this.logger.logDebug('Overview filters resolved', {
         ...ctx,
-        additional: { vehicleFilter },
-      });
-      this.logger.logDebug('Applying document filter', {
-        ...ctx,
-        additional: { documentFilter },
-      });
-
-      const unassignedVehiclesPromise = this.prisma.vehicle.count({
-        where: { ...vehicleFilter, documents: { none: {} } },
+        additional: { vehicleFilter, documentFilter },
       });
 
       const [
@@ -232,16 +217,23 @@ export class StatsService {
           where: { ...documentFilter, expiryDate: { lt: now } },
         }),
         this.computeVehicleCreatedTrend(),
-        unassignedVehiclesPromise,
+        this.prisma.vehicle.count({
+          where: { ...vehicleFilter, documents: { none: {} } },
+        }),
       ]);
 
       const activeLinkages = totalLinkages - expired;
       const complianceRate =
         totalLinkages === 0
           ? 100
-          : Math.round((activeLinkages / totalLinkages) * 100 * 100) / 100;
+          : Math.round((activeLinkages / totalLinkages) * 10000) / 100;
 
-      const result = {
+      this.logger.logInfo('Stats overview ready', {
+        ...ctx,
+        additional: { totalVehicles, complianceRate },
+      });
+
+      return {
         totalVehicles,
         totalLinkages,
         activeLinkages,
@@ -251,45 +243,25 @@ export class StatsService {
         complianceRate,
         vehicleCreatedTrend,
       };
-
-      this.logger.logInfo('Stats overview retrieved', {
-        ...ctx,
-        additional: { totalVehicles, totalLinkages, complianceRate },
-      });
-      return result;
     } catch (error) {
-      this.logger.logError('Error getting stats overview', {
-        ...ctx,
-        additional: { error },
-      });
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
+      this.logger.logError('Failed fetching stats overview', ctx, error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error, this.entity);
+      }
       throw error;
     }
   }
 
   private async computeVehicleCreatedTrend(): Promise<TrendRow[]> {
-    const ctx: LogContext = { entity: this.entity, action: 'createdTrend' };
-    this.logger.logDebug('Computing vehicle created trend', ctx);
-
     try {
-      const result = await this.prisma.$queryRaw<TrendRow[]>`
+      return await this.prisma.$queryRaw<TrendRow[]>`
         SELECT date("createdAt") AS date, COUNT(*)::int AS count
         FROM "vehicles"
         WHERE "createdAt" >= now() - INTERVAL '7 days'
         GROUP BY date("createdAt")
         ORDER BY date("createdAt");
       `;
-      this.logger.logDebug(`Retrieved trend data points`, {
-        ...ctx,
-        additional: { count: result.length },
-      });
-      return result;
-    } catch (error) {
-      this.logger.logError('Error computing vehicle created trend', {
-        ...ctx,
-        additional: { error },
-      });
+    } catch {
       return [];
     }
   }
@@ -297,44 +269,37 @@ export class StatsService {
   async getVehiclesGrouped(
     query: VehiclesGroupQueryDto,
   ): Promise<CountResponseDto[]> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'grouped',
-      additional: { query },
+    const ctx: LogContext = { entity: this.entity, action: 'grouped' };
+    this.logger.logInfo('Fetching grouped vehicle stats', ctx);
+
+    const fieldMap: Record<string, Prisma.VehicleScalarFieldEnum> = {
+      category: 'categoryId',
+      location: 'locationId',
+      owner: 'ownerId',
+      driver: 'driverId',
     };
-    this.logger.logInfo('Getting vehicles grouped stats', ctx);
+
+    const dbField = fieldMap[query.groupBy];
+    if (!dbField) {
+      this.logger.logWarn('Invalid groupBy field', {
+        ...ctx,
+        additional: { groupBy: query.groupBy },
+      });
+      throw new Error('Invalid groupBy field');
+    }
 
     try {
-      const groupFieldMap: Record<string, Prisma.VehicleScalarFieldEnum> = {
-        category: 'categoryId',
-        location: 'locationId',
-        owner: 'ownerId',
-        driver: 'driverId',
-      };
-      const dbField = groupFieldMap[query.groupBy];
-      if (!dbField) {
-        this.logger.logWarn('Invalid groupBy field', {
-          ...ctx,
-          additional: { groupBy: query.groupBy },
-        });
-        throw new Error('Invalid groupBy field');
-      }
+      const filter = this.buildVehicleFilter(query);
+      const result = await this.getCountsByField(dbField, filter);
 
-      const vehicleFilter = this.buildVehicleFilter(query);
-      const result = await this.getCountsByField(dbField, vehicleFilter);
-
-      this.logger.logInfo('Retrieved grouped vehicles', {
+      this.logger.logInfo('Grouped vehicle stats ready', {
         ...ctx,
-        additional: { groupCount: result.length },
+        additional: { groups: result.length },
       });
+
       return result;
     } catch (error) {
-      this.logger.logError('Error getting vehicles grouped', {
-        ...ctx,
-        additional: { error },
-      });
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        handlePrismaError(error, this.entity);
+      this.logger.logError('Failed fetching grouped vehicles', ctx, error);
       throw error;
     }
   }
@@ -342,63 +307,44 @@ export class StatsService {
   async getCreatedTrend(
     query: CreatedTrendQueryDto,
   ): Promise<TimeSeriesResponseDto[]> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'createdTrend',
-      additional: { query },
-    };
-    this.logger.logInfo('Getting created trend', ctx);
+    const ctx: LogContext = { entity: this.entity, action: 'createdTrend' };
+    this.logger.logInfo('Fetching created trend', ctx);
 
     try {
       const { startDate, endDate, groupBy = 'day' } = query;
       const now = new Date();
+
       const start = startDate
         ? new Date(startDate)
-        : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        : new Date(now.getTime() - 30 * 86400000);
       const end = endDate ? new Date(endDate) : now;
 
-      this.logger.logDebug('Date range for trend', {
+      this.logger.logDebug('Created trend range', {
         ...ctx,
         additional: { start, end, groupBy },
       });
 
-      const intervalSql = (() => {
-        switch (groupBy) {
-          case 'week':
-            return `DATE_TRUNC('week', "createdAt")`;
-          case 'month':
-            return `DATE_TRUNC('month', "createdAt")`;
-          default:
-            return `DATE_TRUNC('day', "createdAt")`;
-        }
-      })();
+      const interval =
+        groupBy === 'month'
+          ? `DATE_TRUNC('month', "createdAt")`
+          : groupBy === 'week'
+            ? `DATE_TRUNC('week', "createdAt")`
+            : `DATE_TRUNC('day', "createdAt")`;
 
-      const rawResult: { date: Date; count: number }[] = await this.prisma
-        .$queryRaw<{ date: Date; count: number }[]>`
-          SELECT ${Prisma.sql([intervalSql])} AS date,
-                 COUNT(*)::int AS count
-          FROM "vehicles"
-          WHERE "createdAt" BETWEEN ${start} AND ${end}
-          GROUP BY ${Prisma.sql([intervalSql])}
-          ORDER BY ${Prisma.sql([intervalSql])};
-        `;
+      const raw = await this.prisma.$queryRaw<{ date: Date; count: number }[]>`
+        SELECT ${Prisma.sql([interval])} AS date, COUNT(*)::int AS count
+        FROM "vehicles"
+        WHERE "createdAt" BETWEEN ${start} AND ${end}
+        GROUP BY ${Prisma.sql([interval])}
+        ORDER BY ${Prisma.sql([interval])};
+      `;
 
-      const result = rawResult.map((r) => ({
+      return raw.map((r) => ({
         date: r.date.toISOString(),
         count: r.count,
       }));
-      this.logger.logInfo('Retrieved created trend', {
-        ...ctx,
-        additional: { dataPoints: result.length },
-      });
-      return result;
     } catch (error) {
-      this.logger.logError('Error getting created trend', {
-        ...ctx,
-        additional: { error },
-      });
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        handlePrismaError(error, this.entity);
+      this.logger.logError('Failed fetching created trend', ctx, error);
       throw error;
     }
   }
@@ -409,9 +355,8 @@ export class StatsService {
     const ctx: LogContext = {
       entity: this.entity,
       action: 'expiryDistribution',
-      additional: { query },
     };
-    this.logger.logInfo('Getting expiry distribution', ctx);
+    this.logger.logInfo('Fetching expiry distribution', ctx);
 
     try {
       const {
@@ -424,37 +369,28 @@ export class StatsService {
       } = query;
 
       const vehicleFilter = this.buildVehicleFilter(query);
-      const additionalFilters: Prisma.VehicleDocumentWhereInput = {
+      const documentFilter = this.buildDocumentFilter(vehicleFilter, {
         ...(startDate && { expiryDate: { gte: new Date(startDate) } }),
         ...(endDate && { expiryDate: { lte: new Date(endDate) } }),
         ...(vehicleId && { vehicleId }),
         ...(documentTypeId && { documentTypeId }),
-      };
+      });
 
-      const documentFilter = this.buildDocumentFilter(
-        vehicleFilter,
-        additionalFilters,
-      );
-      this.logger.logDebug('Fetching documents for expiry distribution', {
+      this.logger.logDebug('Expiry distribution filters', {
         ...ctx,
-        additional: { bucketSize, maxBucket, documentFilter },
+        additional: { bucketSize, maxBucket },
       });
 
       const documents = await this.prisma.vehicleDocument.findMany({
         where: documentFilter,
         select: { expiryDate: true },
       });
-      this.logger.logDebug(`Found documents for expiry distribution`, {
-        ...ctx,
-        additional: { documentCount: documents.length },
-      });
 
       const today = new Date();
       const buckets: Record<string, number> = {};
+
       for (let i = 0; i < maxBucket; i += bucketSize) {
-        const start = i + 1;
-        const end = Math.min(i + bucketSize, maxBucket);
-        buckets[`${start}-${end}`] = 0;
+        buckets[`${i + 1}-${Math.min(i + bucketSize, maxBucket)}`] = 0;
       }
       buckets[`${maxBucket}+`] = 0;
 
@@ -465,39 +401,22 @@ export class StatsService {
         if (days <= 0) continue;
         if (days > maxBucket) buckets[`${maxBucket}+`]++;
         else {
-          const bucketIndex = Math.floor((days - 1) / bucketSize);
-          const start = bucketIndex * bucketSize + 1;
-          const end = Math.min((bucketIndex + 1) * bucketSize, maxBucket);
+          const index = Math.floor((days - 1) / bucketSize);
+          const start = index * bucketSize + 1;
+          const end = Math.min((index + 1) * bucketSize, maxBucket);
           buckets[`${start}-${end}`]++;
         }
       }
 
-      const orderedBuckets: ExpiryBucketResponseDto[] = [
+      return [
         ...Object.keys(buckets)
           .filter((b) => b !== `${maxBucket}+`)
-          .sort(
-            (a, b) =>
-              parseInt(a.split('-')[0], 10) - parseInt(b.split('-')[0], 10),
-          )
+          .sort((a, b) => parseInt(a.split('-')[0]) - parseInt(b.split('-')[0]))
           .map((b) => ({ bucket: b, count: buckets[b] })),
         { bucket: `${maxBucket}+`, count: buckets[`${maxBucket}+`] },
       ];
-
-      this.logger.logInfo('Expiry distribution calculated', {
-        ...ctx,
-        additional: {
-          totalDocuments: documents.length,
-          bucketCount: orderedBuckets.length,
-        },
-      });
-      return orderedBuckets;
     } catch (error) {
-      this.logger.logError('Error getting expiry distribution', {
-        ...ctx,
-        additional: { error },
-      });
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        handlePrismaError(error, this.entity);
+      this.logger.logError('Failed fetching expiry distribution', ctx, error);
       throw error;
     }
   }

@@ -84,7 +84,7 @@ export const Sidebar: React.FC = () => {
         {!isCollapsed ? (
           <div className="text-xs space-y-1 text-text-tertiary/80">
             <AppText size="caption" className="font-medium">
-              © 2025 Yash Group.
+              © {new Date().getFullYear()} Yash Group.
             </AppText>
           </div>
         ) : (

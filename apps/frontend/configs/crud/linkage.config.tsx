@@ -9,6 +9,16 @@ import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
 import { statusToExpiryFilter } from "@/lib/utils/statusFilterCalculation";
 import { ExportType } from "@/lib/types/export.types";
+import { EntityDetailConfig } from "@/lib/types/entity-details.types";
+import {
+  FileText,
+  Car,
+  Calendar,
+  IndianRupee,
+  Link as LinkIcon,
+  StickyNote,
+  Clock,
+} from "lucide-react";
 
 // =====================
 // 🔹 Schema
@@ -31,6 +41,20 @@ export const linkageSchema = z.object({
     ),
   notes: z.string().optional().nullable(),
   link: z.string().optional().nullable(),
+  amount: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => {
+        if (!val || val.trim() === "") return true;
+        if (!/^-?\d+(\.\d+)?$/.test(val)) return false;
+
+        const beforeDecimal = val.split(".")[0].replace("-", "");
+        return beforeDecimal.length <= 10;
+      },
+      { message: "Invalid Amount" }
+    ),
 });
 
 export const renewalSchema = z.object({
@@ -107,6 +131,13 @@ export const linkageFields = [
     placeholder: "Optional notes",
     required: false,
   },
+  {
+    key: "amount",
+    label: "Amount",
+    type: "text" as const,
+    placeholder: "Amount",
+    required: false,
+  },
 ];
 
 export const linkageLayout = {
@@ -162,6 +193,10 @@ export const getColumns = (
     enableSorting: true,
   },
   {
+    accessorKey: "amount",
+    header: "Amount",
+  },
+  {
     accessorKey: "link",
     header: "Link",
     cell: ({ getValue }) => {
@@ -181,6 +216,7 @@ export const getColumns = (
     minSize: 100,
     maxSize: 200,
   },
+
   { accessorKey: "notes", header: "Notes", minSize: 250, maxSize: 300 },
 ];
 
@@ -219,7 +255,7 @@ export const linkageFiltersConfig: FilterConfig[] = [
   {
     key: "expiryDate",
     label: "Expiry Date",
-    type: "dateRange", // new date range filter
+    type: "dateRange",
   },
   {
     key: "expiryDate",
@@ -283,4 +319,144 @@ export const linkageCrudConfig = {
   businessFilters: linkageBusinessFiltersConfig,
   sortOptions: linkageSortOptions,
   exportTable: "vehicle_documents" as ExportType,
+};
+
+export const vehicleDocumentDetailConfig: EntityDetailConfig<LinkageEntity> = {
+  columns: 3,
+  sections: [
+    // =====================
+    // 🔹 Core Information
+    // =====================
+    {
+      title: "Document Information",
+      fields: [
+        {
+          key: "documentTypeName",
+          label: "Document Type",
+          icon: <FileText className="h-4 w-4" />,
+        },
+        {
+          key: "documentNo",
+          label: "Document Number",
+          copyable: true,
+        },
+        {
+          key: "vehicleName",
+          label: "Vehicle",
+          icon: <Car className="h-4 w-4" />,
+        },
+      ],
+    },
+
+    // =====================
+    // 🔹 Validity & Status
+    // =====================
+    {
+      title: "Validity",
+      fields: [
+        {
+          key: "startDate",
+          label: "Start Date",
+          icon: <Calendar className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+        {
+          key: "expiryDate",
+          label: "Expiry Date",
+          icon: <Calendar className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+        {
+          key: "daysRemaining",
+          label: "Days Remaining",
+          render: (days) => {
+            if (typeof days !== "number")
+              return <AppBadge variant="neutral">Unknown</AppBadge>;
+
+            if (days <= 0) return <AppBadge variant="danger">{days}</AppBadge>;
+
+            if (days <= 30)
+              return <AppBadge variant="warning">{days}</AppBadge>;
+
+            return <AppBadge variant="success">{days}</AppBadge>;
+          },
+        },
+      ],
+    },
+
+    // =====================
+    // 🔹 Financial & Links
+    // =====================
+    {
+      title: "Additional Details",
+      fields: [
+        {
+          key: "amount",
+          label: "Amount",
+          icon: <IndianRupee className="h-4 w-4" />,
+          render: (v) => (v ? `₹ ${v}` : "—"),
+        },
+        {
+          key: "link",
+          label: "External Link",
+          icon: <LinkIcon className="h-4 w-4" />,
+          render: (v) => {
+            if (!v) return "—";
+            const href =
+              typeof v === "string" && v.startsWith("http")
+                ? v
+                : `https://${v}`;
+
+            return (
+              <Link
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary-dark"
+              >
+                Open
+              </Link>
+            );
+          },
+        },
+      ],
+    },
+
+    // =====================
+    // 🔹 Notes
+    // =====================
+    {
+      title: "Notes",
+      fields: [
+        {
+          key: "notes",
+          label: "Notes",
+          icon: <StickyNote className="h-4 w-4" />,
+          span: 3,
+          render: (v) => (typeof v === "string" ? v : "—") || "—",
+        },
+      ],
+    },
+
+    // =====================
+    // 🔹 Meta
+    // =====================
+    {
+      title: "Meta",
+      fields: [
+        {
+          key: "createdAt",
+          label: "Created At",
+          icon: <Clock className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+        {
+          key: "updatedAt",
+          label: "Last Updated",
+          icon: <Clock className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+      ],
+    },
+  ],
 };

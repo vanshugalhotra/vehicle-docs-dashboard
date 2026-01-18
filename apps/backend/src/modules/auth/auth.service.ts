@@ -1,283 +1,253 @@
 import {
   Injectable,
-  UnauthorizedException,
   ConflictException,
-  InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Response } from 'express';
+
 import { LoggerService, LogContext } from 'src/common/logger/logger.service';
-import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
+import { ConfigService } from 'src/config/config.service';
+
+import { UserService } from './user/user.service';
+import { OtpService } from './otp/otp.service';
+import { EmailService } from 'src/email/email.service';
+
 import {
-  verifyPassword,
-  hashPassword,
-  generateJwt,
-  verifyJwt,
-} from 'src/common/utils/auth-utils';
+  LoginDto,
+  RegisterRequestDto,
+  VerifyRegistrationOtpDto,
+  ForgotPasswordRequestDto,
+  ResetPasswordDto,
+} from './dto/auth.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+
+import { generateJwt, verifyPassword } from 'src/common/utils/auth-utils';
 import {
   getCookieOptions,
   clearAuthCookie,
 } from 'src/common/utils/cookie-utils';
-import { Response } from 'express';
-import { ConfigService } from 'src/config/config.service';
-import { Prisma } from '@prisma/client';
-import { CreateUserDto, LoginDto, UserResponseDto } from './dto/auth.dto';
+
+import { OtpPurpose } from '@prisma/client';
+import {
+  passwordResetOtpTemplate,
+  registrationOtpTemplate,
+} from 'src/email/templates';
 
 @Injectable()
 export class AuthService {
   private readonly entity = 'Auth';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+    private readonly otpService: OtpService,
+    private readonly emailService: EmailService,
     private readonly config: ConfigService,
     private readonly logger: LoggerService,
   ) {}
 
-  /**
-   * Validate user credentials
-   */
-  async validateUser(email: string, password: string) {
+  /* ──────────────────────────────
+   * REGISTRATION – STEP 1
+   * Request OTP
+   * ────────────────────────────── */
+  async requestRegistrationOtp(
+    dto: RegisterRequestDto,
+  ): Promise<{ success: true }> {
     const ctx: LogContext = {
       entity: this.entity,
-      action: 'validateUser',
-      additional: { email },
-    };
-
-    this.logger.logDebug(`Validating user credentials`, ctx);
-
-    try {
-      const user = await this.prisma.user.findUnique({ where: { email } });
-
-      if (!user) {
-        this.logger.logWarn(`Validation failed - user not found`, ctx);
-        return null;
-      }
-
-      const match = await verifyPassword(password, user.passwordHash);
-
-      if (!match) {
-        this.logger.logWarn(`Validation failed - wrong password`, ctx);
-        return null;
-      }
-
-      return user;
-    } catch (error) {
-      this.logger.logError('Error validating user credentials', {
-        ...ctx,
-        additional: { error },
-      });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, this.entity);
-      }
-
-      // Return null on validation error rather than throwing
-      // This allows the caller to handle authentication failure gracefully
-      return null;
-    }
-  }
-
-  /**
-   * Create new user
-   */
-  async createUser(dto: CreateUserDto): Promise<UserResponseDto> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'createUser',
+      action: 'requestRegistrationOtp',
       additional: { email: dto.email },
     };
 
-    this.logger.logInfo(`Creating new user`, ctx);
+    this.logger.logInfo('Requesting registration OTP', ctx);
 
-    try {
-      // Check for existing user
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
-
-      if (existingUser) {
-        this.logger.logWarn(`User already exists`, ctx);
-        throw new ConflictException(`User with this email already exists`);
-      }
-
-      const passwordHash = await hashPassword(dto.password);
-
-      const user = await this.prisma.user.create({
-        data: { email: dto.email, passwordHash },
-      });
-
-      this.logger.logInfo(`User successfully created`, {
-        ...ctx,
-        additional: { userId: user.id },
-      });
-
-      return user as UserResponseDto;
-    } catch (error) {
-      this.logger.logError('Error creating user', {
-        ...ctx,
-        additional: { error },
-      });
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error, this.entity);
-      }
-
-      // Re-throw conflict exception
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-
-      // Wrap other errors
-      throw new InternalServerErrorException('Failed to create user');
+    const existing = await this.userService.findByEmail(dto.email);
+    if (existing) {
+      this.logger.logWarn('Email already registered', ctx);
+      throw new ConflictException('Email already registered');
     }
+
+    const { otp } = await this.otpService.generate(
+      dto.email,
+      OtpPurpose.REGISTRATION,
+    );
+
+    const expiresInMinutes =
+      Number(this.config.get('OTP_EXPIRES_IN_MINUTES')) || 10;
+
+    const html = registrationOtpTemplate({
+      otp,
+      expiresInMinutes,
+    });
+
+    await this.emailService.sendEmail([dto.email], 'Verify your email', html);
+
+    this.logger.logInfo('Registration OTP sent', ctx);
+    return { success: true };
   }
 
-  /**
-   * Login user + set JWT cookie
-   */
-  async login(dto: LoginDto, res: Response): Promise<UserResponseDto> {
+  /* ──────────────────────────────
+   * REGISTRATION – STEP 2
+   * Verify OTP + Create User
+   * ────────────────────────────── */
+  async verifyRegistrationOtp(
+    dto: VerifyRegistrationOtpDto & RegisterRequestDto,
+    res: Response,
+  ) {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'verifyRegistrationOtp',
+      additional: { email: dto.email },
+    };
+
+    this.logger.logInfo('Verifying registration OTP', ctx);
+
+    await this.otpService.verify(dto.email, OtpPurpose.REGISTRATION, dto.otp);
+
+    const createUserDto: CreateUserDto = {
+      fullName: dto.fullName,
+      mobile: dto.mobile,
+      email: dto.email,
+      password: dto.password,
+    };
+
+    const user = await this.userService.create(createUserDto);
+
+    const token = generateJwt({ id: user.id, email: user.email }, this.config);
+
+    res.cookie(
+      this.config.get('AUTH_COOKIE_NAME'),
+      token,
+      getCookieOptions(this.config),
+    );
+
+    this.logger.logInfo('User registered successfully', {
+      ...ctx,
+      additional: { userId: user.id },
+    });
+
+    return user;
+  }
+
+  /* ──────────────────────────────
+   * PASSWORD RESET
+   * ────────────────────────────── */
+  async requestPasswordResetOtp(
+    dto: ForgotPasswordRequestDto,
+  ): Promise<{ success: true }> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'requestPasswordResetOtp',
+      additional: { email: dto.email },
+    };
+
+    this.logger.logInfo('Requesting password reset OTP', ctx);
+
+    const user = await this.userService.findByEmail(dto.email);
+    if (!user) {
+      // do NOT leak existence
+      this.logger.logWarn(
+        'Password reset requested for non-existing email',
+        ctx,
+      );
+      return { success: true };
+    }
+
+    const { otp } = await this.otpService.generate(
+      dto.email,
+      OtpPurpose.PASSWORD_RESET,
+    );
+
+    const expiresInMinutes =
+      Number(this.config.get('OTP_EXPIRES_IN_MINUTES')) || 10;
+
+    const html = passwordResetOtpTemplate({
+      otp,
+      expiresInMinutes,
+    });
+
+    await this.emailService.sendEmail([dto.email], 'Reset your password', html);
+
+    this.logger.logInfo('Password reset OTP sent', ctx);
+    return { success: true };
+  }
+
+  async resetPassword(dto: ResetPasswordDto): Promise<{ success: true }> {
+    const ctx: LogContext = {
+      entity: this.entity,
+      action: 'resetPassword',
+      additional: { email: dto.email },
+    };
+
+    this.logger.logInfo('Resetting password', ctx);
+
+    await this.otpService.verify(dto.email, OtpPurpose.PASSWORD_RESET, dto.otp);
+
+    await this.userService.updatePassword(dto.email, dto.password);
+
+    this.logger.logInfo('Password reset successful', ctx);
+    return { success: true };
+  }
+
+  /* ──────────────────────────────
+   * LOGIN
+   * ────────────────────────────── */
+  async login(dto: LoginDto, res: Response) {
     const ctx: LogContext = {
       entity: this.entity,
       action: 'login',
       additional: { email: dto.email },
     };
 
-    this.logger.logInfo(`User login attempt`, ctx);
+    this.logger.logInfo('Login attempt', ctx);
 
-    try {
-      const user = await this.validateUser(dto.email, dto.password);
-
-      if (!user) {
-        this.logger.logWarn(`Login failed`, ctx);
-        throw new UnauthorizedException('Invalid email or password');
-      }
-
-      const jwtUser: { id: string; email: string } = {
-        id: user.id,
-        email: user.email,
-      };
-
-      const token = generateJwt(jwtUser, this.config);
-
-      res.cookie(
-        this.config.get('AUTH_COOKIE_NAME'),
-        token,
-        getCookieOptions(this.config),
-      );
-
-      this.logger.logInfo(`Login successful`, {
-        ...ctx,
-        additional: { userId: user.id },
-      });
-
-      return user as UserResponseDto;
-    } catch (error) {
-      this.logger.logError('Error during login', {
-        ...ctx,
-        additional: { error },
-      });
-
-      if (error instanceof UnauthorizedException) {
-        throw error; // Re-throw auth errors
-      }
-
-      // Wrap other errors
-      throw new InternalServerErrorException(
-        'Login failed due to server error',
-      );
+    const user = await this.userService.findByEmail(dto.email);
+    if (!user) {
+      this.logger.logWarn('User not found', ctx);
+      throw new UnauthorizedException('Invalid credentials');
     }
+
+    const valid = await verifyPassword(dto.password, user.passwordHash);
+    if (!valid) {
+      this.logger.logWarn('Invalid password', ctx);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const token = generateJwt({ id: user.id, email: user.email }, this.config);
+
+    res.cookie(
+      this.config.get('AUTH_COOKIE_NAME'),
+      token,
+      getCookieOptions(this.config),
+    );
+
+    this.logger.logInfo('Login successful', {
+      ...ctx,
+      additional: { userId: user.id },
+    });
+
+    return user;
   }
 
-  /**
-   * Logout (clear cookie)
-   */
-  logout(res: Response, userId: string) {
+  /* ──────────────────────────────
+   * LOGOUT
+   * ────────────────────────────── */
+  logout(res: Response, userId?: string) {
     const ctx: LogContext = {
       entity: this.entity,
       action: 'logout',
       additional: { userId },
     };
 
-    this.logger.logInfo(`User logout attempt`, ctx);
+    clearAuthCookie(res, this.config);
+    this.logger.logInfo('Logout successful', ctx);
 
-    try {
-      clearAuthCookie(res, this.config);
-
-      this.logger.logInfo(`Logout successful`, ctx);
-
-      return { success: true };
-    } catch (error) {
-      this.logger.logError('Error during logout', {
-        ...ctx,
-        additional: { error },
-      });
-
-      // Even if clearing cookie fails, we can still return success
-      // as the token will expire anyway
-      return { success: true };
-    }
+    return { success: true };
   }
 
-  /**
-   * Verify JWT token
-   */
-  verifyToken(token: string): ReturnType<typeof verifyJwt> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'verifyToken',
-      additional: { tokenLength: token?.length },
-    };
-
-    this.logger.logDebug(`Verifying JWT token`, ctx);
-
-    try {
-      const result = verifyJwt(token, this.config);
-
-      this.logger.logDebug(`Token verification successful`, {
-        ...ctx,
-        additional: { sub: result.sub },
-      });
-
-      return result;
-    } catch (error) {
-      this.logger.logError('Token verification failed', {
-        ...ctx,
-        additional: { error },
-      });
-
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-  }
-  /**
-   * Get authenticated user using token payload
-   */
-  async me(userId: string): Promise<UserResponseDto> {
-    const ctx: LogContext = {
-      entity: this.entity,
-      action: 'me',
-      additional: { userId },
-    };
-
-    this.logger.logDebug(`Fetching authenticated user`, ctx);
-
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, email: true, createdAt: true },
-      });
-
-      if (!user) {
-        this.logger.logWarn(`Authenticated user not found`, ctx);
-        throw new UnauthorizedException('User no longer exists');
-      }
-
-      return user;
-    } catch (error) {
-      this.logger.logError('Error fetching authenticated user', {
-        ...ctx,
-        additional: { error },
-      });
-
-      throw new InternalServerErrorException('Failed to fetch profile');
-    }
+  /* ──────────────────────────────
+   * ME
+   * ────────────────────────────── */
+  async me(userId: string) {
+    return this.userService.findOne(userId);
   }
 }

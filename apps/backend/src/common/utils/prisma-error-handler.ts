@@ -25,6 +25,21 @@ export function handlePrismaError(error: unknown, entityName?: string): never {
           `Database error: ${error.message}`,
         );
     }
+  } else if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+    const message = error.message.toLowerCase();
+
+    if (
+      message.includes('numeric field overflow') ||
+      message.includes('22003')
+    ) {
+      throw new BadRequestException(
+        `Invalid ${entityName ?? 'entity'}: value exceeds allowed precision`,
+      );
+    }
+
+    throw new InternalServerErrorException(
+      `Database execution error: ${error.message}`,
+    );
   } else if (error instanceof Prisma.PrismaClientValidationError) {
     throw new BadRequestException(`Invalid database query: ${error.message}`);
   } else if (
@@ -35,6 +50,8 @@ export function handlePrismaError(error: unknown, entityName?: string): never {
     // allow rethrowing already-handled Nest exceptions (useful for unit tests)
     throw error;
   } else {
-    throw new InternalServerErrorException('Unexpected error occurred');
+    throw new InternalServerErrorException(
+      'Unexpected database error occurred',
+    );
   }
 }

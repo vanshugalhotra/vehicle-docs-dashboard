@@ -4,12 +4,17 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MockedPrisma } from '../../../../test/utils/unit-setup/mock-prisma';
 import { MockedLogger } from '../../../../test/utils/unit-setup/mock-logger';
 import { OwnerValidationService } from '../validation/owner-validation.service';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 const mockOwnerValidationService = {
   validateCreate: jest.fn().mockResolvedValue(null),
   validateUpdate: jest
     .fn()
     .mockImplementation((id: unknown, name: unknown) => ({ id, name })),
+};
+
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('OwnerService', () => {
@@ -20,12 +25,17 @@ describe('OwnerService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockOwnerValidationService.validateCreate.mockResolvedValue(null);
+    mockAuditService.record.mockResolvedValue(undefined);
     mockOwnerValidationService.validateUpdate.mockImplementation(
       (id: unknown, name: unknown) => ({ id, name }),
     );
 
     const setup = await createTestModule(OwnerService, [
       { provide: OwnerValidationService, useValue: mockOwnerValidationService },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
+      },
     ]);
     service = setup.service;
     prisma = setup.mocks.prisma;

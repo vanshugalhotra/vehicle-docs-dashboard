@@ -28,6 +28,9 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
   let vehicleDocA: VehicleDocumentResponse;
   let vehicleDocB: VehicleDocumentResponse;
 
+  const now = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(now.getDate() + 30); // 30 days from now
   beforeAll(async () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
@@ -154,17 +157,14 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('should create vehicle document B with minimal fields', async () => {
-      const startDate = new Date('2025-02-01');
-      const expiryDate = new Date('2026-02-01');
-
       const res = await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdB,
           documentTypeId: documentTypeIdB,
           documentNo: 'POL-001-2025',
-          startDate: startDate.toISOString(),
-          expiryDate: expiryDate.toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(201);
 
@@ -175,17 +175,14 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
     });
 
     it('trim and create', async () => {
-      const startDate = new Date('2025-03-01');
-      const expiryDate = new Date('2026-03-01');
-
       await authedRequest(server)
         .post('/api/v1/vehicle-documents')
         .send({
           vehicleId: vehicleIdA,
           documentTypeId: documentTypeIdA,
           documentNo: '  trim-test-001  ',
-          startDate: startDate.toISOString(),
-          expiryDate: expiryDate.toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(201);
     });
@@ -207,8 +204,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: '00000000-0000-0000-0000-000000000000',
           documentTypeId: documentTypeIdA,
           documentNo: 'TEST-404',
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(404);
 
@@ -218,8 +215,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: vehicleIdA,
           documentTypeId: '00000000-0000-0000-0000-000000000000',
           documentNo: 'TEST-404',
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(404);
     });
@@ -232,8 +229,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: vehicleIdA,
           documentTypeId: documentTypeIdA,
           documentNo: 'ins-001-2025', // same as vehicleDocA (case-insensitive)
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(409);
     });
@@ -625,8 +622,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: vehicleIdA,
           documentTypeId: documentTypeIdA,
           documentNo: `TEMP-DELETE-${Date.now()}`,
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(201);
       tempDocumentId = (res.body as VehicleDocumentResponse).id;
@@ -676,8 +673,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: vehicleIdA,
           documentTypeId: documentTypeIdA,
           documentNo: `LONG-${Date.now()}`,
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
           notes: longNotes,
           link: longLink,
         })
@@ -694,8 +691,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: vehicleIdA,
           documentTypeId: documentTypeIdA,
           documentNo: 'DOC/2024/001-ABC_XYZ',
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(201);
 
@@ -750,8 +747,8 @@ describe('Vehicle Documents E2E (Comprehensive & Production-grade)', () => {
           vehicleId: (tempVehicleRes.body as VehicleResponse).id,
           documentTypeId: documentTypeIdA,
           documentNo: `TEMP-VEH-${Date.now()}`,
-          startDate: new Date().toISOString(),
-          expiryDate: new Date('2026-01-01').toISOString(),
+          startDate: now.toISOString(),
+          expiryDate: futureDate.toISOString(),
         })
         .expect(201);
 

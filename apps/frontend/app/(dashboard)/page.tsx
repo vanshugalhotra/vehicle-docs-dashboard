@@ -40,7 +40,7 @@ export default function HomePage() {
       {/* HERO SECTION */}
       <HeroSection
         title="Yash Group Dashboard"
-        subtitle="Real-time Vehicle Management Overview"
+        subtitle="Real-time Fleet Management Overview"
         date={formattedDate}
       />
 

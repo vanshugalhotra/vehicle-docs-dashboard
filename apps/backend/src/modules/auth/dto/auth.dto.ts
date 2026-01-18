@@ -1,41 +1,80 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
+/* ──────────────────────────────
+ * LOGIN
+ * ────────────────────────────── */
 export class LoginDto {
-  @ApiProperty({ example: 'admin@example.com' })
   @IsEmail()
   @Trim()
   email: string;
 
-  @ApiProperty({ example: 'P@ssw0rd123!' })
   @IsNotEmpty()
   @MinLength(6)
   password: string;
 }
 
-export class CreateUserDto {
-  @ApiProperty({ example: 'newadmin@example.com' })
+/* ──────────────────────────────
+ * REGISTRATION
+ * Collect full data & send OTP
+ * ────────────────────────────── */
+export class RegisterRequestDto {
+  @IsString()
+  @IsOptional()
+  @Trim()
+  fullName: string;
+
+  @IsString()
+  @IsOptional()
+  @Trim()
+  mobile: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  @Trim()
+  email: string;
+
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
+}
+
+/* ──────────────────────────────
+ * REGISTRATION
+ * Verify OTP & finalize registration
+ * ────────────────────────────── */
+export class VerifyRegistrationOtpDto {
   @IsEmail()
   @Trim()
   email: string;
 
-  @ApiProperty({ example: 'StrongP@ssword123!' })
   @IsNotEmpty()
-  @MinLength(10, { message: 'Password must be at least 10 characters' })
-  password: string;
+  otp: string;
 }
 
-export class UserResponseDto {
-  @ApiProperty({ example: 'c025adcc-2357-4761-8c33-32145e62e43f' })
-  id: string;
+// Forgot password – request OTP
+export class ForgotPasswordRequestDto {
+  @IsEmail()
+  @Trim()
+  email: string;
+}
 
-  @ApiProperty({ example: 'admin@example.com' })
+// Forgot password – verify OTP + new password
+export class ResetPasswordDto {
+  @IsEmail()
+  @Trim()
   email: string;
 
-  @ApiProperty({ example: '2025-01-10T05:21:22Z' })
-  createdAt?: Date;
+  @IsNotEmpty()
+  otp: string;
 
-  @ApiProperty({ example: '2025-01-10T05:21:22Z' })
-  updatedAt?: Date;
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
 }

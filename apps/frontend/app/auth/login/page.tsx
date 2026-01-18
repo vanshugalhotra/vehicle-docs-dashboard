@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { AppInput } from "@/components/ui/AppInput";
 import { AppButton } from "@/components/ui/AppButton";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, Mail, Lock } from "lucide-react";
+import { Shield, Mail, Lock, UserPlus, KeyRound } from "lucide-react";
+import Link from "next/link";
+import { routes } from "@/lib/routes";
+import { toastUtils } from "@/lib/utils/toastUtils";
+import { Footer } from "@/components/layout/footer/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +25,8 @@ export default function LoginPage() {
     try {
       const user = await login({ email, password });
       if (user) {
-        router.push("/");
+        toastUtils.success("Logged in successfully!");
+        router.push(routes.home);
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Login failed";
@@ -33,7 +38,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-white to-indigo-50 px-4 py-8">
       <div className="w-full max-w-lg animate-fade-in">
         {/* Header Section */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <div className="mx-auto w-20 h-20 bg-linear-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl hover:scale-105 transition-transform duration-300">
             <Shield className="w-10 h-10 text-white" />
           </div>
@@ -41,7 +46,7 @@ export default function LoginPage() {
             Yash Group Dashboard
           </h1>
           <p className="text-gray-600 text-base leading-relaxed max-w-sm mx-auto">
-            Sign in to access your dashboard.
+            Sign in to access your dashboard
           </p>
         </div>
 
@@ -78,6 +83,17 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-right -mt-2">
+            <Link
+              href={routes.forgotPassword}
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 hover:underline"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              Forgot your password?
+            </Link>
+          </div>
+
           {error && !error.includes("email") && !error.includes("password") && (
             <div className="animate-pulse">
               <p className="text-red-600 text-sm text-center bg-red-50/80 px-4 py-3 rounded-xl border border-red-200 backdrop-blur-sm">
@@ -97,12 +113,28 @@ export default function LoginPage() {
             {loginLoading ? "Logging In..." : "Log In"}
           </AppButton>
 
-          {/* Footer Info */}
-          <div className="text-center pt-6 border-t border-gray-200/50">
-            <p className="text-xs text-gray-500 leading-relaxed">
-              © 2025 Yash Group. All rights reserved.
-            </p>
+          {/* Divider */}
+          <div className="relative flex items-center my-2">
+            <div className="grow border-t border-gray-300/50"></div>
+            <span className="shrink mx-4 text-sm text-gray-500">or</span>
+            <div className="grow border-t border-gray-300/50"></div>
           </div>
+
+          <Link href={routes.register}>
+            <AppButton
+              type="button"
+              variant="outline"
+              fullWidth
+              className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 shadow-sm hover:shadow"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Create New Account
+              </div>
+            </AppButton>
+          </Link>
+
+          <Footer />
         </form>
       </div>
     </div>

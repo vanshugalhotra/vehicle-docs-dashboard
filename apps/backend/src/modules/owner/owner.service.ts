@@ -15,6 +15,8 @@ import { QueryOptionsDto } from 'src/common/dto/query-options.dto';
 import { PaginatedOwnerResponseDto } from './dto/owner-response.dto';
 import { buildQueryArgs } from 'src/common/utils/query-builder';
 import { OwnerValidationService } from './validation/owner-validation.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class OwnerService {
@@ -24,6 +26,7 @@ export class OwnerService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly ownerValidation: OwnerValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(dto: CreateOwnerDto): Promise<OwnerResponse> {
@@ -45,6 +48,17 @@ export class OwnerService {
         ...ctx,
         additional: { id: owner.id },
       });
+
+      // audit
+      await this.auditService.record<typeof owner>({
+        entityType: AuditEntity.OWNER,
+        entityId: owner.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: owner,
+      });
+
       return mapOwnerToResponse(owner);
     } catch (error) {
       this.logger.logError('Failed to create owner', {
@@ -139,17 +153,26 @@ export class OwnerService {
     this.logger.logInfo('Updating owner', ctx);
 
     try {
-      const owner = await this.ownerValidation.validateUpdate(id, dto.name);
-
+      const before = await this.ownerValidation.validateUpdate(id, dto.name);
       const updated = await this.prisma.owner.update({
         where: { id },
-        data: { name: dto.name ?? owner.name },
+        data: { name: dto.name ?? before.name },
       });
 
       this.logger.logInfo('Owner updated', {
         ...ctx,
         additional: { updatedId: updated.id },
       });
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.OWNER,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: before,
+        newRecord: updated,
+      });
+
       return mapOwnerToResponse(updated);
     } catch (error) {
       this.logger.logError('Failed to update owner', {
@@ -193,6 +216,17 @@ export class OwnerService {
 
       await this.prisma.owner.delete({ where: { id } });
       this.logger.logInfo('Owner deleted', ctx);
+
+      // audit
+      await this.auditService.record<typeof owner>({
+        entityType: AuditEntity.OWNER,
+        entityId: owner.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: owner,
+        newRecord: null,
+      });
+
       return { success: true };
     } catch (error) {
       this.logger.logError('Failed to delete owner', {

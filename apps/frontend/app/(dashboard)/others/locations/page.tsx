@@ -11,8 +11,10 @@ import { PaginationBar } from "@/components/crud/PaginationBar.tsx/PaginationBar
 import { useFormStateController } from "@/hooks/useFormStateController";
 import { Location, locationCrudConfig } from "@/configs/crud/locations.config";
 import { useEditFocus } from "@/hooks/useEditFocus";
+import { useRouter } from "next/navigation";
 
 export default function LocationsPage() {
+  const router = useRouter();
   const formCtrl = useFormStateController<Location>("embedded");
   const [locationToDelete, setLocationToDelete] = useState<Location | null>(
     null
@@ -128,6 +130,10 @@ export default function LocationsPage() {
             onDelete={handleDelete}
             sort={sort}
             setSort={setSort}
+            onView={(item) => {
+              if (!item.id) return;
+              router.push(`/entities/location/${item.id}`);
+            }}
           />
           <PaginationBar
             page={page}

@@ -7,6 +7,7 @@ import { CreateVehicleDocumentDto } from '../dto/create-vehicle-document.dto';
 import { UpdateVehicleDocumentDto } from '../dto/update-vehicle-document.dto';
 import { VehicleDocument, Vehicle, DocumentType } from '@prisma/client';
 import { VehicleDocumentValidationService } from '../validation/vehicle-document-validation.service';
+import { AuditService } from 'src/modules/audit/audit.service';
 
 jest.mock('../vehicle-document.mapper', () => ({
   mapVehicleDocumentToResponse: jest.fn((doc: Partial<VehicleDocument>) => ({
@@ -16,10 +17,15 @@ jest.mock('../vehicle-document.mapper', () => ({
     documentTypeId: doc.documentTypeId,
     startDate: doc.startDate,
     expiryDate: doc.expiryDate,
+    amount: doc.amount,
     notes: doc.notes,
     link: doc.link,
   })),
 }));
+
+const mockAuditService = {
+  record: jest.fn().mockResolvedValue(undefined),
+};
 
 const mockVehicle = { id: 'veh-1', name: 'Car - PB04' } as Vehicle;
 const mockDocType = { id: 'doctype-1', name: 'Insurance' } as DocumentType;
@@ -31,6 +37,7 @@ const mockVehicleDoc: VehicleDocument = {
   documentNo: 'DL-ABC-2025',
   startDate: new Date('2025-10-01'),
   expiryDate: new Date('2026-10-01'),
+  amount: null,
   notes: 'Test note',
   link: 'https://example.com/doc1.pdf',
   createdById: 'user-1',
@@ -59,6 +66,7 @@ describe('VehicleDocumentService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockAuditService.record.mockResolvedValue(undefined);
     mockVehicleDocumentValidationService.validateCreate.mockResolvedValue({
       vehicle: mockVehicle,
       documentType: mockDocType,
@@ -77,6 +85,10 @@ describe('VehicleDocumentService', () => {
       {
         provide: VehicleDocumentValidationService,
         useValue: mockVehicleDocumentValidationService,
+      },
+      {
+        provide: AuditService,
+        useValue: mockAuditService,
       },
     ]);
     service = setup.service;

@@ -14,6 +14,8 @@ import { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { Option } from "@/components/ui/AppSelect";
 import { BadgeCell } from "@/components/crud/DataTable/BadgeCell";
 import { ExportType } from "@/lib/types/export.types";
+import { EntityDetailConfig } from "@/lib/types/entity-details.types";
+import { Car, FileText, User, MapPin } from "lucide-react";
 
 // =====================
 // 🔹 Schema
@@ -318,4 +320,108 @@ export const vehicleCrudConfig = {
   sortOptions: vehicleSortOptions,
   businessFilters: vehicleBusinessFiltersConfig,
   exportTable: "vehicles" as ExportType,
+};
+
+export const vehicleDetailConfig: EntityDetailConfig<Vehicle> = {
+  columns: 3,
+  sections: [
+    {
+      title: "Basic Information",
+      fields: [
+        {
+          key: "name",
+          label: "Vehicle Name",
+          icon: <Car className="h-4 w-4" />,
+          copyable: true,
+        },
+        {
+          key: "licensePlate",
+          label: "License Plate",
+          copyable: true,
+        },
+        {
+          key: "rcNumber",
+          label: "RC Number",
+          copyable: true,
+        },
+        {
+          key: "chassisNumber",
+          label: "Chassis Number",
+        },
+        {
+          key: "engineNumber",
+          label: "Engine Number",
+        },
+        {
+          key: "categoryName",
+          label: "Category Name",
+        },
+        {
+          key: "typeName",
+          label: "Type Name",
+        },
+        {
+          key: "notes",
+          label: "Notes",
+          span: 3,
+        },
+      ],
+    },
+    {
+      title: "Assignment",
+      fields: [
+        {
+          key: "ownerName",
+          label: "Owner",
+          icon: <User className="h-4 w-4" />,
+        },
+        {
+          key: "driverName",
+          label: "Driver",
+          icon: <User className="h-4 w-4" />,
+        },
+        {
+          key: "locationName",
+          label: "Location",
+          icon: <MapPin className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      title: "Documents",
+      fields: [
+        {
+          key: "documents",
+          label: "Linked Documents",
+          icon: <FileText className="h-4 w-4" />,
+          render: (docs) => {
+            if (!Array.isArray(docs) || docs.length === 0) return "—";
+
+            const items = docs.map((d) => ({
+              id: d.id,
+              name: d.documentTypeName ?? "Unknown",
+            }));
+
+            return <BadgeCell items={items} maxVisible={docs.length} badgeVariant="info" />;
+          },
+          span: 3,
+        },
+      ],
+    },
+    {
+      title: "Meta",
+      fields: [
+        {
+          key: "createdAt",
+          label: "Created At",
+          render: (v) => formatReadableDate(v as string),
+        },
+        {
+          key: "updatedAt",
+          label: "Updated At",
+          render: (v) => formatReadableDate(v as string),
+        },
+      ],
+    },
+  ],
 };

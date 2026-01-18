@@ -5,6 +5,8 @@ import { apiRoutes } from "@/lib/apiRoutes";
 import { SortOption } from "@/lib/types/filter.types";
 import { FilterConfig } from "@/lib/types/filter.types";
 import { ExportType } from "@/lib/types/export.types";
+import { EntityDetailConfig } from "@/lib/types/entity-details.types";
+import { Clock, File } from "lucide-react";
 
 // -------------------------------
 // Schema
@@ -91,4 +93,38 @@ export const documentTypeCrudConfig = {
   sortOptions: documentTypeSortOptions,
   defaultPageSize: 5,
   exportTable: "document_types" as ExportType,
+};
+
+export const documentTypeDetailConfig: EntityDetailConfig<DocumentType> = {
+  columns: 2,
+  sections: [
+    {
+      title: "Document Type Information",
+      fields: [
+        {
+          key: "name",
+          label: "Name",
+          icon: <File className="h-4 w-4" />,
+          copyable: true,
+        },
+      ],
+    },
+    {
+      title: "Meta",
+      fields: [
+        {
+          key: "createdAt",
+          label: "Created At",
+          icon: <Clock className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+        {
+          key: "updatedAt",
+          label: "Last Updated",
+          icon: <Clock className="h-4 w-4" />,
+          render: (v) => formatReadableDate(v as string),
+        },
+      ],
+    },
+  ],
 };

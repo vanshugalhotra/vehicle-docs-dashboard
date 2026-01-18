@@ -21,6 +21,8 @@ import { generateVehicleName } from 'src/common/utils/vehicleUtils';
 import { parseBusinessFilters } from 'src/common/business-filters/parser';
 import { createVehicleBusinessEngine } from './business-resolvers/business-engine.factory';
 import { QueryWithBusinessDto } from 'src/common/dto/query-business.dto';
+import { AuditService } from '../audit/audit.service';
+import { AuditEntity, AuditAction } from 'src/common/types/audit.types';
 
 @Injectable()
 export class VehicleService {
@@ -30,6 +32,7 @@ export class VehicleService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly vehicleValidation: VehicleValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(dto: CreateVehicleDto): Promise<VehicleResponse> {
@@ -90,6 +93,16 @@ export class VehicleService {
         ...ctx,
         additional: { id: vehicle.id, name: vehicle.name },
       });
+      // audit
+      await this.auditService.record<typeof vehicle>({
+        entityType: AuditEntity.VEHICLE,
+        entityId: vehicle.id,
+        action: AuditAction.CREATE,
+        actorUserId: null,
+        oldRecord: null,
+        newRecord: vehicle,
+      });
+
       return mapVehicleToResponse(vehicle);
     } catch (error) {
       this.logger.logError('Error creating vehicle', {
@@ -120,6 +133,7 @@ export class VehicleService {
           'rcNumber',
           'chassisNumber',
           'engineNumber',
+          'notes',
         ]);
 
       const include: Prisma.VehicleInclude = {
@@ -212,7 +226,11 @@ export class VehicleService {
           owner: true,
           driver: true,
           location: true,
-          documents: true,
+          documents: {
+            include: {
+              documentType: true,
+            },
+          },
         },
       });
 
@@ -302,6 +320,16 @@ export class VehicleService {
         additional: { id: updated.id, name: updated.name },
       });
 
+      // audit
+      await this.auditService.record<typeof updated>({
+        entityType: AuditEntity.VEHICLE,
+        entityId: updated.id,
+        action: AuditAction.UPDATE,
+        actorUserId: null,
+        oldRecord: vehicle,
+        newRecord: updated,
+      });
+
       return mapVehicleToResponse(updated);
     } catch (error) {
       this.logger.logError('Error updating vehicle', {
@@ -346,6 +374,16 @@ export class VehicleService {
       this.logger.logInfo('Vehicle deleted', {
         ...ctx,
         additional: { id: vehicle.id, name: vehicle.name },
+      });
+
+      // audit
+      await this.auditService.record<typeof vehicle>({
+        entityType: AuditEntity.VEHICLE,
+        entityId: vehicle.id,
+        action: AuditAction.DELETE,
+        actorUserId: null,
+        oldRecord: vehicle,
+        newRecord: null,
       });
 
       return { success: true };
