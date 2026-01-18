@@ -189,6 +189,7 @@ export class LoggerService {
     return {
       entity: context.entity,
       action: context.action,
+      ...(this.logDetail && context.additional ? context.additional : {}),
     };
   }
 

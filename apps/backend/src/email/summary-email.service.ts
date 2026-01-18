@@ -39,9 +39,7 @@ export class SummaryEmailService {
     }
 
     this.logger.info(
-      `Building summary email for ${items.length} queue items to send to ${recipients.join(
-        ', ',
-      )}`,
+      `Building summary email for ${items.length} queue items to send to ${recipients.length} recipients`,
     );
 
     try {

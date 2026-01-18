@@ -21,41 +21,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let message = 'Internal server error';
     let errorCode: string | undefined;
 
-    // 1. Handle HttpException
+    /* ---------------- HttpException ---------------- */
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message =
-        typeof res === 'string'
-          ? res
-          : ((res as Record<string, unknown>)?.['message']?.toString() ??
-            message);
+
+      if (typeof res === 'string') {
+        message = res;
+      } else if (typeof res === 'object' && res !== null && 'message' in res) {
+        const m = (res as Record<string, unknown>).message;
+        message = Array.isArray(m) ? m.join(', ') : String(m);
+      }
+    } else if (this.isPrismaError(exception)) {
+      /* ---------------- Prisma errors ---------------- */
+      errorCode = exception.code;
+      status = this.mapPrismaErrorToStatus(exception);
+      message = this.mapPrismaErrorToMessage(exception);
+    } else if (exception instanceof Error) {
+      /* ---------------- Generic Error ---------------- */
+      // Do NOT leak internal messages in prod
+      message = 'Unexpected server error';
     }
 
-    // 2. Handle Prisma errors
-    else if (this.isPrismaError(exception)) {
-      const prismaErr = exception;
-      errorCode = prismaErr.code;
-      message = this.extractPrismaMessage(prismaErr);
-      status = this.mapPrismaErrorToStatus(prismaErr);
-    }
-
-    // 3. Handle generic errors (Error)
-    else if (exception instanceof Error) {
-      message = exception.message;
-    }
-
-    // 4. Fallback: stringify safely
-    else if (typeof exception === 'object' && exception !== null) {
-      message = JSON.stringify(exception);
-    } else if (typeof exception === 'string') {
-      message = exception;
-    }
-
+    /* ---------------- Logging (full details) ---------------- */
     this.logger.error(
       `[${status}] ${message}`,
       exception instanceof Error ? exception.stack : undefined,
     );
+
     response.status(status).json({
       statusCode: status,
       message,
@@ -64,33 +57,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
   }
 
+  /* ---------- Helpers ---------- */
+
   private isPrismaError(e: unknown): e is Prisma.PrismaClientKnownRequestError {
     return (
       typeof e === 'object' &&
       e !== null &&
       'code' in e &&
-      typeof (e as { code: unknown }).code === 'string'
+      typeof (e as Record<string, unknown>).code === 'string'
     );
-  }
-
-  private extractPrismaMessage(
-    err: Prisma.PrismaClientKnownRequestError,
-  ): string {
-    if (typeof err.meta?.target === 'string') return err.meta.target;
-    if (Array.isArray(err.meta?.target)) return err.meta.target.join(', ');
-    return err.message ?? 'Database error';
   }
 
   private mapPrismaErrorToStatus(
     err: Prisma.PrismaClientKnownRequestError,
   ): HttpStatus {
     switch (err.code) {
-      case 'P2002': // Unique constraint
+      case 'P2002':
         return HttpStatus.CONFLICT;
-      case 'P2025': // Record not found
+      case 'P2025':
         return HttpStatus.NOT_FOUND;
       default:
         return HttpStatus.BAD_REQUEST;
+    }
+  }
+
+  private mapPrismaErrorToMessage(
+    err: Prisma.PrismaClientKnownRequestError,
+  ): string {
+    switch (err.code) {
+      case 'P2002':
+        return 'Resource already exists';
+      case 'P2025':
+        return 'Resource not found';
+      default:
+        return 'Database operation failed';
     }
   }
 }
