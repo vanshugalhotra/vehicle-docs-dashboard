@@ -12,8 +12,8 @@ export function middleware(req: NextRequest) {
   // Public routes that don't need auth
   const publicRoutes = [
     routes.login,
-    routes.register,
-    routes.verifyRegister,
+    // routes.register,
+    // routes.verifyRegister,
     routes.forgotPassword,
     routes.verifyForgotPassword,
   ];

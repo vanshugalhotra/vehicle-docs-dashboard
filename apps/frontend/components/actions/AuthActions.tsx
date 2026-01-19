@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { LogOut, LogIn, User as UserIcon } from "lucide-react";
+import { LogOut, LogIn, User as UserIcon, UserPlus } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppBadge } from "@/components/ui/AppBadge";
@@ -76,6 +76,16 @@ export const AuthActions: React.FC<AuthActionsProps> = ({ className }) => {
           {truncateEmail(getUserEmail())}
         </span>
       </AppBadge>
+      <AppButton
+        size="sm"
+        variant="outline"
+        startIcon={<UserPlus size={16} />}
+        onClick={() => router.push(routes.register)}
+        className="transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        aria-label="Register new user"
+      >
+        Register
+      </AppButton>
 
       {/* Logout Button */}
       <AppButton
