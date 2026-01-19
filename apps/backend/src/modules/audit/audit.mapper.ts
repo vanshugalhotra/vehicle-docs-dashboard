@@ -16,6 +16,7 @@ export function mapAuditLogToDto(log: {
   entityId: string;
   action: PrismaAuditAction;
   actorUserId: string | null;
+  vehicleId?: string | null;
   summary: string;
   context: Prisma.JsonValue | null;
   createdAt: Date;
@@ -26,6 +27,7 @@ export function mapAuditLogToDto(log: {
     entityId: log.entityId,
     action: log.action as AuditAction,
     actorUserId: log.actorUserId,
+    vehicleId: log.vehicleId,
     summary: log.summary,
     context: log.context as AuditContext | null,
     createdAt: log.createdAt,

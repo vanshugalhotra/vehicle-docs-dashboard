@@ -46,6 +46,7 @@ export interface AuditPayload {
 
   summary: string; // human-readable
   context: AuditContext; // structured JSON
+  vehicleId?: string | null;
 }
 
 // ==============================
@@ -64,6 +65,8 @@ export interface AuditLogRecord {
   summary: string;
   context?: AuditContext | null;
 
+  vehicleId?: string | null;
+
   createdAt: Date;
 }
 
@@ -73,7 +76,7 @@ export interface AuditRecordParams<T = any> {
   action: AuditAction;
 
   actorUserId?: string | null; // optional, can be resolved inside AuditService
-
+  vehicleId?: string | null;
   oldRecord?: T | null;
   newRecord?: T | null;
 }

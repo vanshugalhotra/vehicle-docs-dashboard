@@ -99,6 +99,7 @@ export class VehicleService {
         entityId: vehicle.id,
         action: AuditAction.CREATE,
         actorUserId: null,
+        vehicleId: vehicle.id,
         oldRecord: null,
         newRecord: vehicle,
       });
@@ -326,6 +327,7 @@ export class VehicleService {
         entityId: updated.id,
         action: AuditAction.UPDATE,
         actorUserId: null,
+        vehicleId: updated.id,
         oldRecord: vehicle,
         newRecord: updated,
       });
@@ -382,6 +384,7 @@ export class VehicleService {
         entityId: vehicle.id,
         action: AuditAction.DELETE,
         actorUserId: null,
+        vehicleId: vehicle.id,
         oldRecord: vehicle,
         newRecord: null,
       });

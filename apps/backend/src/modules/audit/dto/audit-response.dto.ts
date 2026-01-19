@@ -15,6 +15,13 @@ export class AuditLogResponseDto {
   @ApiProperty({ example: '361c3fe4-3143-4daa-ab8a-911d453f3782' })
   entityId: string;
 
+  @ApiProperty({
+    example: '361c3fe4-3143-4daa-ab8a-911d453f3782',
+    required: false,
+    description: 'Associated vehicle ID (if applicable)',
+  })
+  vehicleId?: string | null;
+
   @ApiProperty({ enum: AuditAction })
   action: AuditAction;
 

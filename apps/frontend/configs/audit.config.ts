@@ -1,7 +1,7 @@
 import { apiRoutes } from "@/lib/apiRoutes";
 import type { FilterConfig, SortOption } from "@/lib/types/filter.types";
 import { AuditAction, AuditEntity } from "@/lib/types/audit.types";
-
+import { Option } from "@/components/ui/AppSelect";
 export const auditQueryKey = "audit-logs";
 
 export const auditApi = {
@@ -38,6 +38,17 @@ export const auditBaseFiltersConfig: FilterConfig[] = [
 ];
 
 export const auditGlobalOnlyFiltersConfig: FilterConfig[] = [
+  {
+    key: "vehicleId",
+    label: "Vehicle",
+    type: "async-select",
+    asyncSource: apiRoutes.vehicles.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string; name: string }>).map((v) => ({
+        label: v.name,
+        value: v.id,
+      })),
+  },
   {
     key: "entityType",
     label: "Entity Type",

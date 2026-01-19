@@ -36,9 +36,10 @@ export class EmailService {
       additional: { host, port, secure },
     };
     this.logger.logInfo('EmailService initialized', ctx);
-
-    // --- Verify SMTP connection ---
-    void this.verifyTransport();
+    const isTest = this.config.get('NODE_ENV') === 'test';
+    if (!isTest) {
+      void this.verifyTransport();
+    }
   }
 
   private async verifyTransport() {
