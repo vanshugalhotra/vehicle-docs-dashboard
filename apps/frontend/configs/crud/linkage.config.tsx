@@ -31,13 +31,13 @@ export const linkageSchema = z.object({
     .union([z.string(), z.date()])
     .refine(
       (val) => val !== null && val !== undefined && val !== "",
-      "Start date is required"
+      "Start date is required",
     ),
   expiryDate: z
     .union([z.string(), z.date()])
     .refine(
       (val) => val !== null && val !== undefined && val !== "",
-      "Expiry date is required"
+      "Expiry date is required",
     ),
   notes: z.string().optional().nullable(),
   link: z.string().optional().nullable(),
@@ -53,7 +53,7 @@ export const linkageSchema = z.object({
         const beforeDecimal = val.split(".")[0].replace("-", "");
         return beforeDecimal.length <= 10;
       },
-      { message: "Invalid Amount" }
+      { message: "Invalid Amount" },
     ),
 });
 
@@ -63,13 +63,27 @@ export const renewalSchema = z.object({
     .union([z.string(), z.date()])
     .refine(
       (val) => val !== null && val !== undefined && val !== "",
-      "Start date is required"
+      "Start date is required",
     ),
   expiryDate: z
     .union([z.string(), z.date()])
     .refine(
       (val) => val !== null && val !== undefined && val !== "",
-      "Expiry date is required"
+      "Expiry date is required",
+    ),
+  amount: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => {
+        if (!val || val.trim() === "") return true;
+        if (!/^-?\d+(\.\d+)?$/.test(val)) return false;
+
+        const beforeDecimal = val.split(".")[0].replace("-", "");
+        return beforeDecimal.length <= 10;
+      },
+      { message: "Invalid Amount" },
     ),
 });
 
@@ -152,7 +166,7 @@ export const linkageLayout = {
 // =====================
 export const getColumns = (
   page: number,
-  pageSize: number
+  pageSize: number,
 ): ColumnDef<LinkageEntity>[] => [
   {
     id: "serial",

@@ -13,8 +13,10 @@ import { Vehicle, vehicleCrudConfig } from "@/configs/crud/vehicles.config";
 import { TableToolbar } from "@/components/crud/filter/TableToolbar/TableToolbar";
 import { useEditFocus } from "@/hooks/useEditFocus";
 import { useEditFromQuery } from "@/hooks/useEditFormQuery";
+import { useRouter } from "next/navigation";
 
 export default function AddVehiclesPage() {
+  const router = useRouter();
   const formCtrl = useFormStateController<Vehicle>("embedded");
   const [itemToDelete, setItemToDelete] = useState<Vehicle | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -75,7 +77,7 @@ export default function AddVehiclesPage() {
       toastUtils.success("Vehicle deleted successfully");
     } catch (err) {
       toastUtils.error(
-        err instanceof Error ? err.message : "Failed to delete vehicle"
+        err instanceof Error ? err.message : "Failed to delete vehicle",
       );
     } finally {
       setDeleteLoading(false);
@@ -92,7 +94,7 @@ export default function AddVehiclesPage() {
   useEditFromQuery<Vehicle>(
     vehicleCrudConfig.baseUrl,
     (record) => formCtrl.openEdit(record),
-    () => focusForm()
+    () => focusForm(),
   );
 
   return (
@@ -141,7 +143,8 @@ export default function AddVehiclesPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onView={(item) => {
-              console.log("View vehicle:", item);
+              if (!item.id) return;
+              router.push(`/entities/vehicles/${item.id}`);
             }}
             sort={sort}
             setSort={setSort}

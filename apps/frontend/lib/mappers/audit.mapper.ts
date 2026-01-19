@@ -65,7 +65,7 @@ function resolveActorLabel(dto: AuditLogResponseDto): string {
  * Context normalization
  * -------------------- */
 function normalizeContext(
-  context: AuditLogResponseDto["context"]
+  context: AuditLogResponseDto["context"],
 ): AuditLogUI["context"] | undefined {
   if (!context) return undefined;
 
@@ -91,7 +91,7 @@ function normalizeContext(
 }
 
 function normalizeChanges(
-  changes?: Record<string, { from: unknown; to: unknown }>
+  changes?: Record<string, { from: unknown; to: unknown }>,
 ): AuditUIChange[] {
   if (!changes) return [];
 
@@ -105,7 +105,7 @@ function normalizeChanges(
 }
 
 function normalizeKeyValue(
-  obj?: Record<string, unknown>
+  obj?: Record<string, unknown>,
 ): Record<string, string> {
   if (!obj) return {};
 
@@ -116,7 +116,7 @@ function normalizeKeyValue(
         const str = stringify(v);
         // Ensure we never return null
         return [k, str !== null ? str : ""];
-      })
+      }),
   );
 }
 
@@ -131,8 +131,9 @@ function isUUID(value: string): boolean {
 }
 
 function isDateString(value: string): boolean {
-  const parsed = Date.parse(value);
-  return !Number.isNaN(parsed);
+  if (/^\d+$/.test(value)) return false;
+
+  return /^\d{4}-\d{2}-\d{2}([T\s]\d{2}:\d{2}:\d{2}(\.\d+)?(Z)?)?$/.test(value);
 }
 
 function stringify(value: unknown): string | null {

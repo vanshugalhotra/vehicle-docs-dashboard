@@ -22,7 +22,9 @@ export default function LinkagePage() {
   const [renewItem, setRenewItem] = useState<LinkageEntity | null>(null);
 
   const renewFields = linkageCrudConfig.fields.filter((field) =>
-    ["documentNo", "startDate", "expiryDate"].includes(field.key as string)
+    ["documentNo", "startDate", "expiryDate", "amount"].includes(
+      field.key as string,
+    ),
   );
 
   const handleRenew = (item: LinkageEntity) => {
@@ -37,6 +39,7 @@ export default function LinkagePage() {
       documentNo: values.documentNo,
       startDate: values.startDate,
       expiryDate: values.expiryDate,
+      amount: values.amount,
     };
 
     toastUtils.promise(controller.update({ id: renewItem.id, data: payload }), {
@@ -64,7 +67,7 @@ export default function LinkagePage() {
       toastUtils.success("Document linkage deleted successfully");
     } catch (err) {
       toastUtils.error(
-        err instanceof Error ? err.message : "Failed to delete linkage"
+        err instanceof Error ? err.message : "Failed to delete linkage",
       );
     } finally {
       setDeleteLoading(false);
@@ -78,7 +81,7 @@ export default function LinkagePage() {
         title="Linkages"
         columns={linkageCrudConfig.columns(
           controller.page,
-          controller.pageSize
+          controller.pageSize,
         )}
         data={controller.data}
         loading={controller.isLoading}
@@ -124,6 +127,7 @@ export default function LinkagePage() {
           documentNo: renewItem?.documentNo,
           startDate: renewItem?.startDate,
           expiryDate: renewItem?.expiryDate,
+          amount: renewItem?.amount,
         }}
         onClose={() => {
           setRenewOpen(false);

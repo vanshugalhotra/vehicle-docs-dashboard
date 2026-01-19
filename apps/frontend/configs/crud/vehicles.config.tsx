@@ -281,6 +281,17 @@ export const vehicleFiltersConfig: FilterConfig[] = [
         value: String(item.id),
       })),
   },
+  {
+    key: "ownerId",
+    label: "Owner",
+    type: "async-select",
+    asyncSource: apiRoutes.owners.base,
+    transform: (data: unknown[]): Option[] =>
+      (data as Array<{ id: string | number; name: string }>).map((item) => ({
+        label: item.name,
+        value: String(item.id),
+      })),
+  },
 ];
 // =====================
 // 🔹 Sort Options

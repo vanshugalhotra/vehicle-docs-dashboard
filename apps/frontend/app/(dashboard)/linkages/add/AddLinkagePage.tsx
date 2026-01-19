@@ -25,8 +25,10 @@ import { useEditFromQuery } from "@/hooks/useEditFormQuery";
 import { fetchWithAuth } from "@/lib/utils/fetchWithAuth";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { DocumentTypeResponse } from "@/lib/types/document-type.types";
+import { useRouter } from "next/navigation";
 
 export default function AddLinkagePage() {
+  const router = useRouter();
   // -------------------------------
   // 🔹 Selected Vehicle
   // -------------------------------
@@ -113,7 +115,7 @@ export default function AddLinkagePage() {
       await loadVehicleAndDocumentType(record);
       formCtrl.openEdit(record);
     },
-    () => focusForm()
+    () => focusForm(),
   );
 
   // -------------------------------
@@ -156,10 +158,10 @@ export default function AddLinkagePage() {
     if (record.vehicleId && record.documentTypeId) {
       try {
         const vehicle = await fetchWithAuth<VehicleResponse>(
-          apiRoutes.vehicles.detail(record.vehicleId)
+          apiRoutes.vehicles.detail(record.vehicleId),
         );
         const document_type = await fetchWithAuth<DocumentTypeResponse>(
-          apiRoutes.document_types.detail(record.documentTypeId)
+          apiRoutes.document_types.detail(record.documentTypeId),
         );
 
         if (vehicle) {
@@ -255,6 +257,10 @@ export default function AddLinkagePage() {
               focusForm();
             }}
             onDelete={handleDelete}
+            onView={(item) => {
+              if (!item.id) return;
+              router.push(`/entities/vehicle_documents/${item.id}`);
+            }}
             sort={sort}
             setSort={setSort}
             className="my-4"
