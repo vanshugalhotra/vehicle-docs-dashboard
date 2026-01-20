@@ -188,7 +188,7 @@ model VehicleDocument {
 model ReminderConfig {
   id         String   @id @default(uuid())
   name       String?
-  offsetDays Int
+  offsetDays Int      @unique
   enabled    Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
