@@ -25,7 +25,9 @@ export class AuditService {
     private readonly currentUser: CurrentUserService,
   ) {}
 
-  async record<T>(params: AuditRecordParams<T>): Promise<AuditLogRecord> {
+  async record<T>(
+    params: AuditRecordParams<T>,
+  ): Promise<AuditLogRecord | null> {
     const ctx: LogContext = {
       entity: this.entity,
       action: 'record',
@@ -36,7 +38,6 @@ export class AuditService {
       },
     };
 
-    // Use debug for routine audit logging
     this.logger.logDebug('Recording audit log', ctx);
 
     try {
@@ -48,7 +49,25 @@ export class AuditService {
         newRecord: params.newRecord,
       });
 
-      // 2) Build event + summary together
+      // Skip no-op UPDATE audits
+      if (
+        params.action === AuditAction.UPDATE &&
+        Object.keys(context.changes).length === 0
+      ) {
+        this.logger.logDebug('Skipping audit log (no meaningful changes)', {
+          ...ctx,
+          additional: {
+            entityType: params.entityType,
+            entityId: params.entityId,
+            actor: this.currentUser.email ?? 'SYSTEM',
+            reason: 'NO_MEANINGFUL_CHANGES',
+          },
+        });
+
+        return null;
+      }
+
+      // 2) Build event + summary
       const { summary, event } = this.generateSummaryAndEvent<T>({
         entityType: params.entityType,
         action: params.action,
@@ -56,7 +75,6 @@ export class AuditService {
         record: params.newRecord ?? params.oldRecord ?? null,
       });
 
-      // write event back to context
       context.event = event;
 
       // 3) Determine actor user ID
@@ -73,7 +91,6 @@ export class AuditService {
         context,
       });
 
-      // Debug is appropriate; info is optional since audit is routine
       this.logger.logDebug('Audit log written', {
         ...ctx,
         additional: { auditLogId: record.id },
