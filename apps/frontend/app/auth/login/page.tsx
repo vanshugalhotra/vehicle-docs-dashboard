@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppInput } from "@/components/ui/AppInput";
 import { AppButton } from "@/components/ui/AppButton";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, Mail, Lock, UserPlus, KeyRound } from "lucide-react";
+import { Shield, Mail, Lock, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
 import { toastUtils } from "@/lib/utils/toastUtils";
@@ -112,28 +112,6 @@ export default function LoginPage() {
           >
             {loginLoading ? "Logging In..." : "Log In"}
           </AppButton>
-
-          {/* Divider */}
-          <div className="relative flex items-center my-2">
-            <div className="grow border-t border-gray-300/50"></div>
-            <span className="shrink mx-4 text-sm text-gray-500">or</span>
-            <div className="grow border-t border-gray-300/50"></div>
-          </div>
-
-          <Link href={routes.register}>
-            <AppButton
-              type="button"
-              variant="outline"
-              fullWidth
-              className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 shadow-sm hover:shadow"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                Create New Account
-              </div>
-            </AppButton>
-          </Link>
-
           <Footer />
         </form>
       </div>
