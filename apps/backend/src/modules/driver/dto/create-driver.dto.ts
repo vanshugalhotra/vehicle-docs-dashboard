@@ -8,6 +8,7 @@ import {
   MaxLength,
   IsOptional,
 } from 'class-validator';
+import { NoEmoji } from 'src/common/decorators/noemoji.decorator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateDriverDto {
@@ -19,10 +20,7 @@ export class CreateDriverDto {
   @IsNotEmpty()
   @MinLength(2, { message: 'Driver name must be at least 2 characters long.' })
   @MaxLength(50, { message: 'Driver name must be at most 50 characters.' })
-  @Matches(/^[A-Za-z\s'-]+$/, {
-    message:
-      'Driver name can only contain letters, spaces, apostrophes, and hyphens.',
-  })
+  @NoEmoji()
   @Trim()
   name: string;
 

@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-  Matches,
-} from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator';
+import { NoEmoji } from 'src/common/decorators/noemoji.decorator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 export class CreateLocationDto {
   @ApiProperty({
@@ -14,10 +9,7 @@ export class CreateLocationDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Za-z0-9\s-]+$/, {
-    message:
-      'Location name can only contain letters, numbers, spaces, and hyphens.',
-  })
+  @NoEmoji()
   @MinLength(2)
   @MaxLength(50, { message: 'Location name must be at most 50 characters.' })
   @Trim()

@@ -95,11 +95,11 @@ describe('VehicleType E2E (comprehensive + extended)', () => {
       expect(body.categoryId).toBe(suvCategoryId);
     });
 
-    it('should reject special characters in name', async () => {
+    it('should accept special characters in name', async () => {
       await authedRequest(server)
         .post('/api/v1/vehicle-types')
         .send({ name: 'Luxury@2025', categoryId: sedanCategoryId })
-        .expect(400);
+        .expect(201);
     });
   });
 

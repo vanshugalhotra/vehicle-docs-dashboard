@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsString, MinLength, MaxLength } from 'class-validator';
+import { NoEmoji } from 'src/common/decorators/noemoji.decorator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateCategoryDto {
@@ -11,10 +12,7 @@ export class CreateCategoryDto {
   @MaxLength(50, {
     message: 'Category name must be at most 50 characters long.',
   })
-  @Matches(/^[A-Za-z0-9\s-]+$/, {
-    message:
-      'Category name can only contain letters, numbers, spaces, and hyphens.',
-  })
+  @NoEmoji()
   @Trim()
   name: string;
 }

@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  MinLength,
-  MaxLength,
-  Matches,
-  IsUUID,
-} from 'class-validator';
+import { IsString, MinLength, MaxLength, IsUUID } from 'class-validator';
+import { NoEmoji } from 'src/common/decorators/noemoji.decorator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateVehicleTypeDto {
@@ -15,10 +10,7 @@ export class CreateVehicleTypeDto {
   @MaxLength(50, {
     message: 'Vehicle type name must be at most 50 characters.',
   })
-  @Matches(/^[A-Za-z0-9\s-]+$/, {
-    message:
-      'Vehicle type name can only contain letters, numbers, spaces, and hyphens.',
-  })
+  @NoEmoji()
   @Trim()
   name: string;
 

@@ -74,11 +74,11 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
         .expect(400);
     });
 
-    it('should reject name with special characters', async () => {
+    it('should accept name with special characters', async () => {
       await authedRequest(server)
         .post('/api/v1/document-types')
         .send({ name: 'Insurance@Certificate#' })
-        .expect(400);
+        .expect(201);
     });
   });
 
@@ -92,8 +92,8 @@ describe('DocumentType E2E (comprehensive + extended)', () => {
         .get('/api/v1/document-types')
         .expect(200);
       const body = res.body as PaginatedDocumentTypeResponseDto;
-      expect(body.items.length).toBe(2);
-      expect(body.total).toBe(2);
+      expect(body.items.length).toBe(3);
+      expect(body.total).toBe(3);
     });
 
     it('should return empty array when no document types exist', async () => {

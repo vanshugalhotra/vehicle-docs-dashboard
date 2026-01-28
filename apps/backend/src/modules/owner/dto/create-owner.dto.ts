@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator';
+import { NoEmoji } from 'src/common/decorators/noemoji.decorator';
 import { Trim } from 'src/common/decorators/trim.decorator';
 
 export class CreateOwnerDto {
@@ -15,14 +10,11 @@ export class CreateOwnerDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Za-z0-9\s-]+$/, {
-    message:
-      'Owner name can only contain letters, numbers, spaces, and hyphens.',
-  })
   @MinLength(2)
   @MaxLength(50, {
     message: 'Owner name must be at most 50 characters.',
   })
+  @NoEmoji()
   @Trim()
   name: string;
 }

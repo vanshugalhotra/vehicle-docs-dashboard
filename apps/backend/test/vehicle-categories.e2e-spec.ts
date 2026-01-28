@@ -54,11 +54,11 @@ describe('VehicleCategory E2E (comprehensive + extended)', () => {
         .expect(409);
     });
 
-    it('should not allow category with special chars in name', async () => {
+    it('should allow category with special chars in name', async () => {
       await authedRequest(server)
         .post('/api/v1/vehicle-categories')
         .send({ name: 'Electric-Compact@2025' })
-        .expect(400);
+        .expect(201);
     });
 
     it('should reject category with excessively long name', async () => {
