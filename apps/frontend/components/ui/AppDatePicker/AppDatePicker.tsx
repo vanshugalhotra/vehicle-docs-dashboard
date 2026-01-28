@@ -47,10 +47,14 @@ export const AppDatePicker: FC<AppDatePickerProps> = ({
           error && componentTokens.input.error,
           disabled && componentTokens.input.disabled,
           !disabled && componentTokens.input.focus,
-          className
+          className,
         )}
         wrapperClassName="w-full"
         dateFormat="dd/MM/yyyy"
+        showYearDropdown
+        showMonthDropdown
+        scrollableYearDropdown
+        yearDropdownItemNumber={20}
       />
     </div>
   );

@@ -53,7 +53,7 @@ export const AppAsyncSelect = <T,>({
     search,
     filterBy,
     transform,
-    extraParams: { take: 4 },
+    extraParams: { take: 15 },
     selectedValue: value,
   });
 
