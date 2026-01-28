@@ -144,6 +144,7 @@ model Vehicle {
   ownerId       String?
   driverId      String?
   locationId    String?
+  model         String?
   documents     VehicleDocument[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt

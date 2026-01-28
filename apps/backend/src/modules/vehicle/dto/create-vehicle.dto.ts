@@ -90,4 +90,14 @@ export class CreateVehicleDto {
   @MaxLength(500)
   @Trim()
   notes?: string;
+
+  @ApiProperty({
+    description: 'Optional model of the vehicle',
+    example: '2021',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @Trim()
+  model?: string;
 }

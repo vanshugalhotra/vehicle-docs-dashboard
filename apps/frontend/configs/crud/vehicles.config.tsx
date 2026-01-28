@@ -37,6 +37,7 @@ export const vehicleSchema = z.object({
   locationId: optionalString(),
   driverId: optionalString(),
   notes: optionalString(),
+  model: optionalString(),
 });
 
 interface DocumentItem {
@@ -183,12 +184,19 @@ export const vehicleFields = [
     placeholder: "Additional notes (optional)",
     required: false,
   },
+  {
+    key: "model",
+    label: "Model",
+    type: "text" as const,
+    placeholder: "Vehicle model",
+    required: false,
+  },
 ];
 
 export const vehicleLayout = {
   gridColumns: 3,
   fieldSpans: {
-    notes: 3,
+    notes: 2,
   },
 };
 
@@ -197,7 +205,7 @@ export const vehicleLayout = {
 // =====================
 export const getColumns = (
   page: number,
-  pageSize: number
+  pageSize: number,
 ): ColumnDef<Vehicle>[] => [
   {
     id: "serial",
@@ -372,6 +380,10 @@ export const vehicleDetailConfig: EntityDetailConfig<Vehicle> = {
           label: "Type Name",
         },
         {
+          key: "model",
+          label: "Model",
+        },
+        {
           key: "notes",
           label: "Notes",
           span: 3,
@@ -413,7 +425,13 @@ export const vehicleDetailConfig: EntityDetailConfig<Vehicle> = {
               name: d.documentTypeName ?? "Unknown",
             }));
 
-            return <BadgeCell items={items} maxVisible={docs.length} badgeVariant="info" />;
+            return (
+              <BadgeCell
+                items={items}
+                maxVisible={docs.length}
+                badgeVariant="info"
+              />
+            );
           },
           span: 3,
         },

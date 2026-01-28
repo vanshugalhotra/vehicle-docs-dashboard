@@ -81,6 +81,7 @@ export class VehicleService {
           chassisNumber: normalized.chassisNumber,
           engineNumber: normalized.engineNumber,
           notes: dto.notes ?? null,
+          model: dto.model ?? null,
           categoryId: dto.categoryId,
           typeId: dto.typeId,
           ownerId: dto.ownerId ?? null,

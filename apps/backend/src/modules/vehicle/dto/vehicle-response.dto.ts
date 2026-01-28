@@ -29,6 +29,8 @@ export class VehicleResponseDto {
 
   @ApiProperty({ example: 'Internal use only', required: false })
   notes?: string | null;
+  @ApiProperty({ example: '2023', required: false })
+  model?: string | null;
 
   @ApiProperty({ example: 'b1f3a2c4-1234-5678-9abc-1234567890ab' })
   categoryId: string;

@@ -6,6 +6,7 @@ export interface VehicleResponse {
   chassisNumber: string;
   engineNumber: string;
   notes: string | null;
+  model: string | null;
   categoryId: string;
   typeId: string;
   ownerId: string | null;

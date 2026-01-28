@@ -32,6 +32,7 @@ export function mapVehicleToResponse(
     chassisNumber: vehicle.chassisNumber,
     engineNumber: vehicle.engineNumber,
     notes: vehicle.notes ?? null,
+    model: vehicle.model ?? null,
     categoryId: vehicle.categoryId,
     typeId: vehicle.typeId,
     ownerId: vehicle.ownerId ?? null,
